@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.domye.picture.demos.web;
+package com.domye.picture.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -59,8 +59,7 @@ public class BasicController {
     }
 
     @ModelAttribute
-    public void parseUser(@RequestParam(name = "name", defaultValue = "unknown user") String name
-            , @RequestParam(name = "age", defaultValue = "12") Integer age, User user) {
+    public void parseUser(@RequestParam(name = "name", defaultValue = "unknown user") String name, @RequestParam(name = "age", defaultValue = "12") Integer age, User user) {
         user.setName("zhangsan");
         user.setAge(18);
     }

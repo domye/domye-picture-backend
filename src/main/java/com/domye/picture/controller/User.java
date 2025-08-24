@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.domye.picture.demos.web;
+package com.domye.picture.controller;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>

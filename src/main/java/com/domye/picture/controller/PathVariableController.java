@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.domye.picture.demos.web;
+package com.domye.picture.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
