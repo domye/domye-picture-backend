@@ -1,0 +1,23 @@
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+spring:
+  application:
+    name: domye-picture-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dmoye_picture
+    username: root
+    password: 987789qw
+mybatis-plus:
+  configuration:
+    #MyBatis配置
+    map-underscore-to-camel-case: false
+    #仅在开发环境使用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
