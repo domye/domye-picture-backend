@@ -11,6 +11,9 @@ server:
 # Spring框架配置
 # 配置Spring应用的基本信息和数据源连接
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
   # 应用配置
   application:
     # 应用名称，用于服务注册与发现
@@ -25,6 +28,8 @@ spring:
     username: root
     # 数据库密码
     password: 987789qw
+  profiles:
+    active: local
 
 # MyBatis-Plus配置
 # 配置MyBatis-Plus的映射规则和全局设置
