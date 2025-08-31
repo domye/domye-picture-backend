@@ -2,7 +2,7 @@ package com.domye.picture.common;
 
 import com.domye.picture.exception.ErrorCode;
 
-public class ResultUtils {
+public class Result {
 
     /**
      * 成功

@@ -7,7 +7,7 @@ import cn.hutool.core.util.RandomUtil;
 import com.domye.picture.config.CosClientConfig;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
-import com.domye.picture.exception.ThrowUtils;
+import com.domye.picture.exception.Throw;
 import com.domye.picture.model.dto.file.UploadPictureResult;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
@@ -34,8 +34,8 @@ public class FileManager {
         // 校验图片
         validPicture(multipartFile);
         // 图片上传地址
-        String uuid = RandomUtil.randomString(16);
-        String originFilename = multipartFile.getOriginalFilename();
+        String uuid = RandomUtil.randomString(16);//获取UUID作为文件名第二部分
+        String originFilename = multipartFile.getOriginalFilename();//获取原始文件名
         String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid,
                 FileUtil.getSuffix(originFilename));
         String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFilename);
@@ -69,13 +69,13 @@ public class FileManager {
     }
 
     private void validPicture(MultipartFile file) {
-        ThrowUtils.throwIf(file == null, ErrorCode.PARAMS_ERROR, "图片不能为空");
+        Throw.throwIf(file == null, ErrorCode.PARAMS_ERROR, "图片不能为空");
         Long fileSize = file.getSize();
         final Long ONE_MB = 1024 * 1024L;
-        ThrowUtils.throwIf(fileSize > 2 * ONE_MB, ErrorCode.PARAMS_ERROR, "图片大小不能超过2M");
+        Throw.throwIf(fileSize > 2 * ONE_MB, ErrorCode.PARAMS_ERROR, "图片大小不能超过2M");
         String fileSuffix = FileUtil.getSuffix(file.getOriginalFilename());
         final List<String> ALLOW_FORMAT_LIST = Arrays.asList("jpeg", "jpg", "png", "webp");
-        ThrowUtils.throwIf(!ALLOW_FORMAT_LIST.contains(fileSuffix), ErrorCode.PARAMS_ERROR, "文件类型错误");
+        Throw.throwIf(!ALLOW_FORMAT_LIST.contains(fileSuffix), ErrorCode.PARAMS_ERROR, "文件类型错误");
     }
 
     public void deleteTempFile(File file) {

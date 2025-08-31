@@ -2,7 +2,7 @@ package com.domye.picture.controller;
 
 import com.domye.picture.annotation.AuthCheck;
 import com.domye.picture.common.BaseResponse;
-import com.domye.picture.common.ResultUtils;
+import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
@@ -37,7 +37,7 @@ public class FileController {
             multipartFile.transferTo(file);
             cosManager.putObject(filepath, file);
             // 返回可访问地址
-            return ResultUtils.success(filepath);
+            return Result.success(filepath);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filepath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
