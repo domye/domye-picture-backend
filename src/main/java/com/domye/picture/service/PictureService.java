@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.picture.PictureQueryRequest;
+import com.domye.picture.model.dto.picture.PictureReviewRequest;
 import com.domye.picture.model.dto.picture.PictureUploadRequest;
 import com.domye.picture.model.entity.Picture;
 import com.domye.picture.model.entity.User;
@@ -29,4 +30,8 @@ public interface PictureService extends IService<Picture> {
     public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
 
     public void validPicture(Picture picture);
+
+    public void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+
+    void fillReviewParams(Picture picture, User loginUser);
 }

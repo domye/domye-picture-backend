@@ -58,7 +58,7 @@ public class FileManager {
             uploadPictureResult.setPicScale(picScale);
             uploadPictureResult.setPicFormat(imageInfo.getFormat());
             uploadPictureResult.setPicSize(FileUtil.size(file));
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            uploadPictureResult.setUrl(cosClientConfig.getHost() + uploadPath);
             return uploadPictureResult;
         } catch (Exception e) {
             log.error("图片上传到对象存储失败", e);
