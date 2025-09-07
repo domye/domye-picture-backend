@@ -71,7 +71,7 @@ public class Picture implements Serializable {
      */
     private String picFormat;
 
-
+    private String thumbnailUrl;
     /**
      * 审核状态：0-待审核; 1-通过; 2-拒绝
      */
@@ -91,7 +91,7 @@ public class Picture implements Serializable {
      * 审核时间
      */
     private Date reviewTime;
-    
+
     /**
      * 创建用户 id
      */

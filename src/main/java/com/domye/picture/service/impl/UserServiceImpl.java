@@ -70,6 +70,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     }
 
+    //用户登录
     @Override
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //校验
@@ -93,6 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return this.getLoginUserVO(user);
     }
 
+    //获得视图层用户信息
     @Override
     public LoginUserVO getLoginUserVO(User user) {
         LoginUserVO loginUserVO = new LoginUserVO();
@@ -100,6 +102,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return loginUserVO;
     }
 
+    //从登录请求中获得登录信息
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 先判断是否已登录
