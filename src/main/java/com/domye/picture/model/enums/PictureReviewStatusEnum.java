@@ -1,4 +1,4 @@
-package com.domye.picture.constant;
+package com.domye.picture.model.enums;
 
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;

@@ -3,6 +3,7 @@ package com.domye.picture.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureQueryRequest;
 import com.domye.picture.model.dto.picture.PictureReviewRequest;
 import com.domye.picture.model.dto.picture.PictureUploadRequest;
@@ -34,4 +35,12 @@ public interface PictureService extends IService<Picture> {
     public void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
 
     void fillReviewParams(Picture picture, User loginUser);
+
+    public void clearPictureFile(Picture oldPicture);
+
+    void checkPictureAuth(User loginUser, Picture picture);
+
+    void deletePicture(Long id, User loginUser);
+
+    void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 }

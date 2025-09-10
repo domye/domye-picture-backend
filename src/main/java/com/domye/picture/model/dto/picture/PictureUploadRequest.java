@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Data
 public class PictureUploadRequest implements Serializable {
     private Long id;
-
+    private Long spaceId;
 }
 
 
