@@ -1,7 +1,6 @@
 package com.domye.picture.model.vo;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.domye.picture.model.entity.Space;
 import lombok.Data;
 
@@ -54,7 +53,10 @@ public class SpaceVO {
      * 创建时间
      */
     private Date createTime;
-
+    /**
+     * 创建用户信息
+     */
+    private UserVO user;
     /**
      * 编辑时间
      */
@@ -65,11 +67,6 @@ public class SpaceVO {
      */
     private Date updateTime;
 
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
 
     public static Space voToObject(SpaceVO spaceVO) {
         if (spaceVO == null)

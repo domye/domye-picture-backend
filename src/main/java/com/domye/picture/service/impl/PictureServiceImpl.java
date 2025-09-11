@@ -30,6 +30,7 @@ import com.domye.picture.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -58,6 +59,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private UserService userService;
     @Resource
     private SpaceServiceImpl spaceService;
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
@@ -70,6 +73,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             // 必须空间创建人（管理员）才能上传
             if (!loginUser.getId().equals(space.getUserId())) {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+            }
+            if (space.getTotalCount() >= space.getMaxCount()) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间条数不足");
+            }
+            if (space.getTotalSize() >= space.getMaxSize()) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间大小不足");
             }
         }
         if (pictureId != null) {
@@ -117,9 +126,20 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             picture.setId(pictureId);
             picture.setEditTime(new Date());
         }
-
-        boolean result = this.saveOrUpdate(picture);
-        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
+        Long finalSpaceId = spaceId;
+        transactionTemplate.execute(status -> {
+            boolean result = this.saveOrUpdate(picture);
+            Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
+            if (finalSpaceId != null) {
+                boolean update = spaceService.lambdaUpdate()
+                        .eq(Space::getId, finalSpaceId)
+                        .setSql("totalSize = totalSize + " + picture.getPicSize())
+                        .setSql("totalCount = totalCount + 1")
+                        .update();
+                Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
+            }
+            return PictureVO.objToVo(picture);
+        });
         return PictureVO.objToVo(picture);
     }
 
@@ -137,14 +157,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String category = pictureQueryRequest.getCategory();
         List<String> tags = pictureQueryRequest.getTags();
         Long picSize = pictureQueryRequest.getPicSize();
-        Integer picWidth = pictureQueryRequest.getPicWidth();
-        Integer picHeight = pictureQueryRequest.getPicHeight();
         Double picScale = pictureQueryRequest.getPicScale();
         String picFormat = pictureQueryRequest.getPicFormat();
         String searchText = pictureQueryRequest.getSearchText();
         Long userId = pictureQueryRequest.getUserId();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        Boolean nullSpaceId = pictureQueryRequest.getNullSpaceId();
         //设置查询条件
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件
@@ -167,6 +187,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "pic_scale", picScale);
         queryWrapper.eq(ObjUtil.isNotEmpty(picFormat), "pic_format", picFormat);
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.eq(ObjUtil.isNotEmpty(spaceId), "spaceId", spaceId);
+        queryWrapper.isNull(nullSpaceId, "spaceId");
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
                 queryWrapper.like("tags", "\"" + tag + "\"");
@@ -327,8 +349,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Picture oldPicture = this.getById(id);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         this.checkPictureAuth(loginUser, oldPicture);
-        boolean result = this.removeById(id);
-        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        transactionTemplate.execute(status -> {
+                    Boolean result = this.removeById(id);
+                    Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+                    Long spaceId = oldPicture.getSpaceId();
+                    if (spaceId != null) {
+                        Boolean update = spaceService.lambdaUpdate()
+                                .eq(Space::getId, spaceId)
+                                .setSql("total_count = total_count - 1")
+                                .setSql("totalSize = totalSize - " + oldPicture.getPicSize())
+                                .update();
+                        Throw.throwIf(!update, ErrorCode.OPERATION_ERROR);
+                    }
+                    return true;
+                }
+        );
         this.clearPictureFile(oldPicture);
     }
 

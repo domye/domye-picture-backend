@@ -1,9 +1,15 @@
 package com.domye.picture.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.Space.SpaceAddRequest;
+import com.domye.picture.model.dto.Space.SpaceQueryRequest;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
+import com.domye.picture.model.vo.SpaceVO;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Domye
@@ -16,4 +22,14 @@ public interface SpaceService extends IService<Space> {
     public void fillSpace(Space space);
 
     public void validSpace(Space space, boolean add);
+
+    void checkSpaceAuth(User loginUser, Space space);
+
+    void deleteSpace(long id, User loginUser);
+
+    SpaceVO getSpaceVO(Space space, HttpServletRequest request);
+
+    Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request);
+
+    QueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest);
 }

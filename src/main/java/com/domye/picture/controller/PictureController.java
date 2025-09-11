@@ -13,11 +13,13 @@ import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.Picture;
+import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.vo.PictureTagCategory;
 import com.domye.picture.model.vo.PictureVO;
 import com.domye.picture.service.PictureService;
+import com.domye.picture.service.SpaceService;
 import com.domye.picture.service.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -49,6 +51,8 @@ public class PictureController {
     private UserService userService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private SpaceService spaceService;
 
     @PostMapping("/upload")
     public BaseResponse<PictureVO> uploadPicture(
@@ -162,7 +166,22 @@ public class PictureController {
         Throw.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 普通用户默认只能查看已过审的数据
         pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-
+// 空间权限校验
+        Long spaceId = pictureQueryRequest.getSpaceId();
+// 公开图库
+        if (spaceId == null) {
+            // 普通用户默认只能查看已过审的公开数据
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+            pictureQueryRequest.setNullSpaceId(true);
+        } else {
+            // 私有空间
+            User loginUser = userService.getLoginUser(request);
+            Space space = spaceService.getById(spaceId);
+            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            if (!loginUser.getId().equals(space.getUserId())) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+            }
+        }
         // 构建缓存 key
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
