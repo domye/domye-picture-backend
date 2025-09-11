@@ -188,20 +188,20 @@ public class PictureController {
         String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
 
         // 查询缓存
-        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
-        if (cachedValue != null) {
-            // 如果缓存命中，返回结果
-            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-            return Result.success(cachedPage);
-        }
-
-        cachedValue = stringRedisTemplate.opsForValue().get(cacheKey);
-        if (cachedValue != null) {
-            // 如果缓存命中，返回结果
-            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-            LOCAL_CACHE.put(cacheKey, cachedValue);
-            return Result.success(cachedPage);
-        }
+//        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
+//        if (cachedValue != null) {
+//            // 如果缓存命中，返回结果
+//            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+//            return Result.success(cachedPage);
+//        }
+//
+//        cachedValue = stringRedisTemplate.opsForValue().get(cacheKey);
+//        if (cachedValue != null) {
+//            // 如果缓存命中，返回结果
+//            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+//            LOCAL_CACHE.put(cacheKey, cachedValue);
+//            return Result.success(cachedPage);
+//        }
 
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
