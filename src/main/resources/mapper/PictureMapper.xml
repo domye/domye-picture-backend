@@ -17,6 +17,7 @@
         <result property="picScale" column="picScale"/>
         <result property="picFormat" column="picFormat"/>
         <result property="userId" column="userId"/>
+        <result property="picColor" column="picColor"/>
         <result property="createTime" column="createTime"/>
         <result property="editTime" column="editTime"/>
         <result property="updateTime" column="updateTime"/>

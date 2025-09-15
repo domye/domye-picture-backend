@@ -113,7 +113,7 @@ public class PictureController {
      */
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Picture> getPictureById(long id, HttpServletRequest request) {
+    public BaseResponse<Picture> getPictureById(long id) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
         Picture picture = pictureService.getById(id);
@@ -172,7 +172,7 @@ public class PictureController {
         if (spaceId == null) {
             // 普通用户默认只能查看已过审的公开数据
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-            pictureQueryRequest.setNullSpaceId(true);
+//            pictureQueryRequest.setNullSpaceId(true);
         } else {
             // 私有空间
             User loginUser = userService.getLoginUser(request);
@@ -188,20 +188,20 @@ public class PictureController {
         String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
 
         // 查询缓存
-//        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
-//        if (cachedValue != null) {
-//            // 如果缓存命中，返回结果
-//            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-//            return Result.success(cachedPage);
-//        }
-//
-//        cachedValue = stringRedisTemplate.opsForValue().get(cacheKey);
-//        if (cachedValue != null) {
-//            // 如果缓存命中，返回结果
-//            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-//            LOCAL_CACHE.put(cacheKey, cachedValue);
-//            return Result.success(cachedPage);
-//        }
+        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
+        if (cachedValue != null) {
+            // 如果缓存命中，返回结果
+            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+            return Result.success(cachedPage);
+        }
+
+        cachedValue = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (cachedValue != null) {
+            // 如果缓存命中，返回结果
+            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+            LOCAL_CACHE.put(cacheKey, cachedValue);
+            return Result.success(cachedPage);
+        }
 
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
@@ -236,7 +236,7 @@ public class PictureController {
     @GetMapping("/tag_category")
     public BaseResponse<PictureTagCategory> listPictureTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
-        List<String> tagList = Arrays.asList("热门", "生活", "扫街", "艺术", "旅游", "扫街", "创意");
+        List<String> tagList = Arrays.asList("热门", "生活", "扫街", "艺术", "旅游", "创意");
         List<String> categoryList = Arrays.asList("人像", "风光", "扫街");
         pictureTagCategory.setTagList(tagList);
         pictureTagCategory.setCategoryList(categoryList);
@@ -251,5 +251,15 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         pictureService.doPictureReview(pictureReviewRequest, loginUser);
         return Result.success(true);
+    }
+
+    @PostMapping("/search/color")
+    public BaseResponse<List<PictureVO>> searchPictureByColor(@RequestBody SearchPictureByColorRequest searchPictureByColorRequest, HttpServletRequest request) {
+        Throw.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);
+        String picColor = searchPictureByColorRequest.getPicColor();
+        Long spaceId = searchPictureByColorRequest.getSpaceId();
+        User loginUser = userService.getLoginUser(request);
+        List<PictureVO> result = pictureService.searchPictureByColor(spaceId, picColor, loginUser);
+        return Result.success(result);
     }
 }

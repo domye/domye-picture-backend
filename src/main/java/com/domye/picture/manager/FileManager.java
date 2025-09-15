@@ -67,7 +67,7 @@ public class FileManager {
                 // 如果存在压缩后的图片对象，返回压缩后的结果
                 CIObject compressedCiObject = objectList.get(0);
                 CIObject thumbnailCiObject = objectList.get(1);
-                return buildResult(originFilename, compressedCiObject, thumbnailCiObject);
+                return buildResult(originFilename, compressedCiObject, thumbnailCiObject, imageInfo);
             }
             // 否则返回原始图片结果
             return buildResult(originFilename, file, uploadPath, imageInfo);
@@ -80,7 +80,7 @@ public class FileManager {
         }
     }
 
-    private UploadPictureResult buildResult(String originFilename, CIObject compressedCiObject, CIObject thumbnailCiObject) {
+    private UploadPictureResult buildResult(String originFilename, CIObject compressedCiObject, CIObject thumbnailCiObject, ImageInfo imageInfo) {
         UploadPictureResult uploadPictureResult = new UploadPictureResult();
         int picWidth = compressedCiObject.getWidth();
         int picHeight = compressedCiObject.getHeight();
@@ -88,6 +88,7 @@ public class FileManager {
         uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
         uploadPictureResult.setPicWidth(picWidth);
         uploadPictureResult.setPicHeight(picHeight);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
         uploadPictureResult.setPicScale(picScale);
         uploadPictureResult.setPicFormat(compressedCiObject.getFormat());
         uploadPictureResult.setPicSize(compressedCiObject.getSize().longValue());

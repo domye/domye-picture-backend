@@ -5,53 +5,14 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class PictureUploadRequest implements Serializable {
-    private Long id;
-    private Long spaceId;
+public class SearchPictureByColorRequest implements Serializable {
+    
     /**
      * 图片主色调
      */
     private String picColor;
+    /**
+     * 空间 id
+     */
+    private Long spaceId;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

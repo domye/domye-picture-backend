@@ -41,4 +41,8 @@ public class UploadPictureResult {
     private String picFormat;
     private String thumbnailUrl;
     private String SpaceId;
+    /**
+     * 图片主色调
+     */
+    private String picColor;
 }

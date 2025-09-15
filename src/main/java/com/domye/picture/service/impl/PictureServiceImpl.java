@@ -27,6 +27,7 @@ import com.domye.picture.model.vo.PictureVO;
 import com.domye.picture.model.vo.UserVO;
 import com.domye.picture.service.PictureService;
 import com.domye.picture.service.UserService;
+import com.domye.picture.utils.ColorSimilarUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -35,10 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -113,6 +113,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicSize(uploadPictureResult.getPicSize());
         picture.setPicWidth(uploadPictureResult.getPicWidth());
         picture.setPicHeight(uploadPictureResult.getPicHeight());
+        picture.setPicColor(uploadPictureResult.getPicColor());
         picture.setPicScale(uploadPictureResult.getPicScale());
         picture.setPicFormat(uploadPictureResult.getPicFormat());
         picture.setSpaceId(spaceId);
@@ -167,6 +168,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String reviewMessage = pictureQueryRequest.getReviewMessage();
         Long reviewerId = pictureQueryRequest.getReviewerId();
         Long spaceId = pictureQueryRequest.getSpaceId();
+        Date startEditTime = pictureQueryRequest.getStartEditTime();
+        Date endEditTime = pictureQueryRequest.getEndEditTime();
 //        Boolean nullSpaceId = pictureQueryRequest.getNullSpaceId();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
@@ -199,6 +202,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "picScale", picScale);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewStatus), "reviewStatus", reviewStatus);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
+        queryWrapper.ge(ObjUtil.isNotEmpty(startEditTime), "editTime", startEditTime);
+        queryWrapper.lt(ObjUtil.isNotEmpty(endEditTime), "editTime", endEditTime);
         // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
             /* and (tag like "%\"Java\"%" and like "%\"Python\"%") */
@@ -404,6 +409,39 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 操作数据库
         boolean result = this.updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+
+    @Override
+    public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser) {
+        Throw.throwIf(spaceId == null || StrUtil.isBlank(picColor), ErrorCode.PARAMS_ERROR);
+        Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        Space space = spaceService.getById(spaceId);
+        Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        if (!loginUser.getId().equals(space.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
+        }
+        List<Picture> pictureList = this.lambdaQuery()
+                .eq(Picture::getSpaceId, spaceId)
+                .isNotNull(Picture::getPicColor)
+                .list();
+        Color oldColor = Color.decode(picColor);
+        List<Picture> sortedList = pictureList.stream()
+                .sorted(Comparator.comparingDouble(picture -> {
+                    //获取该photo的值
+                    String picColorStr = picture.getPicColor();
+                    //没有主色调放最后
+                    if (StrUtil.isBlank(picColorStr)) {
+                        return Double.MAX_VALUE;
+                    }
+                    Color newColor = Color.decode(picColorStr);
+                    return -ColorSimilarUtils.calculateSimilarity(oldColor, newColor);
+                    //计算相似值，越大越相似
+                }))
+                .limit(20)
+                .collect(Collectors.toList());
+        return sortedList.stream()
+                .map(PictureVO::objToVo)
+                .collect(Collectors.toList());
     }
 }
 
