@@ -1,7 +1,8 @@
-package com.domye.picture.model.vo;
+package com.domye.picture.model.vo.space;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.domye.picture.model.entity.Space;
+import com.domye.picture.model.vo.UserVO;
 import lombok.Data;
 
 import java.util.Date;
