@@ -13,10 +13,7 @@ import com.domye.picture.model.dto.Space.analyze.*;
 import com.domye.picture.model.entity.Picture;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
-import com.domye.picture.model.vo.space.analyze.SpaceCategoryAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceSizeAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceTagAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceUsageAnalyzeResponse;
+import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.PictureService;
 import com.domye.picture.service.SpaceAnalyzeService;
 import com.domye.picture.service.SpaceService;
@@ -202,5 +199,59 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         return sizeRanges.entrySet().stream()
                 .map(entry -> new SpaceSizeAnalyzeResponse(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SpaceUserAnalyzeResponse> getSpaceUserAnalyze(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User loginUser) {
+        Throw.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        // 检查权限
+        checkSpaceAnalyzeAuth(spaceUserAnalyzeRequest, loginUser);
+        //填充字段
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        Long userId = spaceUserAnalyzeRequest.getUserId();
+        queryWrapper.eq(ObjUtil.isNotNull(userId), "userId", userId);
+        String timeDimension = spaceUserAnalyzeRequest.getTimeDimension();
+
+        fillAnalyzeQueryWrapper(spaceUserAnalyzeRequest, queryWrapper);
+        switch (timeDimension) {
+            case "day":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m-%d') AS period", "COUNT(*) AS count");
+                break;
+            case "week":
+                queryWrapper.select("YEARWEEK(createTime) AS period", "COUNT(*) AS count");
+                break;
+            case "month":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m') AS period", "COUNT(*) AS count");
+                break;
+            default:
+                throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //分组查询
+        queryWrapper.groupBy("period").orderByAsc("period");
+        List<Map<String, Object>> result = pictureService.getBaseMapper().selectMaps(queryWrapper);
+
+        //返回结果
+        return result.stream().map(map -> {
+            String period = map.get("period").toString();
+            Long count = ((Number) map.get("count")).longValue();
+            return new SpaceUserAnalyzeResponse(period, count);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Space> getSpaceRankAnalyze(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User loginUser) {
+        Throw.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+
+// 仅管理员可查看空间排行
+        Throw.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR, "无权查看空间排行");
+
+// 构造查询条件
+        QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "spaceName", "userId", "totalSize")
+                .orderByDesc("totalSize")
+                .last("LIMIT " + spaceRankAnalyzeRequest.getTopN()); // 取前 N 名
+
+// 查询结果
+        return spaceService.list(queryWrapper);
     }
 }

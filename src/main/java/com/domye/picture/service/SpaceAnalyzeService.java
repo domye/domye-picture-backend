@@ -1,16 +1,10 @@
 package com.domye.picture.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.dto.Space.analyze.SpaceCategoryAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceSizeAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceTagAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceUsageAnalyzeRequest;
+import com.domye.picture.model.dto.Space.analyze.*;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
-import com.domye.picture.model.vo.space.analyze.SpaceCategoryAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceSizeAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceTagAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceUsageAnalyzeResponse;
+import com.domye.picture.model.vo.space.analyze.*;
 
 import java.util.List;
 
@@ -25,4 +19,8 @@ public interface SpaceAnalyzeService extends IService<Space> {
     void checkSpaceAuth(User loginUser, Space space);
 
     List<SpaceSizeAnalyzeResponse> getSpaceSizeAnalyze(SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User loginUser);
+
+    List<SpaceUserAnalyzeResponse> getSpaceUserAnalyze(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User loginUser);
+
+    List<Space> getSpaceRankAnalyze(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User loginUser);
 }

@@ -4,15 +4,10 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.model.dto.Space.analyze.SpaceCategoryAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceSizeAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceTagAnalyzeRequest;
-import com.domye.picture.model.dto.Space.analyze.SpaceUsageAnalyzeRequest;
+import com.domye.picture.model.dto.Space.analyze.*;
+import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
-import com.domye.picture.model.vo.space.analyze.SpaceCategoryAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceSizeAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceTagAnalyzeResponse;
-import com.domye.picture.model.vo.space.analyze.SpaceUsageAnalyzeResponse;
+import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.SpaceAnalyzeService;
 import com.domye.picture.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,6 +67,23 @@ public class SpaceAnalyzeController {
         Throw.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         List<SpaceSizeAnalyzeResponse> resultList = spaceAnalyzeService.getSpaceSizeAnalyze(spaceSizeAnalyzeRequest, loginUser);
+        return Result.success(resultList);
+    }
+
+
+    @PostMapping("/user")
+    public BaseResponse<List<SpaceUserAnalyzeResponse>> getSpaceUserAnalyze(@RequestBody SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, HttpServletRequest request) {
+        Throw.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<SpaceUserAnalyzeResponse> resultList = spaceAnalyzeService.getSpaceUserAnalyze(spaceUserAnalyzeRequest, loginUser);
+        return Result.success(resultList);
+    }
+
+    @PostMapping("/rank")
+    public BaseResponse<List<Space>> getSpaceRankAnalyze(@RequestBody SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, HttpServletRequest request) {
+        Throw.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<Space> resultList = spaceAnalyzeService.getSpaceRankAnalyze(spaceRankAnalyzeRequest, loginUser);
         return Result.success(resultList);
     }
 }
