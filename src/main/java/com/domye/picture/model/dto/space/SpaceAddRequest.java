@@ -1,17 +1,13 @@
-package com.domye.picture.model.dto.Space;
+package com.domye.picture.model.dto.space;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class SpaceUpdateRequest implements Serializable {
+public class SpaceAddRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
-    private Long id;
     /**
      * 空间名称
      */
@@ -20,12 +16,9 @@ public class SpaceUpdateRequest implements Serializable {
      * 空间级别：0-普通版 1-专业版 2-旗舰版
      */
     private Integer spaceLevel;
+
     /**
-     * 空间图片的最大总大小
+     * 空间类型：0-私有 1-团队
      */
-    private Long maxSize;
-    /**
-     * 空间图片的最大数量
-     */
-    private Long maxCount;
+    private Integer spaceType;
 }

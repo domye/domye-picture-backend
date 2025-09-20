@@ -1,4 +1,4 @@
-package com.domye.picture.model.dto.Space.analyze;
+package com.domye.picture.model.dto.space.analyze;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

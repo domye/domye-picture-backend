@@ -4,7 +4,7 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.model.dto.Space.analyze.*;
+import com.domye.picture.model.dto.space.analyze.*;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
 import com.domye.picture.model.vo.space.analyze.*;

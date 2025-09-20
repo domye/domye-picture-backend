@@ -9,10 +9,11 @@ import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.model.dto.Space.SpaceAddRequest;
-import com.domye.picture.model.dto.Space.SpaceEditRequest;
-import com.domye.picture.model.dto.Space.SpaceQueryRequest;
-import com.domye.picture.model.dto.Space.SpaceUpdateRequest;
+import com.domye.picture.manager.auth.SpaceUserAuthManager;
+import com.domye.picture.model.dto.space.SpaceAddRequest;
+import com.domye.picture.model.dto.space.SpaceEditRequest;
+import com.domye.picture.model.dto.space.SpaceQueryRequest;
+import com.domye.picture.model.dto.space.SpaceUpdateRequest;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.SpaceLevel;
 import com.domye.picture.model.entity.User;
@@ -40,6 +41,9 @@ public class SpaceController {
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private SpaceService spaceService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(
@@ -117,6 +121,9 @@ public class SpaceController {
         Space space = spaceService.getById(id);
         Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
         SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
         return Result.success(spaceVO);
     }

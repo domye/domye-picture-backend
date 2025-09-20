@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
+import com.domye.picture.manager.auth.StpKit;
 import com.domye.picture.mapper.UserMapper;
 import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.entity.User;
@@ -91,6 +92,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
         //正确则返回用户信息
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
         return this.getLoginUserVO(user);
     }
 

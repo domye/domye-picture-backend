@@ -70,6 +70,11 @@ public class Space {
      * 更新时间
      */
     private Date updateTime;
+    
+    /**
+     * 空间类型：0-私有 1-团队
+     */
+    private Integer spaceType;
 
     /**
      * 是否删除

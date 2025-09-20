@@ -1,4 +1,4 @@
-package com.domye.picture.model.dto.Space;
+package com.domye.picture.model.dto.space;
 
 import lombok.Data;
 

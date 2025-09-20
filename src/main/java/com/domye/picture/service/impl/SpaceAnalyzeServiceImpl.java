@@ -9,7 +9,7 @@ import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.SpaceMapper;
-import com.domye.picture.model.dto.Space.analyze.*;
+import com.domye.picture.model.dto.space.analyze.*;
 import com.domye.picture.model.entity.Picture;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;

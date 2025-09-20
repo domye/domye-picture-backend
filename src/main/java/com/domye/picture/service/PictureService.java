@@ -39,7 +39,6 @@ public interface PictureService extends IService<Picture> {
 
     public void clearPictureFile(Picture oldPicture);
 
-    void checkPictureAuth(User loginUser, Picture picture);
 
     void deletePicture(Long id, User loginUser);
 

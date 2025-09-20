@@ -5,7 +5,9 @@ import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.vo.UserVO;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Data
@@ -49,6 +51,10 @@ public class SpaceVO {
      * 创建用户 id
      */
     private Long userId;
+    /**
+     * 空间类型：0-私有 1-团队
+     */
+    private Integer spaceType;
 
     /**
      * 创建时间
@@ -68,6 +74,10 @@ public class SpaceVO {
      */
     private Date updateTime;
 
+    /**
+     * 权限列表
+     */
+    private List<String> permissionList = new ArrayList<>();
 
     public static Space voToObject(SpaceVO spaceVO) {
         if (spaceVO == null)

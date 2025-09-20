@@ -1,7 +1,7 @@
 package com.domye.picture.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.dto.Space.analyze.*;
+import com.domye.picture.model.dto.space.analyze.*;
 import com.domye.picture.model.entity.Space;
 import com.domye.picture.model.entity.User;
 import com.domye.picture.model.vo.space.analyze.*;
