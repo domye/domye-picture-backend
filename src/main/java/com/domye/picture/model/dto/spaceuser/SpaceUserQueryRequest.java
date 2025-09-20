@@ -23,5 +23,5 @@ public class SpaceUserQueryRequest implements Serializable {
     /**
      * 空间角色：viewer/editor/admin
      */
-    private Integer spaceRole;
+    private String spaceRole;
 }

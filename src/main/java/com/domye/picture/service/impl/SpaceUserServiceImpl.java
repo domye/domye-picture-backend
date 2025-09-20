@@ -69,7 +69,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         Long id = spaceUserQueryRequest.getId();
         Long userId = spaceUserQueryRequest.getUserId();
         Long spaceId = spaceUserQueryRequest.getSpaceId();
-        Integer spaceRole = spaceUserQueryRequest.getSpaceRole();
+        String spaceRole = spaceUserQueryRequest.getSpaceRole();
 
 
         // 拼接查询条件
@@ -115,7 +115,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         List<SpaceUserVO> spaceUserVOList = spaceUserList.stream().map(SpaceUserVO::objToVo).collect(Collectors.toList());
         // 1. 关联查询用户信息
         Set<Long> userIdSet = spaceUserList.stream().map(SpaceUser::getUserId).collect(Collectors.toSet());
-        Set<Long> spaceIdSet = spaceUserList.stream().map(SpaceUser::getUserId).collect(Collectors.toSet());
+        Set<Long> spaceIdSet = spaceUserList.stream().map(SpaceUser::getSpaceId).collect(Collectors.toSet());
         // 2. 批量查询用户和空间
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
                 .collect(Collectors.groupingBy(User::getId));

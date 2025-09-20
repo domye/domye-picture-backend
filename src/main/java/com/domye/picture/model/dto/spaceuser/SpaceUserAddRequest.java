@@ -22,5 +22,5 @@ public class SpaceUserAddRequest implements Serializable {
      * editor: 1
      * admin: 2
      */
-    private Integer spaceRole;
+    private String spaceRole;
 }

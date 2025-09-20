@@ -182,15 +182,12 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         Throw.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        // 普通用户默认只能查看已过审的数据
-        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
 // 空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
 // 公开图库
         if (spaceId == null) {
             // 普通用户默认只能查看已过审的公开数据
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-//            pictureQueryRequest.setNullSpaceId(true);
         } else {
             // 私有空间
             boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
