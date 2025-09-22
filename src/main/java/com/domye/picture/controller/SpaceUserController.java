@@ -7,6 +7,7 @@ import com.domye.picture.common.Result;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.manager.auth.StpKit;
 import com.domye.picture.manager.auth.annotation.SaSpaceCheckPermission;
 import com.domye.picture.manager.auth.model.SpaceUserPermissionConstant;
 import com.domye.picture.model.dto.spaceuser.SpaceUserAddRequest;
@@ -28,6 +29,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+/**
+ * 空间成员管理
+ */
 @RestController
 @RequestMapping("/spaceUser")
 @Slf4j
@@ -42,9 +46,11 @@ public class SpaceUserController {
     /**
      * 添加成员到空间
      */
-    @PostMapping("/add")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
+    @PostMapping("/add")
     public BaseResponse<Long> addSpaceUser(@RequestBody SpaceUserAddRequest spaceUserAddRequest, HttpServletRequest request) {
+        boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
+        Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
         long id = spaceUserService.addSpaceUser(spaceUserAddRequest);
         return Result.success(id);
@@ -57,6 +63,8 @@ public class SpaceUserController {
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> deleteSpaceUser(@RequestBody DeleteRequest deleteRequest,
                                                  HttpServletRequest request) {
+        boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
+        Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -108,6 +116,9 @@ public class SpaceUserController {
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> editSpaceUser(@RequestBody SpaceUserEditRequest spaceUserEditRequest,
                                                HttpServletRequest request) {
+        //鉴权
+        boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
+        Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         if (spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

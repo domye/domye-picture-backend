@@ -130,8 +130,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userObj == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
-        // 移除登录态
+
+        User currentUser = (User) userObj;
+        // Sa-Token 登出
+        StpKit.SPACE.logout(currentUser.getId());
+
+        // 移除 Session 登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
+
         return true;
     }
 

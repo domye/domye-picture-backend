@@ -65,37 +65,49 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        // 判断 loginType，仅对类型为 "space" 进行权限校验
+        // 1. 校验登录类型：如果 loginType 不是 "space"，直接返回空权限列表
         if (!StpKit.SPACE_TYPE.equals(loginType)) {
             return new ArrayList<>();
         }
-        // 管理员权限，表示权限校验通过
-        List<String> ADMIN_PERMISSIONS = spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
-        // 获取上下文对象
-        SpaceUserAuthContext authContext = getAuthContextByRequest();
-        // 如果所有字段都为空，表示查询公共图库，可以通过
-        if (isAllFieldsNull(authContext)) {
-            return ADMIN_PERMISSIONS;
-        }
-        // 获取 userId
+
+        // 2. 获取当前登录用户信息
         User loginUser = (User) StpKit.SPACE.getSessionByLoginId(loginId).get(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "用户未登录");
         }
+
+        // 3. 管理员权限处理：如果当前用户为管理员，直接返回管理员权限列表
+        if (userService.isAdmin(loginUser)) {
+            return spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
+        }
+
+        // 4. 获取上下文对象
+        SpaceUserAuthContext authContext = getAuthContextByRequest();
+
+        // 5. 检查上下文字段是否为空
+        if (isAllFieldsNull(authContext)) {
+            // 如果上下文中所有字段均为空（如没有空间或图片信息），视为公共图库操作
+            // 公共图库操作，返回仅查看权限
+            return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
+        }
+
         Long userId = loginUser.getId();
-        // 优先从上下文中获取 SpaceUser 对象
+
+        // 6. 从上下文中优先获取 SpaceUser 对象
         SpaceUser spaceUser = authContext.getSpaceUser();
         if (spaceUser != null) {
             return spaceUserAuthManager.getPermissionsByRole(spaceUser.getSpaceRole());
         }
-        // 如果有 spaceUserId，必然是团队空间，通过数据库查询 SpaceUser 对象
+
+        // 7. 通过 spaceUserId 获取空间用户信息
         Long spaceUserId = authContext.getSpaceUserId();
         if (spaceUserId != null) {
             spaceUser = spaceUserService.getById(spaceUserId);
             if (spaceUser == null) {
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到空间用户信息");
             }
-            // 取出当前登录用户对应的 spaceUser
+
+            // 校验当前登录用户是否属于该空间
             SpaceUser loginSpaceUser = spaceUserService.lambdaQuery()
                     .eq(SpaceUser::getSpaceId, spaceUser.getSpaceId())
                     .eq(SpaceUser::getUserId, userId)
@@ -103,18 +115,21 @@ public class StpInterfaceImpl implements StpInterface {
             if (loginSpaceUser == null) {
                 return new ArrayList<>();
             }
-            // 这里会导致管理员在私有空间没有权限，可以再查一次库处理
+
+            // 根据登录用户在该空间的角色，返回相应的权限码列表
             return spaceUserAuthManager.getPermissionsByRole(loginSpaceUser.getSpaceRole());
         }
-        // 如果没有 spaceUserId，尝试通过 spaceId 或 pictureId 获取 Space 对象并处理
+
+        // 8. 通过 spaceId 或 pictureId 获取空间或图片信息
         Long spaceId = authContext.getSpaceId();
         if (spaceId == null) {
             // 如果没有 spaceId，通过 pictureId 获取 Picture 对象和 Space 对象
             Long pictureId = authContext.getPictureId();
-            // 图片 id 也没有，则默认通过权限校验
             if (pictureId == null) {
-                return ADMIN_PERMISSIONS;
+                // 如果 pictureId 和 spaceId 均为空，默认视为仅查看权限
+                return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
             }
+
             Picture picture = pictureService.lambdaQuery()
                     .eq(Picture::getId, pictureId)
                     .select(Picture::getId, Picture::getSpaceId, Picture::getUserId)
@@ -122,32 +137,36 @@ public class StpInterfaceImpl implements StpInterface {
             if (picture == null) {
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到图片信息");
             }
+
             spaceId = picture.getSpaceId();
-            // 公共图库，仅本人或管理员可操作
+            // 公共图库处理
             if (spaceId == null) {
-                if (picture.getUserId().equals(userId) || userService.isAdmin(loginUser)) {
-                    return ADMIN_PERMISSIONS;
+                if (picture.getUserId().equals(userId)) {
+                    // 如果图片是当前用户上传的，返回管理员权限
+                    return spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
                 } else {
-                    // 不是自己的图片，仅可查看
+                    // 如果图片不是当前用户上传的，返回仅允许查看的权限码
                     return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
                 }
             }
         }
-        // 获取 Space 对象
+
+        // 9. 获取 Space 对象并判断空间类型
         Space space = spaceService.getById(spaceId);
         if (space == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到空间信息");
         }
+
         // 根据 Space 类型判断权限
         if (space.getSpaceType() == SpaceTypeEnum.PRIVATE.getValue()) {
-            // 私有空间，仅本人或管理员有权限
-            if (space.getUserId().equals(userId) || userService.isAdmin(loginUser)) {
-                return ADMIN_PERMISSIONS;
+            // 私有空间：仅空间所有者和管理员有权限
+            if (space.getUserId().equals(userId)) {
+                return spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
             } else {
                 return new ArrayList<>();
             }
         } else {
-            // 团队空间，查询 SpaceUser 并获取角色和权限
+            // 团队空间：查询登录用户在该空间的角色
             spaceUser = spaceUserService.lambdaQuery()
                     .eq(SpaceUser::getSpaceId, spaceId)
                     .eq(SpaceUser::getUserId, userId)
@@ -155,9 +174,11 @@ public class StpInterfaceImpl implements StpInterface {
             if (spaceUser == null) {
                 return new ArrayList<>();
             }
+            // 返回对应的权限码列表
             return spaceUserAuthManager.getPermissionsByRole(spaceUser.getSpaceRole());
         }
     }
+
 
     /**
      * 本项目中不使用。返回一个账号所拥有的角色标识集合 (权限与角色可分开校验)
