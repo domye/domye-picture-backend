@@ -1,4 +1,4 @@
-package com.domye.picture.manager;
+package com.domye.picture.manager.upload;
 
 import cn.hutool.core.io.FileUtil;
 import com.domye.picture.config.CosClientConfig;

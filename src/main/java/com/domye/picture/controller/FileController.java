@@ -6,7 +6,7 @@ import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
-import com.domye.picture.manager.CosManager;
+import com.domye.picture.manager.upload.CosManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
