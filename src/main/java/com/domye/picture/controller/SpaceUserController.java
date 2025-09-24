@@ -72,6 +72,7 @@ public class SpaceUserController {
         // 判断是否存在
         SpaceUser oldSpaceUser = spaceUserService.getById(id);
         Throw.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        isMyself(request, oldSpaceUser);
         // 操作数据库
         boolean result = spaceUserService.removeById(id);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -131,10 +132,18 @@ public class SpaceUserController {
         long id = spaceUserEditRequest.getId();
         SpaceUser oldSpaceUser = spaceUserService.getById(id);
         Throw.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        isMyself(request, oldSpaceUser);
         // 操作数据库
         boolean result = spaceUserService.updateById(spaceUser);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return Result.success(true);
+    }
+
+    private void isMyself(HttpServletRequest request, SpaceUser oldSpaceUser) {
+        long loginUserId = userService.getLoginUser(request).getId();
+        if (oldSpaceUser.getUserId() == loginUserId) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限编辑自己");
+        }
     }
 
     /**

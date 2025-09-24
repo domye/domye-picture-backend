@@ -27,7 +27,7 @@ public class SpaceUserVO implements Serializable {
     /**
      * 空间角色：viewer/editor/admin
      */
-    private Integer spaceRole;
+    private String spaceRole;
     /**
      * 创建时间
      */

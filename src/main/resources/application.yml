@@ -1,77 +1,107 @@
 # 服务器配置
-# 配置应用程序的服务器端口和上下文路径
 server:
-  # 服务端口号
   port: 8123
-  # Servlet配置
   servlet:
-    # 应用上下文路径
     context-path: /api
 
 # Spring框架配置
-# 配置Spring应用的基本信息和数据源连接
 spring:
+  profiles:
+    active: local  # 激活生产环境配置
+  # 应用配置
+  application:
+    name: domye-picture-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dmoye_picture
+    username:
+    password:
+
+  # ShardingSphere配置
+  shardingsphere:
+    # 数据源配置
+    datasource:
+      names: dmoye_picture
+      dmoye_picture:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/dmoye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+        username:
+        password:
+
+    # 规则配置
+    rules:
+      sharding:
+        # 分表配置
+        tables:
+          picture:
+            actual-data-nodes: dmoye_picture.picture
+            table-strategy:
+              standard:
+                sharding-column: spaceId
+                sharding-algorithm-name: picture_sharding_algorithm
+
+        # 分片算法配置
+        sharding-algorithms:
+          picture_sharding_algorithm:
+            type: CLASS_BASED
+            props:
+              strategy: standard
+              algorithmClassName: com.domye.picture.manager.sharding.PictureShardingAlgorithm
+
+    # 属性配置
+    props:
+      sql-show: true
+
+  # Servlet配置
   servlet:
     multipart:
       max-file-size: 10MB
-  # 应用配置
-  application:
-    # 应用名称，用于服务注册与发现
-    name: domye-picture-backend
-  # 数据源配置
-  datasource:
-    # MySQL数据库驱动类名
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    # 数据库连接URL
-    url: jdbc:mysql://localhost:3306/dmoye_picture
-    # 数据库用户名
-    username: root
-    # 数据库密码
-    password: 987789qw
-  profiles:
-    active: local
+
+  # Redis配置
+  redis:
+    database: 1
+    host: 127.0.0.1
+    port: 6379
+    timeout: 5000
+    password:
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
 
 # MyBatis-Plus配置
-# 配置MyBatis-Plus的映射规则和全局设置
 mybatis-plus:
-  # MyBatis配置项
   configuration:
-    #MyBatis配置
-    # 是否开启下划线到驼峰命名的自动转换
     map-underscore-to-camel-case: false
-    #仅在开发环境使用
-    # SQL执行日志实现类，用于控制台输出SQL语句
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  # MyBatis-Plus全局配置
   global-config:
-    # 数据库配置
+    enable-sql-runner: true
     db-config:
-      # 逻辑删除字段名
       logic-delete-field: isDelete
-      # 逻辑已删除值
       logic-delete-value: 1
-      # 逻辑未删除值
       logic-not-delete-value: 0
 
+# Knife4j配置
 knife4j:
-  # 是否启用Knife4j
   enable: true
-  # OpenAPI规范配置
   openapi:
-    # API文档标题
     title: Knife4j官方文档
-    # API版本号
     version: v1.0
-    # API分组配置
     group:
-      # 测试分组1
       test1:
-        # 分组名称
         group-name: default
-        # API规则类型
         api-rule: package
-        # API资源路径配置
         api-rule-resources:
-          # 控制器包路径
           - com.domye.picture.controller
-      # 如果需要更多的分组，可以继续添加
+
+# 腾讯云COS配置
+#cos:
+#  client:
+#    host:
+#    secretId:
+#    secretKey:
+#    region:
+#    bucket:

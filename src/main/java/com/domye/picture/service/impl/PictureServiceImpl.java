@@ -133,6 +133,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                         .update();
                 Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
             }
+
             return PictureVO.objToVo(picture);
         });
         return PictureVO.objToVo(picture);
