@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -117,13 +118,19 @@ public class UserController implements Serializable {
      * 更新用户
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        User loginUser = userService.getLoginUser(request);
+        User oldUser = userService.getById(userUpdateRequest.getId());
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
+        if (!Objects.equals(user.getId(), loginUser.getId()) || !userService.isAdmin(user))
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        if (!oldUser.getUserRole().equals(user.getUserRole()) && !userService.isAdmin(loginUser))
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        
         boolean result = userService.updateById(user);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return Result.success(true);
