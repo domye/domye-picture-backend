@@ -9,7 +9,10 @@ import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.model.dto.user.*;
+import com.domye.picture.model.dto.user.UserLoginRequest;
+import com.domye.picture.model.dto.user.UserQueryRequest;
+import com.domye.picture.model.dto.user.UserRegisterRequest;
+import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.User;
 import com.domye.picture.model.vo.LoginUserVO;
 import com.domye.picture.model.vo.UserVO;
@@ -26,7 +29,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@Api(tags = "用户相关接口")
+@Api(tags = "用户模块")
 @RequestMapping("/user")
 public class UserController implements Serializable {
     @Resource
@@ -89,26 +92,6 @@ public class UserController implements Serializable {
         return Result.success(result);
     }
 
-    /**
-     * 添加用户
-     * @param userAddRequest 用户添加请求
-     * @return 用户id
-     */
-    @ApiOperation(value = "管理员添加用户")
-    @PostMapping("/add")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
-        Throw.throwIf(userAddRequest == null, ErrorCode.PARAMS_ERROR);
-        User user = new User();
-        BeanUtils.copyProperties(userAddRequest, user);
-        // 默认密码 12345678
-        final String DEFAULT_PASSWORD = "12345678";
-        String encryptPassword = userService.getEncryptPassword(DEFAULT_PASSWORD);
-        user.setUserPassword(encryptPassword);
-        boolean result = userService.save(user);
-        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return Result.success(user.getId());
-    }
 
     /**
      * 根据 id 获取用户

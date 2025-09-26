@@ -27,6 +27,8 @@ import com.domye.picture.service.SpaceService;
 import com.domye.picture.service.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/picture")
+@Api(tags = "图片模块")
 public class PictureController {
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)
@@ -60,7 +63,15 @@ public class PictureController {
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
 
+    /**
+     * 上传图片
+     * @param multipartFile        文件
+     * @param pictureUploadRequest 上传请求
+     * @param request              http请求
+     * @return 图片信息
+     */
     @PostMapping("/upload")
+    @ApiOperation(value = "上传图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
@@ -71,10 +82,15 @@ public class PictureController {
         return Result.success(pictureVO);
     }
 
+
     /**
      * 删除图片
+     * @param deleteRequest 删除请求
+     * @param request       http请求
+     * @return 删除是否成功
      */
     @PostMapping("/delete")
+    @ApiOperation(value = "删除图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -88,9 +104,32 @@ public class PictureController {
     }
 
     /**
-     * 更新图片（仅管理员可用）
+     * 编辑图片
+     * @param pictureEditRequest 更新请求
+     * @param request            http请求
+     * @return 更新是否成功
+     */
+    @PostMapping("/edit")
+    @ApiOperation(value = "编辑图片")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
+    public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
+        if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        // 在此处将实体类和 DTO 进行转换
+        pictureService.editPicture(pictureEditRequest, loginUser);
+        return Result.success(true);
+    }
+
+    /**
+     * 更新图片
+     * @param pictureUpdateRequest 更新请求
+     * @param request              请求
+     * @return 更新是否成功
      */
     @PostMapping("/update")
+    @ApiOperation(value = "管理员更新图片")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
         if (pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0) {
@@ -117,9 +156,12 @@ public class PictureController {
 
 
     /**
-     * 根据 id 获取图片（仅管理员可用）
+     * 根据id获取图片
+     * @param id 图片id
+     * @return 图片信息
      */
     @GetMapping("/get")
+    @ApiOperation(value = "根据id获取图片")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Picture> getPictureById(long id) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -131,9 +173,13 @@ public class PictureController {
     }
 
     /**
-     * 根据 id 获取图片（封装类）
+     * 根据id获取图片（封装类）
+     * @param id      图片id
+     * @param request http请求
+     * @return 脱敏后的图片信息
      */
     @GetMapping("/get/vo")
+    @ApiOperation(value = "根据id获取脱敏后的图片信息")
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
@@ -160,8 +206,11 @@ public class PictureController {
 
     /**
      * 分页获取图片列表（仅管理员可用）
+     * @param pictureQueryRequest 查询请求
+     * @return 图片列表
      */
     @PostMapping("/list/page")
+    @ApiOperation(value = "分页获取图片列表（仅管理员可用）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Picture>> listPictureByPage(@RequestBody PictureQueryRequest pictureQueryRequest) {
         long current = pictureQueryRequest.getCurrent();
@@ -173,18 +222,22 @@ public class PictureController {
     }
 
     /**
-     * 分页获取图片列表（封装类）
+     * 分页获取脱敏后的图片列表
+     * @param pictureQueryRequest 查询请求
+     * @param request             http请求
+     * @return 脱敏后的图片列表
      */
     @PostMapping("/list/page/vo")
+    @ApiOperation(value = "分页获取脱敏后的图片列表")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
         long current = pictureQueryRequest.getCurrent();
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         Throw.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-// 空间权限校验
+        // 空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
-// 公开图库
+        // 公开图库
         if (spaceId == null) {
             // 普通用户默认只能查看已过审的公开数据
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
@@ -230,22 +283,13 @@ public class PictureController {
         return Result.success(pictureVOPage);
     }
 
-    /**
-     * 编辑图片（给用户使用）
-     */
-    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
-    @PostMapping("/edit")
-    public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
-        if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        // 在此处将实体类和 DTO 进行转换
-        pictureService.editPicture(pictureEditRequest, loginUser);
-        return Result.success(true);
-    }
 
+    /**
+     * 获取图片标签分类
+     * @return
+     */
     @GetMapping("/tag_category")
+    @ApiOperation(value = "获取图片标签分类")
     public BaseResponse<PictureTagCategory> listPictureTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
         List<String> tagList = Arrays.asList("热门", "生活", "扫街", "艺术", "旅游", "创意");
@@ -255,6 +299,12 @@ public class PictureController {
         return Result.success(pictureTagCategory);
     }
 
+    /**
+     * 图片审核
+     * @param pictureReviewRequest 审核请求
+     * @param request              http请求
+     * @return 审核结果
+     */
     @PostMapping("/review")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest,
@@ -265,6 +315,12 @@ public class PictureController {
         return Result.success(true);
     }
 
+    /**
+     * 根据颜色搜索图片
+     * @param searchPictureByColorRequest 搜索请求
+     * @param request                     http请求
+     * @return 搜索结果
+     */
     @PostMapping("/search/color")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_VIEW)
     public BaseResponse<List<PictureVO>> searchPictureByColor(@RequestBody SearchPictureByColorRequest searchPictureByColorRequest, HttpServletRequest request) {

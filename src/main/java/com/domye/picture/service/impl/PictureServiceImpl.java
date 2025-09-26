@@ -62,6 +62,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Resource
     private TransactionTemplate transactionTemplate;
 
+    /**
+     * 上传图片
+     * @param multipartFile        文件
+     * @param pictureUploadRequest 上传请求
+     * @param loginUser            登录用户
+     * @return 图片信息
+     */
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
@@ -140,6 +147,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
 
+    /**
+     * 构造查询条件
+     * @param pictureQueryRequest 查询请求
+     * @return 查询条件
+     */
     @Override
     public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest) {
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
@@ -165,13 +177,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long spaceId = pictureQueryRequest.getSpaceId();
         Date startEditTime = pictureQueryRequest.getStartEditTime();
         Date endEditTime = pictureQueryRequest.getEndEditTime();
-//        Boolean nullSpaceId = pictureQueryRequest.getNullSpaceId();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
         // 从多字段中搜索
         if (StrUtil.isNotBlank(searchText)) {
-            // 需要拼接查询条件
-            // and (name like "%xxx%" or introduction like "%xxx%")
             queryWrapper.and(
                     qw -> qw.like("name", searchText)
                             .or()
@@ -185,7 +194,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         } else {
             queryWrapper.isNull("spaceId");
         }
-//        queryWrapper.isNull(nullSpaceId, "spaceId");
         queryWrapper.like(StrUtil.isNotBlank(name), "name", name);
         queryWrapper.like(StrUtil.isNotBlank(introduction), "introduction", introduction);
         queryWrapper.like(StrUtil.isNotBlank(picFormat), "picFormat", picFormat);
@@ -199,9 +207,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
         queryWrapper.ge(ObjUtil.isNotEmpty(startEditTime), "editTime", startEditTime);
         queryWrapper.lt(ObjUtil.isNotEmpty(endEditTime), "editTime", endEditTime);
-        // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
-            /* and (tag like "%\"Java\"%" and like "%\"Python\"%") */
             for (String tag : tags) {
                 queryWrapper.like("tags", "\"" + tag + "\"");
             }
@@ -211,6 +217,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return queryWrapper;
     }
 
+    /**
+     * 获取脱敏后的图片信息
+     * @param picture 图片信息
+     * @param request HTTP请求
+     * @return 脱敏后的图片信息
+     */
     @Override
     public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
         // 对象转封装类
@@ -260,6 +272,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return pictureVOPage;
     }
 
+    /**
+     * 检验图片
+     * @param picture
+     */
     @Override
     public void validPicture(Picture picture) {
         Throw.throwIf(picture == null, ErrorCode.PARAMS_ERROR);
@@ -277,6 +293,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
     }
 
+    /**
+     * 图片审核
+     * @param pictureReviewRequest 审核请求
+     * @param loginUser            登录用户
+     */
     @Override
     public void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser) {
         Long pictureId = pictureReviewRequest.getId();
@@ -302,6 +323,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     }
 
+    /**
+     * 填充审核参数
+     * @param picture   图片
+     * @param loginUser 登录用户
+     */
     @Override
     public void fillReviewParams(Picture picture, User loginUser) {
         if (userService.isAdmin(loginUser)) {
@@ -316,6 +342,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
     }
 
+
+    /**
+     * 异步清理文件
+     * @param oldPicture 旧图片
+     */
     @Async
     @Override
     public void clearPictureFile(Picture oldPicture) {
@@ -336,7 +367,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
     }
 
-
+    /**
+     * 删除图片
+     * @param id        图片id
+     * @param loginUser 登录用户
+     */
     @Override
     public void deletePicture(Long id, User loginUser) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -364,6 +399,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         this.clearPictureFile(oldPicture);
     }
 
+    /**
+     * 编辑图片
+     * @param pictureEditRequest 编辑请求
+     * @param loginUser          登录用户
+     */
     @Override
     public void editPicture(PictureEditRequest pictureEditRequest, User loginUser) {
         // 在此处将实体类和 DTO 进行转换
@@ -386,6 +426,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
+    /**
+     * 获取颜色查找后的图片列表
+     * @param spaceId   空间id
+     * @param picColor  图片颜色
+     * @param loginUser 登录用户
+     * @return
+     */
     @Override
     public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser) {
         Throw.throwIf(spaceId == null || StrUtil.isBlank(picColor), ErrorCode.PARAMS_ERROR);
