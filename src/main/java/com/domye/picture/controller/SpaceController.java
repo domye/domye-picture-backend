@@ -21,6 +21,8 @@ import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.service.SpaceService;
 import com.domye.picture.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@Api(tags = "空间模块")
 @RequestMapping("/space")
 public class SpaceController {
     @Resource
@@ -45,6 +48,7 @@ public class SpaceController {
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
 
+    @ApiOperation("创建空间")
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(
             SpaceAddRequest spaceAddRequest,
@@ -56,8 +60,9 @@ public class SpaceController {
     }
 
     /**
-     * 删除图片
+     * 删除空间
      */
+    @ApiOperation("删除空间")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteSpace(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {

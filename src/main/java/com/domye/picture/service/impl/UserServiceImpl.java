@@ -1,3 +1,4 @@
+/*******************    💫 Codegeex Inline Diff    *******************/
 package com.domye.picture.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -34,7 +35,13 @@ import static com.domye.picture.constant.UserConstant.USER_LOGIN_STATE;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
-
+    /**
+     * 用户注册
+     * @param userAccount   用户账户
+     * @param password      用户密码
+     * @param checkPassword 确认密码
+     * @return Long 用户id
+     */
     @Override
     public Long UserRegister(String userAccount, String password, String checkPassword) {
         //1. 检验参数是否合法
@@ -71,7 +78,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     }
 
-    //用户登录
+    /**
+     * 用户登录
+     * @param userAccount  用户账户
+     * @param userPassword 用户密码
+     * @param request
+     * @param request      HTTP请求对象
+     * @return LoginUserVO 登陆的用户信息
+     */
     @Override
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //校验
@@ -97,7 +111,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return this.getLoginUserVO(user);
     }
 
-    //获得视图层用户信息
+    /**
+     * 获取视图层的登录用户信息
+     * @param user
+     * @param user 用户实体对象
+     * @return LoginUserVO 登录用户的视图对象
+     */
     @Override
     public LoginUserVO getLoginUserVO(User user) {
         LoginUserVO loginUserVO = new LoginUserVO();
@@ -105,7 +124,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return loginUserVO;
     }
 
-    //从登录请求中获得登录信息
+    /**
+     * 获取当前登录用户
+     * @param request
+     * @return User 当前登录用户
+     */
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 先判断是否已登录
@@ -114,15 +137,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (currentUser == null || currentUser.getId() == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        // 从数据库查询（追求性能的话可以注释，直接返回上述结果）
-        long userId = currentUser.getId();
-        currentUser = this.getById(userId);
-        if (currentUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
         return currentUser;
     }
 
+    /**
+     * 退出登录
+     * @param request
+     * @return boolean 是否成功
+     */
     @Override
     public boolean userLogout(HttpServletRequest request) {
         // 先判断是否已登录
@@ -141,6 +163,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
+    /**
+     * 获取视图层用户信息
+     * @param user
+     * @return UserVO 用户视图对象
+     */
     @Override
     public UserVO getUserVO(User user) {
         if (user == null) {
@@ -151,6 +178,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userVO;
     }
 
+    /**
+     * 获取视图层用户信息列表
+     * @param userList 用户列表
+     * @return List<UserVO> 用户视图对象列表
+     */
     @Override
     public List<UserVO> getUserVOList(List<User> userList) {
         if (CollUtil.isEmpty(userList)) {
@@ -159,6 +191,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userList.stream().map(this::getUserVO).collect(Collectors.toList());
     }
 
+    /**
+     * 构造查询条件
+     * @param userQueryRequest 用户查询请求
+     * @return QueryWrapper<User> 查询条件
+     */
     @Override
     public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
         if (userQueryRequest == null) {
@@ -181,6 +218,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return queryWrapper;
     }
 
+    /**
+     * 获取加密后的密码
+     * @param userPassword 用户密码
+     * @return String 加密后的密码
+     */
     @Override
     public String getEncryptPassword(String userPassword) {
         // 盐值，混淆密码
@@ -188,6 +230,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
     }
 
+    /**
+     * 判断当前用户是否为管理员
+     * @param user
+     * @return boolean 是否为管理员
+     */
     @Override
     public boolean isAdmin(User user) {
         return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
