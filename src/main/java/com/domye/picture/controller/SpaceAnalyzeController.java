@@ -10,6 +10,7 @@ import com.domye.picture.model.entity.User;
 import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.SpaceAnalyzeService;
 import com.domye.picture.service.UserService;
+import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/space/analyze")
+@Api(tags = "空间分析模块")
 public class SpaceAnalyzeController {
 
     @Resource

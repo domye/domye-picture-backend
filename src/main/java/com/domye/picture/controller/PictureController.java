@@ -4,6 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.annotation.AuthCheck;
 import com.domye.picture.common.BaseResponse;
@@ -286,11 +287,22 @@ public class PictureController {
         return Result.success(pictureVOPage);
     }
 
+    /**
+     * 限流
+     * @param pictureQueryRequest
+     * @param request
+     * @param ex
+     * @return
+     */
     public BaseResponse<Page<PictureVO>> handleBlockException(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                               HttpServletRequest request, BlockException ex) {
+        if (ex instanceof DegradeException) {
+            return handleFallback(pictureQueryRequest, request, ex);
+        }
         return Result.error(ErrorCode.SYSTEM_ERROR.getCode(), "系统繁忙，请稍后再试");
     }
 
+    //降级操作
     public BaseResponse<Page<PictureVO>> handleFallback(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request, Throwable ex) {
         return Result.success(null);
     }
