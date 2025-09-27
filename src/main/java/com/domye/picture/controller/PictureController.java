@@ -2,6 +2,8 @@ package com.domye.picture.controller;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.annotation.AuthCheck;
 import com.domye.picture.common.BaseResponse;
@@ -229,6 +231,7 @@ public class PictureController {
      */
     @PostMapping("/list/page/vo")
     @ApiOperation(value = "分页获取脱敏后的图片列表")
+    @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
         long current = pictureQueryRequest.getCurrent();
@@ -283,6 +286,14 @@ public class PictureController {
         return Result.success(pictureVOPage);
     }
 
+    public BaseResponse<Page<PictureVO>> handleBlockException(@RequestBody PictureQueryRequest pictureQueryRequest,
+                                                              HttpServletRequest request, BlockException ex) {
+        return Result.error(ErrorCode.SYSTEM_ERROR.getCode(), "系统繁忙，请稍后再试");
+    }
+
+    public BaseResponse<Page<PictureVO>> handleFallback(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request, Throwable ex) {
+        return Result.success(null);
+    }
 
     /**
      * 获取图片标签分类
@@ -306,6 +317,7 @@ public class PictureController {
      * @return 审核结果
      */
     @PostMapping("/review")
+    @ApiOperation(value = "图片审核")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest,
                                                  HttpServletRequest request) {
@@ -322,6 +334,7 @@ public class PictureController {
      * @return 搜索结果
      */
     @PostMapping("/search/color")
+    @ApiOperation(value = "根据颜色搜索图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_VIEW)
     public BaseResponse<List<PictureVO>> searchPictureByColor(@RequestBody SearchPictureByColorRequest searchPictureByColorRequest, HttpServletRequest request) {
         Throw.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);
