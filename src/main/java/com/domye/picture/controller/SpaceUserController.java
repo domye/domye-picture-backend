@@ -18,6 +18,8 @@ import com.domye.picture.model.entity.User;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.service.SpaceUserService;
 import com.domye.picture.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/spaceUser")
 @Slf4j
+@Api(tags = "空间成员模块")
 public class SpaceUserController {
 
     @Resource
@@ -46,6 +49,7 @@ public class SpaceUserController {
     /**
      * 添加成员到空间
      */
+    @ApiOperation(value = "添加成员到空间")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     @PostMapping("/add")
     public BaseResponse<Long> addSpaceUser(@RequestBody SpaceUserAddRequest spaceUserAddRequest, HttpServletRequest request) {
@@ -59,6 +63,7 @@ public class SpaceUserController {
     /**
      * 从空间移除成员
      */
+    @ApiOperation(value = "从空间移除成员")
     @PostMapping("/delete")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> deleteSpaceUser(@RequestBody DeleteRequest deleteRequest,
@@ -82,6 +87,7 @@ public class SpaceUserController {
     /**
      * 查询某个成员在某个空间的信息
      */
+    @ApiOperation(value = "查询某个成员在某个空间的信息")
     @PostMapping("/get")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<SpaceUser> getSpaceUser(@RequestBody SpaceUserQueryRequest spaceUserQueryRequest) {
@@ -99,6 +105,7 @@ public class SpaceUserController {
     /**
      * 查询成员信息列表
      */
+    @ApiOperation(value = "查询成员信息列表")
     @PostMapping("/list")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<List<SpaceUserVO>> listSpaceUser(@RequestBody SpaceUserQueryRequest spaceUserQueryRequest,
@@ -113,6 +120,7 @@ public class SpaceUserController {
     /**
      * 编辑成员信息（设置权限）
      */
+    @ApiOperation(value = "编辑成员信息（设置权限）")
     @PostMapping("/edit")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> editSpaceUser(@RequestBody SpaceUserEditRequest spaceUserEditRequest,
@@ -139,6 +147,7 @@ public class SpaceUserController {
         return Result.success(true);
     }
 
+
     private void isMyself(HttpServletRequest request, SpaceUser oldSpaceUser) {
         long loginUserId = userService.getLoginUser(request).getId();
         if (oldSpaceUser.getUserId() == loginUserId) {
@@ -149,6 +158,7 @@ public class SpaceUserController {
     /**
      * 查询我加入的团队空间列表
      */
+    @ApiOperation(value = "查询我加入的团队空间列表")
     @PostMapping("/list/my")
     public BaseResponse<List<SpaceUserVO>> listMyTeamSpace(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);

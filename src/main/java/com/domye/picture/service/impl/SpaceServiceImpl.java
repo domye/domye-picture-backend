@@ -61,6 +61,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Lazy
     private SpaceUserService spaceUserService;
 
+    /**
+     * 新增空间
+     * @param spaceAddRequest 新增空间请求
+     * @param loginUser       登录用户
+     * @return 空间id
+     */
     @Override
     public Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
         Space space = new Space();
@@ -135,6 +141,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
     }
 
+    /**
+     * 填充空间容量
+     * @param space 空间
+     */
     @Override
     public void fillSpace(Space space) {
         SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getEnumByValue(space.getSpaceLevel());
@@ -150,6 +160,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
     }
 
+    /**
+     * 检验空间信息
+     * @param space 空间
+     * @param add   增加&修改
+     */
     @Override
     public void validSpace(Space space, boolean add) {
         Throw.throwIf(space == null, ErrorCode.PARAMS_ERROR);
@@ -183,6 +198,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
     }
 
+    /**
+     * 用户空间鉴权
+     * @param loginUser 登录用户
+     * @param space     当前空间
+     */
     @Override
     public void checkSpaceAuth(User loginUser, Space space) {
         Long oldUserId = space.getUserId();
@@ -199,6 +219,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
     }
 
+    /**
+     * 删除空间
+     * @param id        空间id
+     * @param loginUser 登录用户
+     */
     @Override
     public void deleteSpace(long id, User loginUser) {
         Space oldSpace = this.getById(id);
@@ -210,6 +235,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
+    /**
+     * 获取空间封装类
+     * @param space   空间
+     * @param request http请求
+     * @return 脱敏后的spaceVO
+     */
     @Override
     public SpaceVO getSpaceVO(Space space, HttpServletRequest request) {
         // 对象转封装类
@@ -224,6 +255,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         return spaceVO;
     }
 
+    /**
+     * 获取空间分页封装类
+     * @param spacePage 空间分页
+     * @param request   http请求
+     * @return 封装后的spaceVO分页
+     */
     @Override
     public Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request) {
         // 从分页对象中获取记录列表
@@ -253,6 +290,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         return spaceVOPage;
     }
 
+    /**
+     * 构造空间查询条件
+     * @param spaceQueryRequest 查询请求
+     * @return 查询条件
+     */
     @Override
     public QueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest) {
         QueryWrapper<Space> queryWrapper = new QueryWrapper<>();

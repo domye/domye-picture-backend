@@ -24,7 +24,6 @@ import com.domye.picture.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -40,14 +39,19 @@ import java.util.stream.Collectors;
 public class SpaceController {
     @Resource
     private UserService userService;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
+
     @Resource
     private SpaceService spaceService;
 
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
 
+    /**
+     * 创建空间
+     * @param spaceAddRequest 空间上传请求
+     * @param request         http请求
+     * @return 空间id
+     */
     @ApiOperation("创建空间")
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(
@@ -61,6 +65,9 @@ public class SpaceController {
 
     /**
      * 删除空间
+     * @param deleteRequest 删除请求
+     * @param request       http请求
+     * @return 删除是否成功
      */
     @ApiOperation("删除空间")
     @PostMapping("/delete")
@@ -76,8 +83,12 @@ public class SpaceController {
     }
 
     /**
-     * 更新图片（仅管理员可用）
+     * 更新空间(管理员)
+     * @param spaceUpdateRequest
+     * @param request
+     * @return 是否更新成功
      */
+    @ApiOperation("更新空间")
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest, HttpServletRequest request) {
@@ -103,8 +114,12 @@ public class SpaceController {
 
 
     /**
-     * 根据 id 获取图片（仅管理员可用）
+     * 根据id获取空间(管理员)
+     * @param id      空间id
+     * @param request http请求
+     * @return 空间信息
      */
+    @ApiOperation("根据id获取空间")
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Space> getSpaceById(long id, HttpServletRequest request) {
@@ -117,8 +132,12 @@ public class SpaceController {
     }
 
     /**
-     * 根据 id 获取图片（封装类）
+     * 根据id获取空间封装类
+     * @param id      空间id
+     * @param request http请求
+     * @return 脱敏后的空间信息
      */
+    @ApiOperation("根据id获取空间封装类")
     @GetMapping("/get/vo")
     public BaseResponse<SpaceVO> getSpaceVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -134,8 +153,11 @@ public class SpaceController {
     }
 
     /**
-     * 分页获取空间列表（仅管理员可用）
+     * 分页获取空间列表(管理员)
+     * @param spaceQueryRequest 查询请求
+     * @return 空间分页信息
      */
+    @ApiOperation("分页获取空间列表")
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Space>> listSpaceByPage(@RequestBody SpaceQueryRequest spaceQueryRequest) {
@@ -148,8 +170,12 @@ public class SpaceController {
     }
 
     /**
-     * 分页获取空间列表（封装类）
+     * 分页获取空间封装类列表
+     * @param spaceQueryRequest 查询请求
+     * @param request           http请求
+     * @return 脱敏后的空间分页信息
      */
+    @ApiOperation("分页获取空间封装类列表")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<SpaceVO>> listSpaceVOByPage(@RequestBody SpaceQueryRequest spaceQueryRequest,
                                                          HttpServletRequest request) {
@@ -165,8 +191,12 @@ public class SpaceController {
     }
 
     /**
-     * 编辑空间（给用户使用）
+     * 编辑空间
+     * @param spaceEditRequest 编辑请求
+     * @param request          http请求
+     * @return 是否编辑成功
      */
+    @ApiOperation("编辑空间")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editSpace(@RequestBody SpaceEditRequest spaceEditRequest, HttpServletRequest request) {
         if (spaceEditRequest == null || spaceEditRequest.getId() <= 0) {
@@ -197,6 +227,11 @@ public class SpaceController {
     }
 
 
+    /**
+     * 获取空间权限列表
+     * @return 空间权限列表
+     */
+    @ApiOperation("获取空间权限列表")
     @GetMapping("/list/level")
     public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
         List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()) // 获取所有枚举
