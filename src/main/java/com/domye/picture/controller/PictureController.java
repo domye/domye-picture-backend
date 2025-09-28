@@ -2,6 +2,10 @@ package com.domye.picture.controller;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.csp.sentinel.Entry;
+import com.alibaba.csp.sentinel.EntryType;
+import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.Tracer;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
@@ -43,6 +47,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.domye.picture.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController
 @RequestMapping("/picture")
@@ -186,24 +192,45 @@ public class PictureController {
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        Picture picture = pictureService.getById(id);
-        Throw.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-        // 空间的图片，需要校验权限
-        Space space = null;
-        Long spaceId = picture.getSpaceId();
-        if (spaceId != null) {
-            boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
-            Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
-            space = spaceService.getById(spaceId);
-            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        String remoteAddr = request.getRemoteAddr();
+        Entry entry = null;
+        try {
+            entry = SphU.entry("getPictureVOById", EntryType.IN, 1, remoteAddr);
+            Picture picture = pictureService.getById(id);
+            Throw.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
+            // 空间的图片，需要校验权限
+            Space space = null;
+            Long spaceId = picture.getSpaceId();
+            if (spaceId != null) {
+                boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+                Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
+                space = spaceService.getById(spaceId);
+                Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            }
+            // 获取权限列表
+            Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+            PictureVO pictureVO = pictureService.getPictureVO(picture, request);
+            if (userObj != null) {
+                User loginUser = (User) userObj;
+                List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+                pictureVO.setPermissionList(permissionList);
+            }
+            // 获取封装类
+            return Result.success(pictureVO);
+        } catch (Throwable t) {
+            if (!BlockException.isBlockException(t)) {
+                Tracer.trace(t);
+                return Result.error(ErrorCode.SYSTEM_ERROR, "系统错误");
+            }
+            if (t instanceof DegradeException) {
+                return Result.success(null);
+            }
+            return Result.error(ErrorCode.SYSTEM_ERROR, "访问过于频繁，请稍后再试");
+        } finally {
+            if (entry != null)
+                entry.exit(1, remoteAddr);
         }
-        // 获取权限列表
-        User loginUser = userService.getLoginUser(request);
-        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
-        PictureVO pictureVO = pictureService.getPictureVO(picture, request);
-        pictureVO.setPermissionList(permissionList);
-        // 获取封装类
-        return Result.success(pictureVO);
+
     }
 
 
