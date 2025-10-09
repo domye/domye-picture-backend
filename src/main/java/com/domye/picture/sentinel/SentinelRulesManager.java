@@ -40,7 +40,7 @@ public class SentinelRulesManager {
 
     // 限流规则
     public void initFlowRules() {
-// 单 IP 查看题目列表限流规则
+        // 单 IP 查看题目列表限流规则
         ParamFlowRule rule = new ParamFlowRule("getPictureVOById")
                 .setParamIdx(0) // 对第 0 个参数限流，即 IP 地址
                 .setCount(60) // 每分钟最多 60 次
