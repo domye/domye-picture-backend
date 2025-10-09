@@ -1,4 +1,4 @@
-package com.domye.picture.annotation;
+package com.domye.picture.auth.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

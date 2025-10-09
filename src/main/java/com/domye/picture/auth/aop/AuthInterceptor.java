@@ -1,6 +1,6 @@
-package com.domye.picture.aop;
+package com.domye.picture.auth.aop;
 
-import com.domye.picture.annotation.AuthCheck;
+import com.domye.picture.auth.annotation.AuthCheck;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.model.entity.User;

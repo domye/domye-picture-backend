@@ -1,7 +1,7 @@
 package com.domye.picture.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.domye.picture.annotation.AuthCheck;
+import com.domye.picture.auth.annotation.AuthCheck;
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;

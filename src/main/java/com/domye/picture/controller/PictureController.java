@@ -10,7 +10,7 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.domye.picture.annotation.AuthCheck;
+import com.domye.picture.auth.annotation.AuthCheck;
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;
@@ -22,6 +22,7 @@ import com.domye.picture.manager.auth.SpaceUserAuthManager;
 import com.domye.picture.manager.auth.StpKit;
 import com.domye.picture.manager.auth.annotation.SaSpaceCheckPermission;
 import com.domye.picture.manager.auth.model.SpaceUserPermissionConstant;
+import com.domye.picture.manager.mdc.MdcDot;
 import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.Picture;
 import com.domye.picture.model.entity.Space;
@@ -258,6 +259,7 @@ public class PictureController {
      * @return 脱敏后的图片列表
      */
     @PostMapping("/list/page/vo")
+    @MdcDot(bizCode = "#picture")
     @ApiOperation(value = "分页获取脱敏后的图片列表")
     @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
