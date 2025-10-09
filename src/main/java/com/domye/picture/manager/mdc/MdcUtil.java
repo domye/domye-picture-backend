@@ -10,7 +10,8 @@ public class MdcUtil {
     }
 
     public static void addTraceId() {
-        MDC.put(TRACE_ID_KEY, SelfTraceIdGenerator.generate());
+        String traceId = SelfTraceIdGenerator.generate();
+        MDC.put(TRACE_ID_KEY, traceId);
     }
 
     public static String getTraceId() {

@@ -54,6 +54,7 @@ import static com.domye.picture.constant.UserConstant.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/picture")
 @Api(tags = "图片模块")
+@MdcDot(bizCode = "#picture")
 public class PictureController {
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)
@@ -259,7 +260,6 @@ public class PictureController {
      * @return 脱敏后的图片列表
      */
     @PostMapping("/list/page/vo")
-    @MdcDot(bizCode = "#picture")
     @ApiOperation(value = "分页获取脱敏后的图片列表")
     @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
