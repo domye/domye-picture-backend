@@ -23,4 +23,12 @@ public enum RankTimeEnum {
         return RankTimeEnum.DAY.getValue() == value;
     }
 
+    public static RankTimeEnum getEnumByValue(int value) {
+        for (RankTimeEnum rankTimeEnum : RankTimeEnum.values()) {
+            if (rankTimeEnum.getValue() == value) {
+                return rankTimeEnum;
+            }
+        }
+        return null;
+    }
 }

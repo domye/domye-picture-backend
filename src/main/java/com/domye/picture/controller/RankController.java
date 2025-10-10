@@ -13,10 +13,7 @@ import com.domye.picture.service.RankService;
 import com.domye.picture.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +32,7 @@ public class RankController {
     private PictureService pictureService;
 
     @PostMapping("/addActivityScore")
-    public BaseResponse<Boolean> addActivityScore(UserActivityScoreAddRequest userActivityScoreAddRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> addActivityScore(@RequestBody UserActivityScoreAddRequest userActivityScoreAddRequest, HttpServletRequest request) {
         Throw.throwIf(userActivityScoreAddRequest == null, ErrorCode.PARAMS_ERROR);
         User user = userService.getLoginUser(request);
         Boolean b = rankService.addActivityScore(user, userActivityScoreAddRequest);

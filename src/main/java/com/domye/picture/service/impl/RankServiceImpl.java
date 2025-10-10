@@ -13,6 +13,7 @@ import com.domye.picture.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -97,22 +98,31 @@ public class RankServiceImpl implements RankService {
 
     @Override
     public List<UserActiveRankItemVO> queryRankList(int value, int size) {
-        String rankKey = RankTimeEnum.isDay(value) ? todayRankKey() : monthRankKey();
-
-        // 1. 获取topN的活跃用户
-        // 使用Redis的ZSet获取分数最高的用户ID列表
-        Set<String> userIdSet = stringRedisTemplate.opsForZSet().reverseRange(rankKey, 0, size - 1);
-        if (CollUtil.isEmpty(userIdSet)) {
+        // 参数验证
+        if (size <= 0) {
             return Collections.emptyList();
         }
 
-        // 2. 查询用户的基本信息
-        // 将用户ID字符串转换为Long类型
-        List<Long> userIds = userIdSet.stream()
-                .map(Long::valueOf)
+        RankTimeEnum rankTimeEnum = RankTimeEnum.getEnumByValue(value);
+        if (rankTimeEnum == null) {
+            return Collections.emptyList();
+        }
+
+        String rankKey = rankTimeEnum == RankTimeEnum.DAY ? todayRankKey() : monthRankKey();
+
+        // 1. 获取topN的活跃用户及其分数
+        Set<ZSetOperations.TypedTuple<String>> userTuples = stringRedisTemplate.opsForZSet()
+                .reverseRangeWithScores(rankKey, 0, size - 1);
+
+        if (CollUtil.isEmpty(userTuples)) {
+            return Collections.emptyList();
+        }
+
+        // 2. 提取用户ID并查询用户信息
+        List<Long> userIds = userTuples.stream()
+                .map(tuple -> Long.valueOf(tuple.getValue()))
                 .collect(Collectors.toList());
 
-        // 批量查询用户信息
         List<User> userList = userService.listByIds(userIds);
         if (CollUtil.isEmpty(userList)) {
             return Collections.emptyList();
@@ -122,30 +132,25 @@ public class RankServiceImpl implements RankService {
         Map<Long, User> userMap = userList.stream()
                 .collect(Collectors.toMap(User::getId, user -> user));
 
-        // 3. 根据评分进行排序
-        // 获取用户ID对应的分数
+        // 3. 构建排行榜项
         List<UserActiveRankItemVO> rankItemList = new ArrayList<>();
-        for (String userIdStr : userIdSet) {
-            Long userId = Long.valueOf(userIdStr);
+        int rank = 1;
+
+        for (ZSetOperations.TypedTuple<String> tuple : userTuples) {
+            Long userId = Long.valueOf(tuple.getValue());
             User user = userMap.get(userId);
+
             if (user != null) {
-                // 获取用户在排行榜中的分数
-                Double score = stringRedisTemplate.opsForZSet().score(rankKey, userIdStr);
                 UserActiveRankItemVO item = new UserActiveRankItemVO();
-                // 设置用户信息
                 item.setUser(userService.getUserVO(user));
-                // 设置分数
-                item.setScore(score);
+                item.setScore(tuple.getScore());
+                item.setRank(rank++);
                 rankItemList.add(item);
             }
         }
 
-        // 4. 补齐每个用户的排名
-        for (int i = 0; i < rankItemList.size(); i++) {
-            rankItemList.get(i).setRank(i + 1);
-        }
-
         return rankItemList;
     }
+
 
 }
