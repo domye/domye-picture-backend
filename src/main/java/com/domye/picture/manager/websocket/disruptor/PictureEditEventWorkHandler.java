@@ -5,7 +5,7 @@ import com.domye.picture.manager.websocket.PictureEditHandler;
 import com.domye.picture.manager.websocket.model.PictureEditMessageTypeEnum;
 import com.domye.picture.manager.websocket.model.PictureEditRequestMessage;
 import com.domye.picture.manager.websocket.model.PictureEditResponseMessage;
-import com.domye.picture.model.entity.User;
+import com.domye.picture.model.user.entity.User;
 import com.domye.picture.service.UserService;
 import com.lmax.disruptor.WorkHandler;
 import lombok.extern.slf4j.Slf4j;

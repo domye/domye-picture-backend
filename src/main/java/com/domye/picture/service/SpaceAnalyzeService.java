@@ -1,10 +1,10 @@
 package com.domye.picture.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.dto.space.analyze.*;
-import com.domye.picture.model.entity.Space;
-import com.domye.picture.model.entity.User;
-import com.domye.picture.model.vo.space.analyze.*;
+import com.domye.picture.model.space.dto.analyze.*;
+import com.domye.picture.model.space.entity.Space;
+import com.domye.picture.model.space.vo.analyze.*;
+import com.domye.picture.model.user.entity.User;
 
 import java.util.List;
 
@@ -21,6 +21,6 @@ public interface SpaceAnalyzeService extends IService<Space> {
     List<SpaceSizeAnalyzeResponse> getSpaceSizeAnalyze(SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User loginUser);
 
     List<SpaceUserAnalyzeResponse> getSpaceUserAnalyze(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User loginUser);
-    
+
     List<Space> getSpaceRankAnalyze(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User loginUser);
 }

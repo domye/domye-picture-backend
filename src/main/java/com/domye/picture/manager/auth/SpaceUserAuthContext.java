@@ -1,8 +1,8 @@
 package com.domye.picture.manager.auth;
 
-import com.domye.picture.model.entity.Picture;
-import com.domye.picture.model.entity.Space;
-import com.domye.picture.model.entity.SpaceUser;
+import com.domye.picture.model.picture.entity.Picture;
+import com.domye.picture.model.space.entity.Space;
+import com.domye.picture.model.space.entity.SpaceUser;
 import lombok.Data;
 
 /**

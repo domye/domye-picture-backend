@@ -3,11 +3,11 @@ package com.domye.picture.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.dto.space.SpaceAddRequest;
-import com.domye.picture.model.dto.space.SpaceQueryRequest;
-import com.domye.picture.model.entity.Space;
-import com.domye.picture.model.entity.User;
-import com.domye.picture.model.vo.space.SpaceVO;
+import com.domye.picture.model.space.dto.SpaceAddRequest;
+import com.domye.picture.model.space.dto.SpaceQueryRequest;
+import com.domye.picture.model.space.entity.Space;
+import com.domye.picture.model.space.vo.SpaceVO;
+import com.domye.picture.model.user.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
 
