@@ -23,7 +23,9 @@ import com.domye.picture.service.picture.model.dto.PictureUploadRequest;
 import com.domye.picture.service.picture.model.entity.Picture;
 import com.domye.picture.service.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.service.picture.model.vo.PictureVO;
-import com.domye.picture.service.space.impl.SpaceServiceImpl;
+import com.domye.picture.service.rank.RankService;
+import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
+import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
@@ -59,9 +61,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Resource
     private UserService userService;
     @Resource
-    private SpaceServiceImpl spaceService;
+    private SpaceService spaceService;
     @Resource
     private TransactionTemplate transactionTemplate;
+    @Resource
+    private RankService rankService;
 
     /**
      * 上传图片
@@ -141,7 +145,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                         .update();
                 Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
             }
-
+            UserActivityScoreAddRequest userActivityScoreAddRequest = new UserActivityScoreAddRequest();
+            userActivityScoreAddRequest.setPictureId(pictureId);
+            userActivityScoreAddRequest.setUploadPicture(true);
+            rankService.addActivityScore(loginUser, userActivityScoreAddRequest);
             return PictureVO.objToVo(picture);
         });
         return PictureVO.objToVo(picture);
