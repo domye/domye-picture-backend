@@ -18,7 +18,6 @@ import com.domye.picture.service.space.model.entity.SpaceUser;
 import com.domye.picture.service.space.model.vo.SpaceUserVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -37,7 +36,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/spaceUser")
 @Slf4j
-@Api(tags = "空间成员模块")
 public class SpaceUserController {
 
     @Resource

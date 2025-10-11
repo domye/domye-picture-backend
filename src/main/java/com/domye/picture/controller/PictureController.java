@@ -35,7 +35,6 @@ import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,7 +52,6 @@ import static com.domye.picture.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController
 @RequestMapping("/picture")
-@Api(tags = "图片模块")
 @MdcDot(bizCode = "#picture")
 public class PictureController {
     private final Cache<String, String> LOCAL_CACHE =

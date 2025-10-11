@@ -21,7 +21,6 @@ import com.domye.picture.service.space.model.enums.SpaceLevelEnum;
 import com.domye.picture.service.space.model.vo.SpaceVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = "空间模块")
 @RequestMapping("/space")
 public class SpaceController {
     @Resource

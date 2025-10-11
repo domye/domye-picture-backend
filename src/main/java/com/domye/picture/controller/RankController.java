@@ -11,7 +11,6 @@ import com.domye.picture.service.rank.model.dto.UserActivityScoreQueryRequest;
 import com.domye.picture.service.rank.model.vo.UserActiveRankItemVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
-@Api(tags = "排行榜模块")
 @RequestMapping("/rank")
 public class RankController {
     @Resource

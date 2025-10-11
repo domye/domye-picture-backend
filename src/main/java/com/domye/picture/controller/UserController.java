@@ -17,7 +17,6 @@ import com.domye.picture.service.user.model.dto.UserUpdateRequest;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.LoginUserVO;
 import com.domye.picture.service.user.model.vo.UserVO;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@Api(tags = "用户模块")
 @RequestMapping("/user")
 public class UserController implements Serializable {
     @Resource
