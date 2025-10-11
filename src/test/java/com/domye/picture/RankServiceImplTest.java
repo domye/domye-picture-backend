@@ -2,11 +2,11 @@ package com.domye.picture;
 
 import cn.hutool.core.lang.Console;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.domye.picture.model.rank.dto.UserActivityScoreAddRequest;
-import com.domye.picture.model.rank.vo.UserActiveRankItemVO;
-import com.domye.picture.model.user.entity.User;
-import com.domye.picture.service.RankService;
-import com.domye.picture.service.UserService;
+import com.domye.picture.service.rank.RankService;
+import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
+import com.domye.picture.service.rank.model.vo.UserActiveRankItemVO;
+import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

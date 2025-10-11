@@ -1,7 +1,7 @@
 package com.domye.picture.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.service.user.model.entity.User;
 
 /**
  * @author Domye

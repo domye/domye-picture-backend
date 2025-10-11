@@ -1,10 +1,10 @@
 package com.domye.picture.manager.sharding;
 
 import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
-import com.domye.picture.model.space.entity.Space;
-import com.domye.picture.model.space.enums.SpaceLevelEnum;
-import com.domye.picture.model.space.enums.SpaceTypeEnum;
-import com.domye.picture.service.SpaceService;
+import com.domye.picture.service.space.SpaceService;
+import com.domye.picture.service.space.model.entity.Space;
+import com.domye.picture.service.space.model.enums.SpaceLevelEnum;
+import com.domye.picture.service.space.model.enums.SpaceTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.driver.jdbc.core.connection.ShardingSphereConnection;
 import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;

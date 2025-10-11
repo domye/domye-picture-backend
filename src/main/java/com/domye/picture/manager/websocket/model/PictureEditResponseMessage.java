@@ -1,6 +1,6 @@
 package com.domye.picture.manager.websocket.model;
 
-import com.domye.picture.model.user.vo.UserVO;
+import com.domye.picture.service.user.model.vo.UserVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
