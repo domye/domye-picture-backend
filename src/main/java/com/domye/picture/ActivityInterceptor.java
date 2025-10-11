@@ -29,31 +29,29 @@ public class ActivityInterceptor implements HandlerInterceptor {
                                 Object handler,
                                 Exception ex) throws Exception {
         try {
+            // 只处理 /api/picture/get/vo 接口的访问
+            String uri = request.getRequestURI();
+            if (!"/api/picture/get/vo".equals(uri)) {
+                return;
+            }
+
             User user = userService.getLoginUser(request);
             if (user == null) {
                 return;
             }
 
-            String uri = request.getRequestURI();
-            if (uri.startsWith("/picture/")) {
-                // 处理图片详情页
-                String pictureId = uri.substring("/picture/".length());
-                if (StringUtils.isNumeric(pictureId)) {
-                    UserActivityScoreAddRequest addRequest = new UserActivityScoreAddRequest();
-                    addRequest.setPictureId(Long.parseLong(pictureId));  // 修改这里
-                    rankService.addActivityScore(user, addRequest);
-                    log.info("更新图片访问活跃度: userId={}, pictureId={}", user.getId(), pictureId);
-                    return;
-                }
+            // 从请求参数中获取图片ID
+            String pictureId = request.getParameter("id");
+            if (StringUtils.isNumeric(pictureId)) {
+                UserActivityScoreAddRequest addRequest = new UserActivityScoreAddRequest();
+                addRequest.setPath(pictureId);
+                rankService.addActivityScore(user, addRequest);
+                log.info("更新图片访问活跃度: userId={}, pictureId={}", user.getId(), pictureId);
             }
-
-            // 处理其他页面
-            UserActivityScoreAddRequest addRequest = new UserActivityScoreAddRequest();
-            addRequest.setPath(uri);
-            rankService.addActivityScore(user, addRequest);
 
         } catch (Exception e) {
             log.error("更新用户活跃度失败", e);
         }
     }
 }
+
