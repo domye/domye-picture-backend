@@ -4,15 +4,13 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.rank.RankService;
-import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
 import com.domye.picture.service.rank.model.dto.UserActivityScoreQueryRequest;
 import com.domye.picture.service.rank.model.vo.UserActiveRankItemVO;
-import com.domye.picture.service.user.UserService;
-import com.domye.picture.service.user.model.entity.User;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -22,20 +20,7 @@ import java.util.List;
 @RequestMapping("/rank")
 public class RankController {
     @Resource
-    private UserService userService;
-    @Resource
     private RankService rankService;
-
-    @Resource
-    private PictureService pictureService;
-
-    @PostMapping("/addActivityScore")
-    public BaseResponse<Boolean> addActivityScore(@RequestBody UserActivityScoreAddRequest userActivityScoreAddRequest, HttpServletRequest request) {
-        Throw.throwIf(userActivityScoreAddRequest == null, ErrorCode.PARAMS_ERROR);
-        User user = userService.getLoginUser(request);
-        Boolean b = rankService.addActivityScore(user, userActivityScoreAddRequest);
-        return Result.success(b);
-    }
 
 
     /**

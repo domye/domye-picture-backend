@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.service.picture.PictureService;
+import com.domye.picture.service.picture.model.entity.Picture;
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
 import com.domye.picture.service.rank.model.enums.RankTimeEnum;
@@ -12,6 +14,7 @@ import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,8 @@ public class RankServiceImpl implements RankService {
     private UserService userService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private PictureService pictureService;
 
     /**
      * 当天活跃度排行榜
@@ -56,6 +61,9 @@ public class RankServiceImpl implements RankService {
         String field;
         int score = 0;
         if (userActivityScoreAddRequest.getPath() != null) {
+            Picture picture = pictureService.getById(userActivityScoreAddRequest.getPath());
+            if (picture == null)
+                return true;
             field = "path_" + userActivityScoreAddRequest.getPath();
             score = 1;
         } else if (userActivityScoreAddRequest.getPictureId() != null) {
