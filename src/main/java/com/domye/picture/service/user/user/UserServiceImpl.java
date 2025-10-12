@@ -1,5 +1,5 @@
 /*******************    💫 Codegeex Inline Diff    *******************/
-package com.domye.picture.service.user.impl;
+package com.domye.picture.service.user.user;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -11,12 +11,12 @@ import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.manager.auth.StpKit;
 import com.domye.picture.mapper.UserMapper;
-import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.dto.UserQueryRequest;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.enums.UserRoleEnum;
 import com.domye.picture.service.user.model.vo.LoginUserVO;
 import com.domye.picture.service.user.model.vo.UserVO;
+import com.domye.picture.service.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
