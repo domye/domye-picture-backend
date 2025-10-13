@@ -10,11 +10,11 @@ import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
 import com.domye.picture.service.rank.model.enums.RankTimeEnum;
 import com.domye.picture.service.rank.model.vo.UserActiveRankItemVO;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,8 @@ public class RankServiceImpl implements RankService {
     private UserService userService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-    @Autowired
+    @Resource
+    @Lazy
     private PictureService pictureService;
 
     /**

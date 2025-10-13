@@ -1,7 +1,6 @@
 package com.domye.picture.constant;
 
 public interface UserConstant {
-
     /**
      * 用户登录态键
      */
@@ -19,6 +18,4 @@ public interface UserConstant {
      */
     String ADMIN_ROLE = "admin";
 
-    // 最高权限
-    String ROOT_ROLE = "root";
 }

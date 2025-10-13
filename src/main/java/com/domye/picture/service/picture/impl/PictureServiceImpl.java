@@ -27,9 +27,10 @@ import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.model.entity.Space;
+import com.domye.picture.service.user.FilterlistService;
+import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.UserVO;
-import com.domye.picture.service.user.UserService;
 import com.domye.picture.utils.ColorSimilarUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
@@ -66,6 +67,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private TransactionTemplate transactionTemplate;
     @Resource
     private RankService rankService;
+    @Resource
+    private FilterlistService filterlistService;
 
     /**
      * 上传图片
@@ -77,6 +80,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
         Long pictureId = pictureUploadRequest.getId();
         Long spaceId = pictureUploadRequest.getSpaceId();
         if (spaceId != null) {
@@ -233,6 +237,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     @Override
     public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
+        
         // 对象转封装类
         PictureVO pictureVO = PictureVO.objToVo(picture);
         // 关联查询用户信息
