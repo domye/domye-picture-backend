@@ -1,4 +1,4 @@
-package com.domye.picture.controller;
+package com.domye.picture.controller.rank;
 
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;

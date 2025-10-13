@@ -1,4 +1,4 @@
-package com.domye.picture.controller;
+package com.domye.picture.controller.picture;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
@@ -31,8 +31,8 @@ import com.domye.picture.service.picture.model.vo.PictureTagCategory;
 import com.domye.picture.service.picture.model.vo.PictureVO;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.model.entity.Space;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.annotations.ApiOperation;

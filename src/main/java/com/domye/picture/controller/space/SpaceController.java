@@ -1,4 +1,4 @@
-package com.domye.picture.controller;
+package com.domye.picture.controller.space;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.auth.annotation.AuthCheck;
@@ -19,8 +19,8 @@ import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.space.model.entity.SpaceLevel;
 import com.domye.picture.service.space.model.enums.SpaceLevelEnum;
 import com.domye.picture.service.space.model.vo.SpaceVO;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;

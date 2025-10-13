@@ -1,4 +1,4 @@
-package com.domye.picture.controller;
+package com.domye.picture.controller.user.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.auth.annotation.AuthCheck;
@@ -9,6 +9,7 @@ import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.dto.UserLoginRequest;
 import com.domye.picture.service.user.model.dto.UserQueryRequest;
 import com.domye.picture.service.user.model.dto.UserRegisterRequest;
@@ -16,7 +17,6 @@ import com.domye.picture.service.user.model.dto.UserUpdateRequest;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.LoginUserVO;
 import com.domye.picture.service.user.model.vo.UserVO;
-import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
