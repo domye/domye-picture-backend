@@ -52,6 +52,16 @@ public class User {
     private String userRole;
 
     /**
+     * 微信OpenID
+     */
+    private String wxOpenId;
+
+    /**
+     * 微信UnionID
+     */
+    private String wxUnionId;
+
+    /**
      * 编辑时间
      */
     private Date editTime;

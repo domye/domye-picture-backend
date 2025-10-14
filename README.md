@@ -3,30 +3,31 @@
 ## 🚀 功能特性
 
 - **用户管理**
-  - 用户注册、登录、权限控制
-  - 基于角色的访问控制(RBAC)
-  - 集成 Sa-Token 进行认证授权
+    - 用户注册、登录、权限控制
+    - 基于角色的访问控制(RBAC)
+    - 集成 Sa-Token 进行认证授权
+    - 微信公众号扫码登录
 
 - **空间管理**
-  - 支持创建个人空间和团队空间
-  - 空间容量和数量限制
-  - 动态分表存储图片数据
+    - 支持创建个人空间和团队空间
+    - 空间容量和数量限制
+    - 动态分表存储图片数据
 
 - **图片管理**
-  - 图片上传、预览、删除
-  - 支持图片分类和标签
-  - 图片审核机制
-  - 按颜色搜索图片
+    - 图片上传、预览、删除
+    - 支持图片分类和标签
+    - 图片审核机制
+    - 按颜色搜索图片
 
 - **存储系统**
-  - 腾讯云 COS 对象存储
-  - 本地缓存优化
-  - Redis 缓存支持
+    - 腾讯云 COS 对象存储
+    - 本地缓存优化
+    - Redis 缓存支持
 
 - **数据分析**
-  - 空间使用情况分析
-  - 图片分类统计
-  - 用户行为分析
+    - 空间使用情况分析
+    - 图片分类统计
+    - 用户行为分析
 
 ## 🛠️ 技术栈
 
@@ -51,21 +52,26 @@
 ### 安装配置
 
 1. **克隆项目**
+
 ```bash
 git clone https://github.com/yourusername/domye-picture-backend.git
 cd domye-picture-backend
 ```
 
 2. **配置数据库**
+
 ```sql
 -- 创建数据库
-CREATE DATABASE dmoye_picture;
+CREATE
+DATABASE dmoye_picture;
 
 -- 导入表结构
-mysql -u root -p dmoye_picture < sql/create_table.sql
+mysql
+-u root -p dmoye_picture < sql/create_table.sql
 ```
 
 3. **修改配置**
+
 ```yaml
 # application.yml
 spring:
@@ -76,6 +82,7 @@ spring:
 ```
 
 4. **启动项目**
+
 ```bash
 mvn spring-boot:run
 ```
