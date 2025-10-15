@@ -1,7 +1,13 @@
 package com.domye.picture.service.user.wxlogin;
 
+import com.domye.picture.exception.ErrorCode;
+import com.domye.picture.exception.Throw;
+import com.domye.picture.manager.wxlogin.BaseWxMsgResVo;
+import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.WxCodeService;
 import com.domye.picture.service.user.WxPublicService;
-import com.domye.picture.utils.WxMessageCrypt;
+import com.domye.picture.service.user.WxQrService;
+import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.utils.WxMsgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,12 +21,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class WxPublicServiceImpl implements WxPublicService {
+
+
+    @Value("${wx.token}")
+    private String wxToken;
+
+    @Resource
+    private UserService userService;
+
+    @Resource
+    private WxCodeService wxCodeService;
+
+    @Resource
+    private WxQrService wxQrService;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 获取微信token
@@ -31,188 +51,6 @@ public class WxPublicServiceImpl implements WxPublicService {
         return wxToken;
     }
 
-    // 缓存 Key 常量
-    private final static String WX_LOGIN_CODE_KEY = "login:code:";
-    private final static String WX_LOGIN_TOKEN_KEY = "login:token:";
-    private final static String WX_OPENID_TO_CODE_KEY = "openid_to_code:";
-    private final static String WX_QR_CODE_KEY = "qr:code:";
-    private final static String WX_QR_SCAN_STATUS_KEY = "qr:scan:";
-    private final static int CODE_EXPIRE_TIME = 5; // 5 分钟
-    private final static int TOKEN_EXPIRE_TIME = 24 * 60; // 24 小时
-    @Value("${wx.token}")
-    private String wxToken;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
-    @Resource
-    private WxMessageCrypt wxMessageCrypt;
-
-    /**
-     * 处理登录请求，生成验证码
-     */
-    @Override
-    public String handleLoginRequest(String openId, String nickName, String avatarUrl) {
-        try {
-            if (StringUtils.isEmpty(openId)) {
-                log.error("处理登录请求失败，openId为空");
-                return null;
-            }
-
-            log.info("处理用户登录请求: openId={}, nickName={}, avatarUrl={}", openId, nickName, avatarUrl);
-
-            // 检查是否已有未过期的验证码
-            String existingCodeKey = WX_OPENID_TO_CODE_KEY + openId;
-            String existingCode = stringRedisTemplate.opsForValue().get(existingCodeKey);
-
-            if (StringUtils.isNotEmpty(existingCode)) {
-                log.info("用户已有未过期的验证码，返回现有验证码: {}", existingCode);
-                return existingCode;
-            }
-
-            // 生成唯一验证码
-            String code = generateUniqueCode();
-            log.info("为用户生成新验证码: openId={}, code={}", openId, code);
-
-            // 双向绑定存储
-            String codeToOpenIdKey = WX_LOGIN_CODE_KEY + code;
-            String openIdToCodeKey = WX_OPENID_TO_CODE_KEY + openId;
-
-            stringRedisTemplate.opsForValue().set(codeToOpenIdKey, openId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-            stringRedisTemplate.opsForValue().set(openIdToCodeKey, code, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-            log.info("验证码已存储到Redis: codeToOpenIdKey={}, openIdToCodeKey={}", codeToOpenIdKey, openIdToCodeKey);
-
-            // 存储用户信息用于后续创建用户
-            if (StringUtils.isNotEmpty(nickName) || StringUtils.isNotEmpty(avatarUrl)) {
-                String userInfoKey = "login:userinfo:" + openId;
-                String userInfo = (nickName != null ? nickName : "") + "|" +
-                        (avatarUrl != null ? avatarUrl : "");
-                stringRedisTemplate.opsForValue().set(userInfoKey, userInfo, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-                log.info("用户信息已存储到Redis: userInfoKey={}, userInfo={}", userInfoKey, userInfo);
-            }
-
-            return code;
-        } catch (Exception e) {
-            log.error("处理用户登录请求失败: openId={}", openId, e);
-            return null;
-        }
-    }
-
-    /**
-     * 生成二维码
-     * @param sceneId 场景ID
-     * @return 二维码ID
-     */
-    public String generateQrCode(int sceneId) {
-        try {
-            // 生成唯一二维码ID
-            String qrCodeId = UUID.randomUUID().toString().replace("-", "");
-            
-            // 存储二维码信息
-            String qrCodeKey = WX_QR_CODE_KEY + qrCodeId;
-            String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
-            
-            // 存储二维码信息到Redis，30分钟过期
-            stringRedisTemplate.opsForValue().set(qrCodeKey, String.valueOf(sceneId), 30, TimeUnit.MINUTES);
-            stringRedisTemplate.opsForValue().set(qrScanStatusKey, "waiting", 30, TimeUnit.MINUTES);
-            
-            log.info("生成二维码成功: qrCodeId={}, sceneId={}", qrCodeId, sceneId);
-            return qrCodeId;
-        } catch (Exception e) {
-            log.error("生成二维码失败", e);
-            return null;
-        }
-    }
-    
-    /**
-     * 更新二维码扫描状态
-     * @param qrCodeId 二维码ID
-     * @param openId 用户openId
-     * @return 更新是否成功
-     */
-    public boolean updateQrScanStatus(String qrCodeId, String openId) {
-        try {
-            String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
-            String scanStatus = "scanned:" + openId;
-            
-            // 更新扫描状态
-            stringRedisTemplate.opsForValue().set(qrScanStatusKey, scanStatus, 30, TimeUnit.MINUTES);
-            
-            log.info("二维码扫描状态已更新: qrCodeId={}, openId={}", qrCodeId, openId);
-            return true;
-        } catch (Exception e) {
-            log.error("更新二维码扫描状态失败: qrCodeId={}, openId={}", qrCodeId, openId, e);
-            return false;
-        }
-    }
-    
-    /**
-     * 获取二维码扫描状态
-     * @param qrCodeId 二维码ID
-     * @return 扫描状态
-     */
-    public String getQrScanStatus(String qrCodeId) {
-        try {
-            String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
-            return stringRedisTemplate.opsForValue().get(qrScanStatusKey);
-        } catch (Exception e) {
-            log.error("获取二维码扫描状态失败: qrCodeId={}", qrCodeId, e);
-            return null;
-        }
-    }
-    
-    /**
-     * 验证验证码是否正确
-     * @param openId 用户openId
-     * @param code   用户输入的验证码
-     * @return 验证结果，true表示验证成功
-     */
-    @Override
-    public boolean verifyCode(String openId, String code) {
-        try {
-            if (StringUtils.isEmpty(openId) || StringUtils.isEmpty(code)) {
-                log.error("验证码验证失败，参数为空: openId={}, code={}", openId, code);
-                return false;
-            }
-
-            // 获取openId对应的验证码
-            String existingCodeKey = WX_OPENID_TO_CODE_KEY + openId;
-            String storedCode = stringRedisTemplate.opsForValue().get(existingCodeKey);
-
-            if (StringUtils.isEmpty(storedCode)) {
-                log.error("验证码验证失败，未找到验证码: openId={}, code={}", openId, code);
-                return false;
-            }
-
-            // 验证码比较（不区分大小写）
-            boolean isValid = storedCode.equalsIgnoreCase(code.trim());
-            log.info("验证码验证结果: openId={}, code={}, storedCode={}, isValid={}",
-                    openId, code, storedCode, isValid);
-
-            // 验证成功后，删除验证码（防止重复使用）
-            if (isValid) {
-                String codeToOpenIdKey = WX_LOGIN_CODE_KEY + storedCode;
-                stringRedisTemplate.delete(existingCodeKey);
-                stringRedisTemplate.delete(codeToOpenIdKey);
-                log.info("验证码验证成功，已删除验证码缓存: openId={}, code={}", openId, storedCode);
-            }
-
-            return isValid;
-        } catch (Exception e) {
-            log.error("验证码验证异常: openId={}, code={}", openId, code, e);
-            return false;
-        }
-    }
-
-    /**
-     * 生成唯一验证码
-     * @return 验证码
-     */
-    @Override
-    public String generateUniqueCode() {
-        // 生成6位数字验证码
-        String code = String.format("%06d", (int) ((Math.random() * 9 + 1) * 100000));
-        log.debug("生成验证码: {}", code);
-        return code;
-    }
 
     /**
      * 验证微信签名
@@ -248,109 +86,218 @@ public class WxPublicServiceImpl implements WxPublicService {
         return sb.toString();
     }
 
-    /**
-     * 解密微信消息
-     * @param encryptMsg 加密的消息
-     * @return 解密后的消息
-     */
-    @Override
-    public String decryptWeChatMessage(String encryptMsg) {
-        return wxMessageCrypt.decryptWeChatMessage(encryptMsg);
-    }
 
     /**
      * 处理微信消息
      */
     @Override
-    public String handleMessage(Map<String, String> msgMap) {
+    public BaseWxMsgResVo handleMessage(Map<String, String> msgMap, HttpServletRequest request) {
+        String fromUserName = msgMap.get("FromUserName");
+        String toUserName = msgMap.get("ToUserName");
+        String msgType = msgMap.get("MsgType");
+        String content = msgMap.get("Content");
+
+        log.info("处理微信消息: fromUserName={}, toUserName={}, msgType={}, content={}",
+                fromUserName, toUserName, msgType, content);
+
+        BaseWxMsgResVo response = new BaseWxMsgResVo();
+        response.setToUserName(convertToCDATA(toUserName));
+        response.setFromUserName(convertToCDATA(fromUserName));
+        response.setCreateTime(System.currentTimeMillis() / 1000);
+        response.setMsgType(convertToCDATA("text"));
+
+        // 检查必要字段是否存在
+        if (StringUtils.isEmpty(fromUserName) || StringUtils.isEmpty(toUserName) || StringUtils.isEmpty(msgType)) {
+            log.error("微信消息缺少必要字段: fromUserName={}, toUserName={}, msgType={}",
+                    fromUserName, toUserName, msgType);
+            response.setContent(convertToCDATA("消息格式错误，请重试。"));
+            return response;
+        }
+
+        // 处理文本消息
+        if ("text".equals(msgType)) {
+            Boolean codeType = wxCodeService.findCodeType(content);
+            Throw.throwIf(codeType == null, ErrorCode.PARAMS_ERROR, "验证码不存在");
+            if (codeType) {
+                // 处理登录验证码
+                boolean loginResult = wxCodeService.verifyCode(fromUserName, content, true);
+                if (loginResult) {
+                    userService.loginByWx(fromUserName, request);
+                    response.setContent(convertToCDATA("登录成功！"));
+                } else {
+                    response.setContent(convertToCDATA("验证码错误，请重试。"));
+                }
+            } else {
+                // 处理绑定验证码
+                boolean bindResult = wxCodeService.verifyCode(fromUserName, content, false);
+                if (bindResult) {
+                    // 验证码正确，通过sceneId查找用户ID
+                    String sceneId = getSceneIdFromCode(content);
+                    log.info("通过验证码获取sceneId: code={}, sceneId={}", content, sceneId);
+                    if (sceneId != null) {
+                        String userIdStr = stringRedisTemplate.opsForValue().get("qr_scene_user:" + sceneId);
+                        log.info("通过sceneId获取用户ID: sceneId={}, userIdStr={}", sceneId, userIdStr);
+                        if (userIdStr != null) {
+                            try {
+                                Long userId = Long.valueOf(userIdStr);
+                                User user = userService.getById(userId);
+                                if (user != null) {
+                                    // 检查用户是否已经绑定了微信
+                                    if (user.getWxOpenId() != null && !user.getWxOpenId().isEmpty()) {
+                                        response.setContent(convertToCDATA("该账号已经绑定了微信！"));
+                                    } else {
+                                        // 执行绑定操作
+                                        userService.bindWx(fromUserName, userId);
+                                        response.setContent(convertToCDATA("微信绑定成功！"));
+                                        log.info("微信绑定成功: userId={}, openId={}", userId, fromUserName);
+                                    }
+                                } else {
+                                    response.setContent(convertToCDATA("绑定失败，用户不存在。"));
+                                }
+                            } catch (Exception e) {
+                                log.error("绑定微信时发生错误: userIdStr={}, error={}", userIdStr, e.getMessage());
+                                response.setContent(convertToCDATA("绑定失败，请重试。"));
+                            }
+                        } else {
+                            // 如果通过sceneId找不到用户，尝试通过openId查找用户（用户可能已经绑定过）
+                            User existingUser = userService.findByOpenId(fromUserName);
+                            if (existingUser != null) {
+                                response.setContent(convertToCDATA("您的微信已经绑定过账号了！"));
+                            } else {
+                                response.setContent(convertToCDATA("绑定失败，未找到用户信息。"));
+                            }
+                        }
+                    } else {
+                        response.setContent(convertToCDATA("绑定失败，验证码无效。"));
+                    }
+                } else {
+                    response.setContent(convertToCDATA("验证码错误，请重试。"));
+                }
+            }
+        }
+        // 处理事件消息
+        else if ("event".equals(msgType)) {
+            String event = msgMap.get("Event");
+            String eventKey = msgMap.get("EventKey");
+
+            log.info("处理微信事件: event={}, eventKey={}", event, eventKey);
+
+            if ("subscribe".equals(event)) {
+                log.info("用户关注公众号: fromUserName={}", fromUserName);
+                response.setContent(convertToCDATA("感谢您的关注！\n\n回复【login】获取验证码，完成账号绑定。"));
+            } else if ("unsubscribe".equals(event)) {
+                log.info("用户取消关注公众号: fromUserName={}", fromUserName);
+                // 取消关注不需要回复，返回空字符串
+                return null;
+            } else if ("SCAN".equals(event)) {
+                log.info("用户扫描二维码: fromUserName={}, eventKey={}", fromUserName, eventKey);
+                String sceneId = eventKey.replace("qrscene_", "");
+                log.info("解析sceneId: eventKey={}, sceneId={}", eventKey, sceneId);
+
+                boolean updateResult = wxQrService.updateQrScanStatus(sceneId, fromUserName);
+                if (updateResult) {
+                    log.info("二维码扫码状态已更新: sceneId={}, fromUserName={}", sceneId, fromUserName);
+                    scanHandle(sceneId, fromUserName, request);
+                } else {
+                    log.error("更新二维码扫码状态失败: sceneId={}, fromUserName={}", sceneId, fromUserName);
+                    response.setContent(convertToCDATA("扫码状态更新失败，请重试。"));
+                }
+            }
+        } else {
+            response.setContent(convertToCDATA("收到消息，请回复login获取验证码。"));
+        }
+
+        // 将响应对象转换为XML格式
+        return response;
+    }
+
+    private String convertToXml(BaseWxMsgResVo response) {
+        return String.format(
+                "<xml>" +
+                        "<ToUserName>%s</ToUserName>" +
+                        "<FromUserName>%s</FromUserName>" +
+                        "<CreateTime>%d</CreateTime>" +
+                        "<MsgType>%s</MsgType>" +
+                        "<Content>%s</Content>" +
+                        "</xml>",
+                response.getToUserName(),
+                response.getFromUserName(),
+                response.getCreateTime(),
+                response.getMsgType(),
+                response.getContent()
+        );
+    }
+
+    /**
+     * 处理扫码事件
+     * @param sceneId      场景ID
+     * @param fromUserName 用户OpenID
+     * @param request      HTTP请求
+     */
+    private void scanHandle(String sceneId, String fromUserName, HttpServletRequest request) {
+        log.info("处理扫码事件: sceneId={}, fromUserName={}", sceneId, fromUserName);
+
+        // 通过sceneId获取用户信息
+        // sceneId应该是生成二维码时与用户关联的标识
+        // 这里需要根据实际业务逻辑实现，例如从Redis中获取sceneId对应的用户ID
+        User user = null;
         try {
-            String fromUserName = msgMap.get("FromUserName");
-            String toUserName = msgMap.get("ToUserName");
-            String msgType = msgMap.get("MsgType");
-            String content = msgMap.get("Content");
+            // 从Redis中获取sceneId对应的用户ID
+            String userIdKey = "qr_scene_user:" + sceneId;
+            String userIdStr = stringRedisTemplate.opsForValue().get(userIdKey);
+            log.info("通过sceneId获取用户ID: sceneId={}, userIdKey={}, userIdStr={}", sceneId, userIdKey, userIdStr);
 
-            log.info("处理微信消息: fromUserName={}, toUserName={}, msgType={}, content={}",
-                    fromUserName, toUserName, msgType, content);
-
-            // 检查必要字段是否存在
-            if (StringUtils.isEmpty(fromUserName) || StringUtils.isEmpty(toUserName) || StringUtils.isEmpty(msgType)) {
-                log.error("微信消息缺少必要字段: fromUserName={}, toUserName={}, msgType={}",
-                        fromUserName, toUserName, msgType);
-                return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "消息格式错误，请重试。");
+            if (userIdStr != null) {
+                Long userId = Long.valueOf(userIdStr);
+                user = userService.getById(userId);
             }
-
-            // 处理文本消息
-            if ("text".equals(msgType)) {
-                // 用户输入"login"获取验证码
-                if ("login".equalsIgnoreCase(content.trim())) {
-                    log.info("用户请求登录验证码: {}", fromUserName);
-                    String code = handleLoginRequest(fromUserName, null, null);
-                    if (code != null) {
-                        log.info("为用户生成验证码成功: {}, code={}", fromUserName, code);
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "您的验证码是：" + code + "，请在3分钟内使用该验证码完成登录。");
-                    } else {
-                        log.error("为用户生成验证码失败: {}", fromUserName);
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "生成验证码失败，请重试。");
-                    }
-                }
-                // 用户输入其他内容，认为是验证码
-                else {
-                    log.info("用户输入验证码: {}, content={}", fromUserName, content);
-                    // 验证码验证逻辑
-                    boolean isCodeValid = verifyCode(fromUserName, content);
-                    if (isCodeValid) {
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "验证成功！您的账号已绑定微信。");
-                    } else {
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "验证码错误或已过期，请重新获取验证码。");
-                    }
-                }
-            }
-            // 处理事件消息（如扫码事件、关注事件等）
-            else if ("event".equals(msgType)) {
-                String event = msgMap.get("Event");
-                String eventKey = msgMap.get("EventKey");
-
-                log.info("处理微信事件: event={}, eventKey={}", event, eventKey);
-                
-                // 处理关注事件
-                if ("subscribe".equals(event)) {
-                    log.info("用户关注公众号: fromUserName={}", fromUserName);
-                    
-                    // 生成欢迎消息
-                    String welcomeMsg = "感谢您的关注！\n\n回复【login】获取验证码，完成账号绑定。";
-                    return WxMsgUtil.buildTextMsg(toUserName, fromUserName, welcomeMsg);
-                }
-                // 处理取消关注事件
-                else if ("unsubscribe".equals(event)) {
-                    log.info("用户取消关注公众号: fromUserName={}", fromUserName);
-                    
-                    // 可以在这里处理取消关注后的逻辑，比如清除用户数据等
-                    return "";
-                }
-                // 处理扫码事件
-                else if ("SCAN".equals(event)) {
-                    log.info("用户扫描二维码: fromUserName={}, eventKey={}", fromUserName, eventKey);
-                    
-                    // 更新二维码扫描状态
-                    boolean updateResult = updateQrScanStatus(eventKey, fromUserName);
-                    if (updateResult) {
-                        log.info("二维码扫码状态已更新: eventKey={}, fromUserName={}", eventKey, fromUserName);
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "扫码成功！请输入验证码完成登录。");
-                    } else {
-                        log.error("更新二维码扫码状态失败: eventKey={}, fromUserName={}", eventKey, fromUserName);
-                        return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "扫码状态更新失败，请重试。");
-                    }
-                }
-            }
-
-            // 其他情况返回默认消息
-            return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "收到消息，请回复login获取验证码。");
         } catch (Exception e) {
-            log.error("处理微信消息时发生异常", e);
-            // 返回错误消息
-            String fromUserName = msgMap.get("FromUserName");
-            String toUserName = msgMap.get("ToUserName");
-            return WxMsgUtil.buildTextMsg(toUserName, fromUserName, "处理消息时发生错误，请重试。");
+            log.error("通过sceneId获取用户信息失败: sceneId={}, error={}", sceneId, e.getMessage());
+        }
+
+        if (user != null) {
+            // 用户已登录，判断是否已存在绑定微信
+            if (user.getWxOpenId() != null) {
+                // 已绑定微信，返回提示
+                log.info("用户已绑定微信: userId={}, wxOpenId={}", user.getId(), user.getWxOpenId());
+            } else {
+                // 未绑定微信，生成验证码让其绑定微信
+                String code = wxCodeService.handleVerifyRequest(fromUserName, false, sceneId);
+                log.info("为已登录用户生成绑定验证码: userId={}, fromUserName={}, code={}",
+                        user.getId(), fromUserName, code);
+            }
+        } else {
+            // 用户未登录或sceneId无效，生成登录验证码
+            String code = wxCodeService.handleVerifyRequest(fromUserName, true, sceneId);
+            log.info("为未登录用户生成登录验证码: fromUserName={}, code={}", fromUserName, code);
         }
     }
+
+
+    /**
+     * 通过验证码获取sceneId
+     * @param code 验证码
+     * @return sceneId
+     */
+    private String getSceneIdFromCode(String code) {
+        try {
+            // 从Redis中查找验证码对应的sceneId
+            String codeToSceneIdKey = "code_to_scene_id:" + code;
+            String sceneId = stringRedisTemplate.opsForValue().get(codeToSceneIdKey);
+            log.info("通过验证码获取sceneId: code={}, codeToSceneIdKey={}, sceneId={}", code, codeToSceneIdKey, sceneId);
+            return sceneId;
+        } catch (Exception e) {
+            log.error("通过验证码获取sceneId失败: code={}, error={}", code, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 将BaseWxMsgResVo对象转换为微信XML格式
+     * @return XML格式的字符串
+     */
+    private String convertToCDATA(String a) {
+        return "<![CDATA[" + a + "]]>";
+    }
+
 }

@@ -19,6 +19,7 @@ public class Result {
      * @param errorCode 错误码
      * @return 响应
      */
+
     public static <T> BaseResponse<T> error(ErrorCode errorCode) {
         return new BaseResponse<>(errorCode);
     }

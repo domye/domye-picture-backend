@@ -16,11 +16,13 @@
         <result property="createTime" column="createTime"/>
         <result property="updateTime" column="updateTime"/>
         <result property="isDelete" column="isDelete"/>
+        <result property="wxOpenId" column="wxOpenId"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id
         ,userAccount,userPassword,userName,userAvatar,userProfile,
-        userRole,editTime,createTime,updateTime,isDelete
+        userRole,editTime,createTime,updateTime,isDelete,
+        wxOpenId
     </sql>
 </mapper>

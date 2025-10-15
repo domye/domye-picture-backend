@@ -47,5 +47,31 @@ public interface UserService extends IService<User> {
     public String getEncryptPassword(String defaultPassword);
 
     public boolean isAdmin(User user);
+
+    /**
+     * 根据openId查找用户
+     * @param openId 微信openId
+     * @return 用户对象
+     */
+    User findByOpenId(String openId);
+
+    /**
+     * 创建微信用户
+     * @param openId 微信openId
+     * @return 用户对象
+     */
+    User createWxUser(String openId);
+
+    /**
+     * 微信登录
+     * @param user    用户对象
+     * @param request HTTP请求
+     * @return 登录用户信息
+     */
+    void wxLogin(User user, HttpServletRequest request);
+
+    void loginByWx(String fromUserName, HttpServletRequest request);
+
+    void bindWx(String fromUserName, Long userId);
 }
 

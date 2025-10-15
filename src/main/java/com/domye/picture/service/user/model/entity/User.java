@@ -56,10 +56,6 @@ public class User {
      */
     private String wxOpenId;
 
-    /**
-     * 微信UnionID
-     */
-    private String wxUnionId;
 
     /**
      * 编辑时间

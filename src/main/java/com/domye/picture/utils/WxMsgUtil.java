@@ -40,18 +40,6 @@ public class WxMsgUtil {
         }
     }
 
-    /**
-     * 构建文本回复消息
-     */
-    public static String buildTextMsg(String toUser, String fromUser, String content) {
-        return "<xml>" +
-                "<ToUserName><![CDATA[" + toUser + "]]></ToUserName>" +
-                "<FromUserName><![CDATA[" + fromUser + "]]></FromUserName>" +
-                "<CreateTime>" + System.currentTimeMillis() / 1000 + "</CreateTime>" +
-                "<MsgType><![CDATA[text]]></MsgType>" +
-                "<Content><![CDATA[" + content + "]]></Content>" +
-                "</xml>";
-    }
 
     /**
      * SHA1加密
