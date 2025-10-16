@@ -2,7 +2,6 @@ package com.domye.picture.controller.user.wxlogin;
 
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
-import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.WxCodeService;
 import com.domye.picture.service.user.WxPublicService;
@@ -55,39 +54,32 @@ public class WxQrCodeController {
      * @return 包含二维码信息的响应
      */
     @GetMapping("/generate")
-    public BaseResponse<QrcodeVO> generateQrCode(HttpServletRequest request) {
+    public BaseResponse<QrcodeVO> test(HttpServletRequest request) {
         // 获取当前登录用户
-        User loginUser = null;
-        try {
-            loginUser = userService.getLoginUser(request);
-        } catch (Exception e) {
-            log.warn("用户未登录，将生成通用登录二维码");
-        }
 
-        // 生成随机场景值ID
-        int sceneId = new Random().nextInt(900000) + 100000; // 生成6位随机数
+        User loginUser = userService.getLoginUser(request);
+
+        int newSceneId = new Random().nextInt(900000) + 100000;
+        String sceneId = String.valueOf(newSceneId);
         log.info("生成随机场景值ID: sceneId={}", sceneId);
 
         // 创建临时二维码，有效期5分钟（300秒）
-        String ticket = wxQrCodeUtil.createTempQrCode(sceneId, 300);
-
-        if (ticket == null) {
-            log.error("生成二维码失败: sceneId={}", sceneId);
-            return Result.error(ErrorCode.OPERATION_ERROR, "生成二维码失败");
-        }
-
+        String ticket = wxQrCodeUtil.createTempQrCode(Integer.parseInt(sceneId), 300);
         // 获取二维码图片URL
         String qrCodeUrl = wxQrCodeUtil.getQrCodeImageUrl(ticket);
-
+        // 生成唯一验证码
+        String code = wxCodeService.generateUniqueCode();
+        stringRedisTemplate.opsForValue().set("qr_scene_code:" + sceneId, code, 5, TimeUnit.MINUTES);
         QrcodeVO qrcodeVO = new QrcodeVO();
         qrcodeVO.setUrl(qrCodeUrl);
-        qrcodeVO.setSceneId(sceneId);
+        qrcodeVO.setSceneId(Integer.valueOf(sceneId));
         qrcodeVO.setTicket(ticket);
+        qrcodeVO.setCode(code);
 
         // 如果用户已登录，将sceneId与用户ID关联存储到Redis中
         if (loginUser != null) {
             String sceneUserKey = "qr_scene_user:" + sceneId;
-            stringRedisTemplate.opsForValue().set(sceneUserKey, String.valueOf(loginUser.getId()), 30, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(sceneUserKey, String.valueOf(loginUser.getId()), 5, TimeUnit.MINUTES);
             log.info("生成微信公众号二维码成功: sceneId={}, ticket={}, userId={}", sceneId, ticket, loginUser.getId());
         } else {
             log.info("生成微信公众号二维码成功（未登录用户）: sceneId={}, ticket={}", sceneId, ticket);
@@ -95,7 +87,6 @@ public class WxQrCodeController {
 
         return Result.success(qrcodeVO);
     }
-
 
     /**
      * 检查二维码扫描状态

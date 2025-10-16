@@ -101,31 +101,33 @@ public class WxPublicServiceImpl implements WxPublicService {
                 fromUserName, toUserName, msgType, content);
 
         BaseWxMsgResVo response = new BaseWxMsgResVo();
-        response.setToUserName(convertToCDATA(toUserName));
-        response.setFromUserName(convertToCDATA(fromUserName));
+        response.setToUserName(fromUserName); // 注意：这里需要交换发送者和接收者，因为我们要回复用户
+        response.setFromUserName(toUserName);
         response.setCreateTime(System.currentTimeMillis() / 1000);
-        response.setMsgType(convertToCDATA("text"));
+        response.setMsgType("text");
 
         // 检查必要字段是否存在
         if (StringUtils.isEmpty(fromUserName) || StringUtils.isEmpty(toUserName) || StringUtils.isEmpty(msgType)) {
             log.error("微信消息缺少必要字段: fromUserName={}, toUserName={}, msgType={}",
                     fromUserName, toUserName, msgType);
-            response.setContent(convertToCDATA("消息格式错误，请重试。"));
+            response.setContent("消息格式错误，请重试。");
             return response;
         }
 
         // 处理文本消息
         if ("text".equals(msgType)) {
             Boolean codeType = wxCodeService.findCodeType(content);
-            Throw.throwIf(codeType == null, ErrorCode.PARAMS_ERROR, "验证码不存在");
-            if (codeType) {
+            if (codeType == null) {
+                // 验证码不存在，返回提示信息而不是抛出异常
+                response.setContent("验证码不存在或已过期，请重新获取。");
+            } else if (codeType) {
                 // 处理登录验证码
                 boolean loginResult = wxCodeService.verifyCode(fromUserName, content, true);
                 if (loginResult) {
                     userService.loginByWx(fromUserName, request);
-                    response.setContent(convertToCDATA("登录成功！"));
+                    response.setContent("登录成功！");
                 } else {
-                    response.setContent(convertToCDATA("验证码错误，请重试。"));
+                    response.setContent("验证码错误，请重试。");
                 }
             } else {
                 // 处理绑定验证码
@@ -144,34 +146,34 @@ public class WxPublicServiceImpl implements WxPublicService {
                                 if (user != null) {
                                     // 检查用户是否已经绑定了微信
                                     if (user.getWxOpenId() != null && !user.getWxOpenId().isEmpty()) {
-                                        response.setContent(convertToCDATA("该账号已经绑定了微信！"));
+                                        response.setContent("该账号已经绑定了微信！");
                                     } else {
                                         // 执行绑定操作
                                         userService.bindWx(fromUserName, userId);
-                                        response.setContent(convertToCDATA("微信绑定成功！"));
+                                        response.setContent("微信绑定成功！");
                                         log.info("微信绑定成功: userId={}, openId={}", userId, fromUserName);
                                     }
                                 } else {
-                                    response.setContent(convertToCDATA("绑定失败，用户不存在。"));
+                                    response.setContent("绑定失败，用户不存在。");
                                 }
                             } catch (Exception e) {
                                 log.error("绑定微信时发生错误: userIdStr={}, error={}", userIdStr, e.getMessage());
-                                response.setContent(convertToCDATA("绑定失败，请重试。"));
+                                response.setContent("绑定失败，请重试。");
                             }
                         } else {
                             // 如果通过sceneId找不到用户，尝试通过openId查找用户（用户可能已经绑定过）
                             User existingUser = userService.findByOpenId(fromUserName);
                             if (existingUser != null) {
-                                response.setContent(convertToCDATA("您的微信已经绑定过账号了！"));
+                                response.setContent("您的微信已经绑定过账号了！");
                             } else {
-                                response.setContent(convertToCDATA("绑定失败，未找到用户信息。"));
+                                response.setContent("绑定失败，未找到用户信息。");
                             }
                         }
                     } else {
-                        response.setContent(convertToCDATA("绑定失败，验证码无效。"));
+                        response.setContent("绑定失败，验证码无效。");
                     }
                 } else {
-                    response.setContent(convertToCDATA("验证码错误，请重试。"));
+                    response.setContent("验证码错误，请重试。");
                 }
             }
         }
@@ -182,14 +184,7 @@ public class WxPublicServiceImpl implements WxPublicService {
 
             log.info("处理微信事件: event={}, eventKey={}", event, eventKey);
 
-            if ("subscribe".equals(event)) {
-                log.info("用户关注公众号: fromUserName={}", fromUserName);
-                response.setContent(convertToCDATA("感谢您的关注！\n\n回复【login】获取验证码，完成账号绑定。"));
-            } else if ("unsubscribe".equals(event)) {
-                log.info("用户取消关注公众号: fromUserName={}", fromUserName);
-                // 取消关注不需要回复，返回空字符串
-                return null;
-            } else if ("SCAN".equals(event)) {
+            if ("SCAN".equals(event)) {
                 log.info("用户扫描二维码: fromUserName={}, eventKey={}", fromUserName, eventKey);
                 String sceneId = eventKey.replace("qrscene_", "");
                 log.info("解析sceneId: eventKey={}, sceneId={}", eventKey, sceneId);
@@ -198,34 +193,19 @@ public class WxPublicServiceImpl implements WxPublicService {
                 if (updateResult) {
                     log.info("二维码扫码状态已更新: sceneId={}, fromUserName={}", sceneId, fromUserName);
                     scanHandle(sceneId, fromUserName, request);
+                    response.setContent("扫码成功！");
                 } else {
                     log.error("更新二维码扫码状态失败: sceneId={}, fromUserName={}", sceneId, fromUserName);
-                    response.setContent(convertToCDATA("扫码状态更新失败，请重试。"));
+                    response.setContent("扫码状态更新失败，请重试。");
                 }
+            } else {
+                response.setContent("收到事件消息，感谢您的关注！");
             }
         } else {
-            response.setContent(convertToCDATA("收到消息，请回复login获取验证码。"));
+            response.setContent("收到消息，请回复login获取验证码。");
         }
 
-        // 将响应对象转换为XML格式
         return response;
-    }
-
-    private String convertToXml(BaseWxMsgResVo response) {
-        return String.format(
-                "<xml>" +
-                        "<ToUserName>%s</ToUserName>" +
-                        "<FromUserName>%s</FromUserName>" +
-                        "<CreateTime>%d</CreateTime>" +
-                        "<MsgType>%s</MsgType>" +
-                        "<Content>%s</Content>" +
-                        "</xml>",
-                response.getToUserName(),
-                response.getFromUserName(),
-                response.getCreateTime(),
-                response.getMsgType(),
-                response.getContent()
-        );
     }
 
     /**
@@ -291,13 +271,4 @@ public class WxPublicServiceImpl implements WxPublicService {
             return null;
         }
     }
-
-    /**
-     * 将BaseWxMsgResVo对象转换为微信XML格式
-     * @return XML格式的字符串
-     */
-    private String convertToCDATA(String a) {
-        return "<![CDATA[" + a + "]]>";
-    }
-
 }

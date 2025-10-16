@@ -53,10 +53,15 @@ public class WxCodeServiceImpl implements WxCodeService {
             return existingCode;
         }
 
-        // 生成唯一验证码
-        String code = generateUniqueCode();
-        log.info("为用户生成新验证码: openId={}, code={}", openId, code);
 
+        // 生成唯一验证码
+        String code = stringRedisTemplate.opsForValue().get("qr_scene_code:" + sceneId);
+        if (StringUtils.isEmpty(code)) {
+            code = generateUniqueCode();
+            log.info("为用户生成新验证码: openId={}, code={}", openId, code);
+        }
+        //删除旧验证码
+        stringRedisTemplate.delete("qr_scene_code:" + sceneId);
         // 双向绑定存储
         String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
         String openIdToCodeKey = WX_OPENID_TO_CODE_KEY + openId;

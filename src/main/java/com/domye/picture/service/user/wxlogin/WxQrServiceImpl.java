@@ -9,7 +9,6 @@ import javax.annotation.Resource;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.domye.picture.constant.WxConstant.WX_QR_CODE_KEY;
 import static com.domye.picture.constant.WxConstant.WX_QR_SCAN_STATUS_KEY;
 
 @Service
@@ -29,12 +28,10 @@ public class WxQrServiceImpl implements WxQrService {
         String qrCodeId = UUID.randomUUID().toString().replace("-", "");
 
         // 存储二维码信息
-        String qrCodeKey = WX_QR_CODE_KEY + qrCodeId;
         String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
 
-        // 存储二维码信息到Redis，30分钟过期
-        stringRedisTemplate.opsForValue().set(qrCodeKey, String.valueOf(sceneId), 30, TimeUnit.MINUTES);
-        stringRedisTemplate.opsForValue().set(qrScanStatusKey, "waiting", 30, TimeUnit.MINUTES);
+        // 存储二维码信息到Redis，5分钟过期
+        stringRedisTemplate.opsForValue().set(qrScanStatusKey, "waiting", 5, TimeUnit.MINUTES);
 
         log.info("生成二维码成功: qrCodeId={}, sceneId={}", qrCodeId, sceneId);
         return qrCodeId;

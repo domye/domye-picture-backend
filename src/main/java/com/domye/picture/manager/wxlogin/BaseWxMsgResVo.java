@@ -21,4 +21,15 @@ public class BaseWxMsgResVo {
 
     @JacksonXmlProperty(localName = "Content")
     private String content;
+    
+    @Override
+    public String toString() {
+        return "BaseWxMsgResVo{" +
+                "toUserName='" + toUserName + '\'' +
+                ", fromUserName='" + fromUserName + '\'' +
+                ", createTime=" + createTime +
+                ", msgType='" + msgType + '\'' +
+                ", content='" + content + '\'' +
+                '}';
+    }
 }

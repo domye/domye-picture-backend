@@ -7,4 +7,5 @@ public class QrcodeVO {
     Integer sceneId;
     String ticket;
     String url;
+    String code;
 }

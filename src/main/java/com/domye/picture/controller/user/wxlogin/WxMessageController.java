@@ -61,8 +61,14 @@ public class WxMessageController {
         // 1. 验证签名
         if (!wxPublicService.checkSignature(signature, timestamp, nonce)) {
             log.error("微信消息签名验证失败");
-            // 签名验证失败，返回null，Spring会将其转换为空响应
-            return null;
+            // 签名验证失败，返回错误响应
+            BaseWxMsgResVo errorResponse = new BaseWxMsgResVo();
+            errorResponse.setToUserName("");
+            errorResponse.setFromUserName("");
+            errorResponse.setCreateTime(System.currentTimeMillis() / 1000);
+            errorResponse.setMsgType("text");
+            errorResponse.setContent("签名验证失败");
+            return errorResponse;
         }
 
 
@@ -90,8 +96,14 @@ public class WxMessageController {
 
         // 确保响应不为null，如果为null则返回空响应
         if (response == null) {
-            log.warn("处理消息返回null，将返回空响应");
-            return null;
+            log.warn("处理消息返回null，将返回默认响应");
+            BaseWxMsgResVo defaultResponse = new BaseWxMsgResVo();
+            defaultResponse.setToUserName("");
+            defaultResponse.setFromUserName("");
+            defaultResponse.setCreateTime(System.currentTimeMillis() / 1000);
+            defaultResponse.setMsgType("text");
+            defaultResponse.setContent("系统处理异常，请稍后重试。");
+            return defaultResponse;
         }
 
         log.info("准备返回微信消息响应: {}", response);
