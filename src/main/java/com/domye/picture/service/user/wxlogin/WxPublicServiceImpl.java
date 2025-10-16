@@ -1,18 +1,16 @@
 package com.domye.picture.service.user.wxlogin;
 
-import com.domye.picture.exception.ErrorCode;
-import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.wxlogin.BaseWxMsgResVo;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.WxCodeService;
 import com.domye.picture.service.user.WxPublicService;
 import com.domye.picture.service.user.WxQrService;
 import com.domye.picture.service.user.model.entity.User;
+import com.domye.picture.utils.RedisUtil;
 import com.domye.picture.utils.WxMsgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,9 +36,6 @@ public class WxPublicServiceImpl implements WxPublicService {
 
     @Resource
     private WxQrService wxQrService;
-
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 获取微信token
@@ -137,7 +132,7 @@ public class WxPublicServiceImpl implements WxPublicService {
                     String sceneId = getSceneIdFromCode(content);
                     log.info("通过验证码获取sceneId: code={}, sceneId={}", content, sceneId);
                     if (sceneId != null) {
-                        String userIdStr = stringRedisTemplate.opsForValue().get("qr_scene_user:" + sceneId);
+                        String userIdStr = RedisUtil.get("qr_scene_user:" + sceneId);
                         log.info("通过sceneId获取用户ID: sceneId={}, userIdStr={}", sceneId, userIdStr);
                         if (userIdStr != null) {
                             try {
@@ -224,7 +219,7 @@ public class WxPublicServiceImpl implements WxPublicService {
         try {
             // 从Redis中获取sceneId对应的用户ID
             String userIdKey = "qr_scene_user:" + sceneId;
-            String userIdStr = stringRedisTemplate.opsForValue().get(userIdKey);
+            String userIdStr = RedisUtil.get(userIdKey);
             log.info("通过sceneId获取用户ID: sceneId={}, userIdKey={}, userIdStr={}", sceneId, userIdKey, userIdStr);
 
             if (userIdStr != null) {
@@ -263,7 +258,7 @@ public class WxPublicServiceImpl implements WxPublicService {
         try {
             // 从Redis中查找验证码对应的sceneId
             String codeToSceneIdKey = "code_to_scene_id:" + code;
-            String sceneId = stringRedisTemplate.opsForValue().get(codeToSceneIdKey);
+            String sceneId = RedisUtil.get(codeToSceneIdKey);
             log.info("通过验证码获取sceneId: code={}, codeToSceneIdKey={}, sceneId={}", code, codeToSceneIdKey, sceneId);
             return sceneId;
         } catch (Exception e) {

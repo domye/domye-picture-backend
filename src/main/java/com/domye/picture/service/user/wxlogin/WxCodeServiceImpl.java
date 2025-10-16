@@ -3,6 +3,7 @@ package com.domye.picture.service.user.wxlogin;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.service.user.WxCodeService;
+import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,7 +47,7 @@ public class WxCodeServiceImpl implements WxCodeService {
 
         // 检查是否已有未过期的验证码
         String existingCodeKey = WX_OPENID_TO_CODE_KEY + openId;
-        String existingCode = stringRedisTemplate.opsForValue().get(existingCodeKey);
+        String existingCode = RedisUtil.get(existingCodeKey);
 
         if (StringUtils.isNotEmpty(existingCode)) {
             log.info("用户已有未过期的验证码，返回现有验证码: openId={}, existingCode={}", openId, existingCode);
@@ -55,7 +56,7 @@ public class WxCodeServiceImpl implements WxCodeService {
 
 
         // 生成唯一验证码
-        String code = stringRedisTemplate.opsForValue().get("qr_scene_code:" + sceneId);
+        String code = RedisUtil.get("qr_scene_code:" + sceneId);
         if (StringUtils.isEmpty(code)) {
             code = generateUniqueCode();
             log.info("为用户生成新验证码: openId={}, code={}", openId, code);
@@ -66,12 +67,12 @@ public class WxCodeServiceImpl implements WxCodeService {
         String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
         String openIdToCodeKey = WX_OPENID_TO_CODE_KEY + openId;
 
-        stringRedisTemplate.opsForValue().set(codeToOpenIdKey, openId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-        stringRedisTemplate.opsForValue().set(openIdToCodeKey, code, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.set(codeToOpenIdKey, openId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.set(openIdToCodeKey, code, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
 
 
         String codeToSceneIdKey = "code_to_scene_id:" + code;
-        stringRedisTemplate.opsForValue().set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("验证码已存储到Redis: codeToOpenIdKey={}, openIdToCodeKey={}", codeToOpenIdKey, openIdToCodeKey);
 
 
@@ -90,7 +91,7 @@ public class WxCodeServiceImpl implements WxCodeService {
 
         // 获取openId对应的验证码
         String existingCodeKey = WX_OPENID_TO_CODE_KEY + openId;
-        String storedCode = stringRedisTemplate.opsForValue().get(existingCodeKey);
+        String storedCode = RedisUtil.get(existingCodeKey);
 
         if (StringUtils.isEmpty(storedCode)) {
             log.error("验证码验证失败，未找到验证码: openId={}, code={}", openId, code);
@@ -135,7 +136,7 @@ public class WxCodeServiceImpl implements WxCodeService {
         // 从Redis中查找验证码对应的openId
         Boolean type = findCodeType(code);
         String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
-        String openId = stringRedisTemplate.opsForValue().get(codeToOpenIdKey);
+        String openId = RedisUtil.get(codeToOpenIdKey);
 
         if (StringUtils.isNotEmpty(openId)) {
             log.info("根据验证码找到openId: code={}, openId={}", code, openId);
@@ -156,7 +157,7 @@ public class WxCodeServiceImpl implements WxCodeService {
         Throw.throwIf(StringUtils.isEmpty(code) || StringUtils.isEmpty(sceneId), ErrorCode.PARAMS_ERROR, "参数不能为空");
 
         String codeToSceneIdKey = "code_to_scene_id:" + code;
-        stringRedisTemplate.opsForValue().set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("验证码与sceneId关联关系已存储: code={}, sceneId={}", code, sceneId);
     }
 }

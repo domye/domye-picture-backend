@@ -33,11 +33,11 @@ import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
+import com.domye.picture.utils.RedisUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,8 +65,6 @@ public class PictureController {
     private PictureService pictureService;
     @Resource
     private UserService userService;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
     @Resource
     private SpaceService spaceService;
     @Resource
@@ -290,7 +288,7 @@ public class PictureController {
             return Result.success(cachedPage);
         }
 
-        cachedValue = stringRedisTemplate.opsForValue().get(cacheKey);
+        cachedValue = RedisUtil.get(cacheKey);
         if (cachedValue != null) {
             // 如果缓存命中，返回结果
             Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
@@ -308,7 +306,7 @@ public class PictureController {
         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
         // 5 - 10 分钟随机过期，防止雪崩
         int cacheExpireTime = 300 + RandomUtil.randomInt(0, 300);
-        stringRedisTemplate.opsForValue().set(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
+        RedisUtil.set(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
         LOCAL_CACHE.put(cacheKey, cacheValue);
         // 返回结果
         return Result.success(pictureVOPage);

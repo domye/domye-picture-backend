@@ -19,11 +19,9 @@ import com.domye.picture.service.user.model.enums.UserRoleEnum;
 import com.domye.picture.service.user.model.vo.LoginUserVO;
 import com.domye.picture.service.user.model.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +38,6 @@ import static com.domye.picture.constant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 用户注册
