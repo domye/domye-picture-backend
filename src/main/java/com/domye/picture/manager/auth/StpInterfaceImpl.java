@@ -11,8 +11,8 @@ import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;
 import cn.hutool.json.JSONUtil;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
+import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.auth.model.SpaceUserPermissionConstant;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.picture.model.entity.Picture;
@@ -22,8 +22,8 @@ import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.space.model.entity.SpaceUser;
 import com.domye.picture.service.space.model.enums.SpaceRoleEnum;
 import com.domye.picture.service.space.model.enums.SpaceTypeEnum;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -72,9 +72,9 @@ public class StpInterfaceImpl implements StpInterface {
 
         // 2. 获取当前登录用户信息
         User loginUser = (User) StpKit.SPACE.getSessionByLoginId(loginId).get(USER_LOGIN_STATE);
-        if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "用户未登录");
-        }
+
+        Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR, "用户未登录");
+
 
         // 3. 管理员权限处理：如果当前用户为管理员，直接返回管理员权限列表
         if (userService.isAdmin(loginUser)) {
@@ -103,9 +103,8 @@ public class StpInterfaceImpl implements StpInterface {
         Long spaceUserId = authContext.getSpaceUserId();
         if (spaceUserId != null) {
             spaceUser = spaceUserService.getById(spaceUserId);
-            if (spaceUser == null) {
-                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到空间用户信息");
-            }
+
+            Throw.throwIf(spaceUser == null, ErrorCode.NOT_FOUND_ERROR, "未找到空间用户信息");
 
             // 校验当前登录用户是否属于该空间
             SpaceUser loginSpaceUser = spaceUserService.lambdaQuery()
@@ -134,9 +133,8 @@ public class StpInterfaceImpl implements StpInterface {
                     .eq(Picture::getId, pictureId)
                     .select(Picture::getId, Picture::getSpaceId, Picture::getUserId)
                     .one();
-            if (picture == null) {
-                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到图片信息");
-            }
+
+            Throw.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "未找到图片信息");
 
             spaceId = picture.getSpaceId();
             // 公共图库处理
@@ -153,9 +151,8 @@ public class StpInterfaceImpl implements StpInterface {
 
         // 9. 获取 Space 对象并判断空间类型
         Space space = spaceService.getById(spaceId);
-        if (space == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到空间信息");
-        }
+
+        Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "未找到空间信息");
 
         // 根据 Space 类型判断权限
         if (space.getSpaceType() == SpaceTypeEnum.PRIVATE.getValue()) {

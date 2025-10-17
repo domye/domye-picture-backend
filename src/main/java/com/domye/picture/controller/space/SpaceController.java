@@ -6,7 +6,6 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.auth.SpaceUserAuthManager;
@@ -70,9 +69,7 @@ public class SpaceController {
     @ApiOperation("删除空间")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteSpace(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         long id = deleteRequest.getId();
         // 判断是否存在
@@ -90,9 +87,7 @@ public class SpaceController {
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest, HttpServletRequest request) {
-        if (spaceUpdateRequest == null || spaceUpdateRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(spaceUpdateRequest == null || spaceUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         // 将实体类和 DTO 进行转换
         Space space = new Space();
         BeanUtils.copyProperties(spaceUpdateRequest, space);
@@ -197,9 +192,9 @@ public class SpaceController {
     @ApiOperation("编辑空间")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editSpace(@RequestBody SpaceEditRequest spaceEditRequest, HttpServletRequest request) {
-        if (spaceEditRequest == null || spaceEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(spaceEditRequest == null || spaceEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
+
         // 在此处将实体类和 DTO 进行转换
         Space space = new Space();
         BeanUtils.copyProperties(spaceEditRequest, space);
@@ -215,9 +210,8 @@ public class SpaceController {
         Space oldSpace = spaceService.getById(id);
         Throw.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或管理员可编辑
-        if (!oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
+        Throw.throwIf((!oldSpace.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)), ErrorCode.NO_AUTH_ERROR);
+
         // 操作数据库
         boolean result = spaceService.updateById(space);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);

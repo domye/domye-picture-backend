@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.auth.StpKit;
@@ -68,9 +67,7 @@ public class SpaceUserController {
                                                  HttpServletRequest request) {
         boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
         Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         long id = deleteRequest.getId();
         // 判断是否存在
         SpaceUser oldSpaceUser = spaceUserService.getById(id);
@@ -126,9 +123,8 @@ public class SpaceUserController {
         //鉴权
         boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
         Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
-        if (spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
         // 将实体类和 DTO 进行转换
         SpaceUser spaceUser = new SpaceUser();
         BeanUtils.copyProperties(spaceUserEditRequest, spaceUser);
@@ -148,9 +144,8 @@ public class SpaceUserController {
 
     private void isMyself(HttpServletRequest request, SpaceUser oldSpaceUser) {
         long loginUserId = userService.getLoginUser(request).getId();
-        if (oldSpaceUser.getUserId() == loginUserId) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限编辑自己");
-        }
+        Throw.throwIf(oldSpaceUser.getUserId() == loginUserId, ErrorCode.NO_AUTH_ERROR, "无权限编辑自己");
+
     }
 
     /**

@@ -15,7 +15,6 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.auth.SpaceUserAuthManager;
@@ -100,9 +99,9 @@ public class PictureController {
     @ApiOperation(value = "删除图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+
+        Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
         User loginUser = userService.getLoginUser(request);
         long id = deleteRequest.getId();
         // 判断是否存在
@@ -120,9 +119,9 @@ public class PictureController {
     @ApiOperation(value = "编辑图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
-        if (pictureEditRequest == null || pictureEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+
+        Throw.throwIf(pictureEditRequest == null || pictureEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
         User loginUser = userService.getLoginUser(request);
         // 在此处将实体类和 DTO 进行转换
         pictureService.editPicture(pictureEditRequest, loginUser);
@@ -139,9 +138,8 @@ public class PictureController {
     @ApiOperation(value = "管理员更新图片")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
-        if (pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
         // 将实体类和 DTO 进行转换
         Picture picture = new Picture();
         BeanUtils.copyProperties(pictureUpdateRequest, picture);

@@ -8,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.upload.CosManager;
@@ -87,12 +86,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             Space space = spaceService.getById(spaceId);
             Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
             // 必须空间创建人（管理员）才能上传
-            if (space.getTotalCount() >= space.getMaxCount()) {
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间条数不足");
-            }
-            if (space.getTotalSize() >= space.getMaxSize()) {
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间大小不足");
-            }
+            Throw.throwIf(space.getTotalCount() >= space.getMaxCount(), ErrorCode.OPERATION_ERROR, "空间条数不足");
+            Throw.throwIf(space.getTotalSize() >= space.getMaxSize(), ErrorCode.OPERATION_ERROR, "空间大小不足");
         }
         if (pictureId != null) {
             Picture oldPicture = pictureMapper.selectById(pictureId);
@@ -103,9 +98,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 }
             } else {
                 // 传了 spaceId，必须和原有图片一致
-                if (ObjUtil.notEqual(spaceId, oldPicture.getSpaceId())) {
-                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间 id 不一致");
-                }
+                Throw.throwIf(ObjUtil.notEqual(spaceId, oldPicture.getSpaceId()), ErrorCode.PARAMS_ERROR, "空间 id 不一致");
             }
         }
 
@@ -237,7 +230,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     @Override
     public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
-        
+
         // 对象转封装类
         PictureVO pictureVO = PictureVO.objToVo(picture);
         // 关联查询用户信息
@@ -301,6 +294,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (StrUtil.isNotBlank(url)) {
             Throw.throwIf(url.length() > 1024, ErrorCode.PARAMS_ERROR, "url 过长");
         }
+
         if (StrUtil.isNotBlank(introduction)) {
             Throw.throwIf(introduction.length() > 800, ErrorCode.PARAMS_ERROR, "简介过长");
         }
@@ -316,15 +310,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long pictureId = pictureReviewRequest.getId();
         Integer reviewStatus = pictureReviewRequest.getReviewStatus();
         PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
-        if (pictureId == null || reviewStatusEnum == null || PictureReviewStatusEnum.REVIEWING.equals(reviewStatusEnum)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+
+        Throw.throwIf(pictureId == null || reviewStatusEnum == null || PictureReviewStatusEnum.REVIEWING.equals(reviewStatusEnum), ErrorCode.NO_AUTH_ERROR);
         Picture oldPicture = this.getById(pictureId);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         // 已是该状态
-        if (oldPicture.getReviewStatus().equals(reviewStatus)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请勿重复审核");
-        }
+        Throw.throwIf(oldPicture.getReviewStatus().equals(reviewStatus), ErrorCode.PARAMS_ERROR, "请勿重复审核");
+
 
         Picture updatePicture = new Picture();
         BeanUtil.copyProperties(oldPicture, updatePicture);
@@ -452,9 +444,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Space space = spaceService.getById(spaceId);
         Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-        if (!loginUser.getId().equals(space.getUserId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
-        }
+
+        Throw.throwIf(!space.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
+
         List<Picture> pictureList = this.lambdaQuery()
                 .eq(Picture::getSpaceId, spaceId)
                 .isNotNull(Picture::getPicColor)

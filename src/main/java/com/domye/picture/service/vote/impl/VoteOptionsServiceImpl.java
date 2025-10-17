@@ -5,6 +5,7 @@ import com.domye.picture.mapper.VoteOptionsMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.VoteOptionsService;
 import com.domye.picture.service.vote.model.dto.VoteOptionsAddRequest;
+import com.domye.picture.service.vote.model.dto.VoteOptionsUpdateRequest;
 import com.domye.picture.service.vote.model.entity.VoteOptions;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +37,15 @@ public class VoteOptionsServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteO
         return save(voteOptions);
     }
 
-    
+    public boolean updateVoteOptions(VoteOptionsUpdateRequest voteOptionsUpdateRequest, HttpServletRequest request) {
+        //TODO 鉴权
+        VoteOptions voteOptions = new VoteOptions();
+        voteOptions.setId(voteOptionsUpdateRequest.getOptionId());
+        voteOptions.setActivityId(voteOptionsUpdateRequest.getActivityId());
+        voteOptions.setOptionText(voteOptionsUpdateRequest.getOptionText());
+        return updateById(voteOptions);
+    }
+
 }
 
 

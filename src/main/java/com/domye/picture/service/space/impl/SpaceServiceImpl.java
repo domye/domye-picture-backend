@@ -21,9 +21,9 @@ import com.domye.picture.service.space.model.enums.SpaceLevelEnum;
 import com.domye.picture.service.space.model.enums.SpaceRoleEnum;
 import com.domye.picture.service.space.model.enums.SpaceTypeEnum;
 import com.domye.picture.service.space.model.vo.SpaceVO;
+import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.UserVO;
-import com.domye.picture.service.user.UserService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -89,10 +89,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 权限校验
         Long userId = loginUser.getId();
         space.setUserId(userId);
-        if (SpaceLevelEnum.COMMON.getValue() != spaceAddRequest.getSpaceLevel() && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
-        }
-
+        Throw.throwIf(!userService.isAdmin(loginUser) && space.getSpaceLevel() != SpaceLevelEnum.COMMON.getValue(), ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
         // 使用分布式锁
         String lockKey = SPACE_CREATE_LOCK_PREFIX + userId;
         RLock lock = redissonClient.getLock(lockKey);
@@ -100,9 +97,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         try {
             // 尝试获取锁
             boolean locked = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.SECONDS);
-            if (!locked) {
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "系统繁忙，请稍后重试");
-            }
+            Throw.throwIf(!locked, ErrorCode.OPERATION_ERROR, "系统繁忙，请稍后重试");
 
             // 执行事务操作
             Long newSpaceId = transactionTemplate.execute(status -> {
@@ -176,26 +171,15 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getEnumByValue(spaceLevel);
         // 要创建
         if (add) {
-            if (spaceType == null) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间类型不能为空");
-            }
-            if (StrUtil.isBlank(spaceName)) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间名称不能为空");
-            }
-            if (spaceLevel == null) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间级别不能为空");
-            }
+            Throw.throwIf(spaceName == null, ErrorCode.PARAMS_ERROR, "空间名称不能为空");
+            Throw.throwIf(spaceLevel == null, ErrorCode.PARAMS_ERROR, "空间级别不能为空");
+            Throw.throwIf(spaceType == null, ErrorCode.PARAMS_ERROR, "空间类型不能为空");
         }
         // 修改数据时，如果要改空间级别
-        if (spaceLevel != null && spaceLevelEnum == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间级别不存在");
-        }
-        if (StrUtil.isNotBlank(spaceName) && spaceName.length() > 30) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间名称过长");
-        }
-        if (spaceType != null && spaceTypeEnum == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "空间类型不存在");
-        }
+        Throw.throwIf(spaceLevel != null && spaceLevelEnum == null, ErrorCode.PARAMS_ERROR, "空间级别不存在");
+        Throw.throwIf(spaceType != null && spaceTypeEnum == null, ErrorCode.PARAMS_ERROR, "空间类型不存在");
+        Throw.throwIf(StrUtil.isNotBlank(spaceName) && spaceName.length() > 30, ErrorCode.PARAMS_ERROR, "空间名称过长");
+
     }
 
     /**
@@ -208,14 +192,11 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Long oldUserId = space.getUserId();
         if (oldUserId == null) {
             // 公共图库，仅管理员可操作
-            if (!userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
+            Throw.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+
         } else {
             // 私有空间，仅用户和管理员可操作
-            if (!oldUserId.equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
+            Throw.throwIf(!oldUserId.equals(loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
         }
     }
 

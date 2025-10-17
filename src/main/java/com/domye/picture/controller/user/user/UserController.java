@@ -6,7 +6,6 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.DeleteRequest;
 import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.service.user.UserService;
@@ -128,9 +127,7 @@ public class UserController implements Serializable {
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         boolean b = userService.removeById(deleteRequest.getId());
         return Result.success(b);
     }
@@ -144,17 +141,15 @@ public class UserController implements Serializable {
     @ApiOperation(value = "更新用户信息")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
-        if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+        Throw.throwIf(userUpdateRequest == null || userUpdateRequest.getId() == null, ErrorCode.PARAMS_ERROR);
+
         User loginUser = userService.getLoginUser(request);
         User oldUser = userService.getById(userUpdateRequest.getId());
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
-        if (!Objects.equals(user.getId(), loginUser.getId()) || !userService.isAdmin(user))
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        if (!oldUser.getUserRole().equals(user.getUserRole()) && !userService.isAdmin(loginUser))
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        Throw.throwIf(!Objects.equals(user.getId(), loginUser.getId()) || !userService.isAdmin(user), ErrorCode.NO_AUTH_ERROR);
+        Throw.throwIf(!oldUser.getUserRole().equals(user.getUserRole()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+
 
         boolean result = userService.updateById(user);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);

@@ -7,7 +7,6 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.domye.picture.exception.BusinessException;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.manager.auth.StpKit;
@@ -58,9 +57,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         long count = this.baseMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
-        }
+        Throw.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号重复");
+
+
         //3.加密数据
         String encryptPassword = getEncryptPassword(password);
         //4.将加密的数据存入数据库
@@ -70,9 +69,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserName("无名");
         user.setUserRole(UserRoleEnum.USER.getValue());
         boolean saveResult = this.save(user);
-        if (!saveResult) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败");
-        }
+        Throw.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "注册失败");
+
+
         //5.返回用户id
         return user.getId();
 
