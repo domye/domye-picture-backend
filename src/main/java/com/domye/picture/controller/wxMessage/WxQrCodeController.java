@@ -1,18 +1,16 @@
-package com.domye.picture.controller.user.wxlogin;
+package com.domye.picture.controller.wxMessage;
 
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
+import com.domye.picture.service.WxMessage.WxCodeService;
+import com.domye.picture.service.WxMessage.WxQrService;
+import com.domye.picture.service.WxMessage.model.vo.QrcodeStatusVO;
+import com.domye.picture.service.WxMessage.model.vo.QrcodeVO;
 import com.domye.picture.service.user.UserService;
-import com.domye.picture.service.user.WxCodeService;
-import com.domye.picture.service.user.WxPublicService;
-import com.domye.picture.service.user.WxQrService;
 import com.domye.picture.service.user.model.entity.User;
-import com.domye.picture.service.user.model.vo.QrcodeStatusVO;
-import com.domye.picture.service.user.model.vo.QrcodeVO;
 import com.domye.picture.utils.RedisUtil;
 import com.domye.picture.utils.WxQrCodeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,9 +30,6 @@ import java.util.concurrent.TimeUnit;
 public class WxQrCodeController {
 
     @Resource
-    private WxPublicService wxPublicService;
-
-    @Resource
     private WxQrCodeUtil wxQrCodeUtil;
 
     @Resource
@@ -46,8 +41,6 @@ public class WxQrCodeController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 生成微信公众号二维码

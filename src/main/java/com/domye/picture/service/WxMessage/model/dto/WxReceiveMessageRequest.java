@@ -1,4 +1,4 @@
-package com.domye.picture.service.user.model.dto;
+package com.domye.picture.service.WxMessage.model.dto;
 
 import lombok.Data;
 

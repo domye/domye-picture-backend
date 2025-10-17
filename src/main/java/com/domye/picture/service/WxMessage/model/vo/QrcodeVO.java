@@ -1,4 +1,4 @@
-package com.domye.picture.service.user.model.vo;
+package com.domye.picture.service.WxMessage.model.vo;
 
 import lombok.Data;
 

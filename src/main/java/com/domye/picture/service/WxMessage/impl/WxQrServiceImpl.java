@@ -1,11 +1,10 @@
-package com.domye.picture.service.user.wxlogin;
+package com.domye.picture.service.WxMessage.impl;
 
-import com.domye.picture.service.user.WxQrService;
+import com.domye.picture.service.WxMessage.WxQrService;
 import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.domye.picture.constant.WxConstant.WX_QR_SCAN_STATUS_KEY;
@@ -14,25 +13,6 @@ import static com.domye.picture.constant.WxConstant.WX_QR_SCAN_STATUS_KEY;
 @Slf4j
 public class WxQrServiceImpl implements WxQrService {
 
-    /**
-     * 生成二维码
-     * @param sceneId 场景ID
-     * @return 二维码ID
-     */
-    @Override
-    public String generateQrCode(int sceneId) {
-        // 生成唯一二维码ID
-        String qrCodeId = UUID.randomUUID().toString().replace("-", "");
-
-        // 存储二维码信息
-        String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
-
-        // 存储二维码信息到Redis，5分钟过期
-        RedisUtil.set(qrScanStatusKey, "waiting", 5, TimeUnit.MINUTES);
-
-        log.info("生成二维码成功: qrCodeId={}, sceneId={}", qrCodeId, sceneId);
-        return qrCodeId;
-    }
 
     /**
      * 更新二维码扫描状态
@@ -64,20 +44,6 @@ public class WxQrServiceImpl implements WxQrService {
         String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + qrCodeId;
         String status = RedisUtil.get(qrScanStatusKey);
         log.info("获取二维码扫描状态: qrCodeId={}, qrScanStatusKey={}, status={}", qrCodeId, qrScanStatusKey, status);
-        return status;
-    }
-
-    /**
-     * 获取场景ID对应的二维码状态
-     */
-    @Override
-    public String getQrScanStatusBySceneId(String sceneId) {
-        // 根据场景ID查找对应的二维码状态
-        // 在实际应用中，这里可能需要从数据库或其他存储中查找
-        // 这里简化处理，直接返回Redis中的状态
-        String qrScanStatusKey = WX_QR_SCAN_STATUS_KEY + sceneId;
-        String status = RedisUtil.get(qrScanStatusKey);
-        log.info("获取场景ID对应的二维码状态: sceneId={}, qrScanStatusKey={}, status={}", sceneId, qrScanStatusKey, status);
         return status;
     }
 

@@ -8,7 +8,7 @@ import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.enums.FilterModeEnum;
 import com.domye.picture.service.user.model.enums.FilterTypeEnum;
 import com.domye.picture.service.user.model.vo.UserVO;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import com.domye.picture.utils.RedisUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,8 +21,6 @@ public class FilterlistServiceImpl implements FilterlistService {
 
     @Resource
     private UserService userService;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 检查用户是否在名单中
@@ -32,7 +30,7 @@ public class FilterlistServiceImpl implements FilterlistService {
     @Override
     public boolean isInFilterList(Long userId, Long type, Long mode) {
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        Boolean a = stringRedisTemplate.opsForSet().isMember(key, String.valueOf(userId));
+        Boolean a = RedisUtil.hasSet(key, String.valueOf(userId));
         return Boolean.TRUE.equals(a);
     }
 
@@ -43,7 +41,7 @@ public class FilterlistServiceImpl implements FilterlistService {
     @Override
     public List<UserVO> queryAllFilterListUsers(Long type, Long mode) {
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        Set<String> users = stringRedisTemplate.opsForSet().members(key);
+        Set<String> users = RedisUtil.getSet(key);
         List<User> userList = null;
         if (users != null) {
             userList = users.stream().map(user -> userService.getById(Long.valueOf(user))).collect(Collectors.toList());
@@ -67,7 +65,7 @@ public class FilterlistServiceImpl implements FilterlistService {
         // 如果用户已经在名单中，则抛出异常
         Throw.throwIf(isInFilterList(userId, type, mode), ErrorCode.OPERATION_ERROR, "用户已经在名单中");
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        stringRedisTemplate.opsForSet().add(key, String.valueOf(userId));
+        RedisUtil.addSet(key, String.valueOf(userId));
 
     }
 
@@ -82,7 +80,7 @@ public class FilterlistServiceImpl implements FilterlistService {
         Throw.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         Throw.throwIf(!isInFilterList(userId, type, mode), ErrorCode.OPERATION_ERROR, "用户不在名单中");
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        stringRedisTemplate.opsForSet().remove(key, String.valueOf(userId));
+        RedisUtil.deleteSet(key, String.valueOf(userId));
 
     }
 }

@@ -1,4 +1,4 @@
-package com.domye.picture.service.user;
+package com.domye.picture.service.WxMessage;
 
 import com.domye.picture.manager.wxlogin.BaseWxMsgResVo;
 

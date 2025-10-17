@@ -12,10 +12,10 @@ import com.domye.picture.service.rank.model.enums.RankTimeEnum;
 import com.domye.picture.service.rank.model.vo.UserActiveRankItemVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
+import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +31,6 @@ public class RankServiceImpl implements RankService {
     Date today = new Date();
     @Resource
     private UserService userService;
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
     @Resource
     @Lazy
     private PictureService pictureService;
@@ -80,25 +78,25 @@ public class RankServiceImpl implements RankService {
         final String todayRankKey = todayRankKey();
         final String monthRankKey = monthRankKey();
         final String userActionKey = ACTIVITY_SCORE_KEY + user.getId() + DateUtil.format(new Date(), "yyyyMMdd");
-        String ansStr = (String) stringRedisTemplate.opsForHash().get(userActionKey, field);
+        String ansStr = RedisUtil.getHash(userActionKey, field);
         Integer ans = ansStr != null ? Integer.parseInt(ansStr) : null;
         //如果不存在，执行加分
         if (ans == null) {
-            stringRedisTemplate.opsForHash().put(userActionKey, field, String.valueOf(score));
-            stringRedisTemplate.expire(userActionKey, 31, TimeUnit.DAYS);
-            Double newAns = stringRedisTemplate.opsForZSet().incrementScore(todayRankKey, String.valueOf(userId), score);
-            stringRedisTemplate.opsForZSet().incrementScore(monthRankKey, String.valueOf(userId), score);
+            RedisUtil.setHash(userActionKey, field, String.valueOf(score));
+            RedisUtil.expire(userActionKey, 31, TimeUnit.DAYS);
+            Double newAns = RedisUtil.addZSetScore(todayRankKey, String.valueOf(userId), score);
+            RedisUtil.addZSetScore(monthRankKey, String.valueOf(userId), score);
             if (log.isDebugEnabled()) {
                 log.info("活跃度更新加分! key#field = {}#{}, add = {}, newScore = {}", todayRankKey, userId, score, newAns);
             }
             if (newAns <= score) {
-                Long ttl = stringRedisTemplate.getExpire(todayRankKey);
+                Long ttl = RedisUtil.getExpire(todayRankKey);
                 if (ttl == -1) {
-                    stringRedisTemplate.expire(todayRankKey, 31, TimeUnit.DAYS);
+                    RedisUtil.expire(todayRankKey, 31, TimeUnit.DAYS);
                 }
-                ttl = stringRedisTemplate.getExpire(monthRankKey);
+                ttl = RedisUtil.getExpire(monthRankKey);
                 if (ttl == -1) {
-                    stringRedisTemplate.expire(monthRankKey, 31, TimeUnit.DAYS);
+                    RedisUtil.expire(monthRankKey, 31, TimeUnit.DAYS);
                 }
             }
         }
@@ -120,8 +118,8 @@ public class RankServiceImpl implements RankService {
         String rankKey = rankTimeEnum == RankTimeEnum.DAY ? todayRankKey() : monthRankKey();
 
         // 1. 获取topN的活跃用户及其分数
-        Set<ZSetOperations.TypedTuple<String>> userTuples = stringRedisTemplate.opsForZSet()
-                .reverseRangeWithScores(rankKey, 0, size - 1);
+        Set<ZSetOperations.TypedTuple<String>> userTuples = RedisUtil
+                .getZSetRange(rankKey, 0, size - 1);
 
         if (CollUtil.isEmpty(userTuples)) {
             return Collections.emptyList();

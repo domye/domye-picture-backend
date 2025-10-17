@@ -1,15 +1,13 @@
-package com.domye.picture.service.user.wxlogin;
+package com.domye.picture.service.WxMessage.impl;
 
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.service.user.WxCodeService;
+import com.domye.picture.service.WxMessage.WxCodeService;
 import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 import static com.domye.picture.constant.WxConstant.*;
@@ -17,19 +15,17 @@ import static com.domye.picture.constant.WxConstant.*;
 @Service
 @Slf4j
 public class WxCodeServiceImpl implements WxCodeService {
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Boolean findCodeType(String code) {
         // 从Redis中查找验证码对应的openId
         String loginCode = WX_LOGIN_CODE_KEY + code;
         String bindCode = WX_BIND_CODE_KEY + code;
-        Boolean loginEx = stringRedisTemplate.hasKey(loginCode);
+        Boolean loginEx = RedisUtil.hasKey(loginCode);
         if (loginEx) {
             return true;
         }
-        Boolean bindEx = stringRedisTemplate.hasKey(bindCode);
+        Boolean bindEx = RedisUtil.hasKey(bindCode);
         if (bindEx) {
             return false;
         }
@@ -62,7 +58,7 @@ public class WxCodeServiceImpl implements WxCodeService {
             log.info("为用户生成新验证码: openId={}, code={}", openId, code);
         }
         //删除旧验证码
-        stringRedisTemplate.delete("qr_scene_code:" + sceneId);
+        RedisUtil.delete("qr_scene_code:" + sceneId);
         // 双向绑定存储
         String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
         String openIdToCodeKey = WX_OPENID_TO_CODE_KEY + openId;
@@ -106,8 +102,8 @@ public class WxCodeServiceImpl implements WxCodeService {
         // 验证成功后，删除验证码（防止重复使用）
         if (isValid) {
             String codeToOpenIdKey = type ? WX_BIND_CODE_KEY + code : WX_LOGIN_CODE_KEY + code;
-            stringRedisTemplate.delete(existingCodeKey);
-            stringRedisTemplate.delete(codeToOpenIdKey);
+            RedisUtil.delete(existingCodeKey);
+            RedisUtil.delete(codeToOpenIdKey);
             log.info("验证码验证成功，已删除验证码缓存: openId={}, code={}", openId, storedCode);
         }
 
@@ -124,27 +120,6 @@ public class WxCodeServiceImpl implements WxCodeService {
         String code = String.format("%06d", (int) ((Math.random() * 9 + 1) * 100000));
         log.debug("生成验证码: {}", code);
         return code;
-    }
-
-    /**
-     * 根据验证码获取对应的openId
-     */
-    @Override
-    public String findOpenIdByCode(String code) {
-        Throw.throwIf(StringUtils.isEmpty(code), ErrorCode.PARAMS_ERROR, "验证码不能为空");
-
-        // 从Redis中查找验证码对应的openId
-        Boolean type = findCodeType(code);
-        String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
-        String openId = RedisUtil.get(codeToOpenIdKey);
-
-        if (StringUtils.isNotEmpty(openId)) {
-            log.info("根据验证码找到openId: code={}, openId={}", code, openId);
-            return openId;
-        } else {
-            log.warn("未找到验证码对应的openId: code={}", code);
-            return null;
-        }
     }
 
     /**

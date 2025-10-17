@@ -1,9 +1,9 @@
-package com.domye.picture.controller.user.wxlogin;
+package com.domye.picture.controller.wxMessage;
 
 import com.domye.picture.manager.wxlogin.BaseWxMsgResVo;
-import com.domye.picture.service.user.WxPublicService;
-import com.domye.picture.service.user.model.dto.WxReceiveMessageRequest;
-import com.domye.picture.service.user.model.dto.WxVerifyRequest;
+import com.domye.picture.service.WxMessage.WxPublicService;
+import com.domye.picture.service.WxMessage.model.dto.WxReceiveMessageRequest;
+import com.domye.picture.service.WxMessage.model.dto.WxVerifyRequest;
 import com.domye.picture.utils.WxMsgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;

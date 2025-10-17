@@ -1,4 +1,4 @@
-package com.domye.picture.service.user;
+package com.domye.picture.service.WxMessage;
 
 public interface WxCodeService {
 
@@ -9,8 +9,6 @@ public interface WxCodeService {
     boolean verifyCode(String openId, String code, Boolean type);
 
     String generateUniqueCode();
-
-    String findOpenIdByCode(String code);
 
     void storeCodeSceneIdRelation(String code, String sceneId);
 }
