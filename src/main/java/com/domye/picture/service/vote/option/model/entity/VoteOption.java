@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @TableName(value = "vote_options")
 @Data
-public class VoteOptions {
+public class VoteOption {
     /**
      *
      */

@@ -6,12 +6,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class VoteActivitiesUpdateRequest implements Serializable {
-    private Long id;
+public class VoteActivityAddRequest implements Serializable {
     private String title;
     private String description;
 
+    private Date StartTime;
     private Date EndTime;
     private Integer maxVotesPerUser;
-    private Integer status;
+    private Long spaceId;
 }

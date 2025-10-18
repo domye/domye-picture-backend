@@ -8,7 +8,7 @@ import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class VoteActivitiesQueryRequest extends PageRequest {
+public class VoteActivityQueryRequest extends PageRequest {
     private Long id;
 
     /**

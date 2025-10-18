@@ -1,7 +1,7 @@
 package com.domye.picture.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.domye.picture.service.vote.option.model.entity.VoteOptions;
+import com.domye.picture.service.vote.option.model.entity.VoteOption;
 
 /**
  * @author Domye
@@ -9,7 +9,7 @@ import com.domye.picture.service.vote.option.model.entity.VoteOptions;
  * @createDate 2025-10-17 21:15:50
  * @Entity com.domye.picture.service.vote.option.model.entity.VoteOptions
  */
-public interface VoteOptionsMapper extends BaseMapper<VoteOptions> {
+public interface VoteOptionsMapper extends BaseMapper<VoteOption> {
 
 }
 

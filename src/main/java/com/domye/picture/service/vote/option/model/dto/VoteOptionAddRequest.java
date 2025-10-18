@@ -3,7 +3,7 @@ package com.domye.picture.service.vote.option.model.dto;
 import lombok.Data;
 
 @Data
-public class VoteOptionsAddRequest {
+public class VoteOptionAddRequest {
     /**
      * 活动ID
      */
