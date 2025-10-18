@@ -1,6 +1,7 @@
 package com.domye.picture.service.vote.record;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.domye.picture.service.vote.record.model.dto.VoteRequest;
 import com.domye.picture.service.vote.record.model.entity.VoteRecord;
 
 /**
@@ -10,4 +11,5 @@ import com.domye.picture.service.vote.record.model.entity.VoteRecord;
  */
 public interface VoteRecordService extends IService<VoteRecord> {
 
+    void submitVote(VoteRequest request);
 }

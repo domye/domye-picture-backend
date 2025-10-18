@@ -18,4 +18,12 @@ public interface VoteOptionService extends IService<VoteOption> {
     boolean addVoteOptions(VoteOptionAddRequest voteOptionAddRequest, HttpServletRequest request);
 
     List<VoteOptionVO> getVoteOptionsList(Long activityId);
+    
+    /**
+     * 增加选项的投票计数
+     * @param optionId 选项ID
+     * @param increment 增量
+     * @return 是否更新成功
+     */
+    boolean incrementVoteCount(Long optionId, int increment);
 }

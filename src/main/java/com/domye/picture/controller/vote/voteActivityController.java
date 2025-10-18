@@ -21,12 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vate/activity")
-public class voteActivitiesController {
+public class voteActivityController {
 
     private final VoteActivityService voteActivitiesService;
     private final VoteOptionService voteOptionService;
 
-    public voteActivitiesController(VoteActivityService voteActivitiesService, VoteOptionService voteOptionService) {
+    public voteActivityController(VoteActivityService voteActivitiesService, VoteOptionService voteOptionService) {
         this.voteActivitiesService = voteActivitiesService;
         this.voteOptionService = voteOptionService;
     }

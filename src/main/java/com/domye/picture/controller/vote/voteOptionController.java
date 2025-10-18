@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vate/options")
-public class voteOptionsController {
+public class voteOptionController {
     @Resource
     private VoteOptionService voteOptionService;
 
@@ -32,5 +32,5 @@ public class voteOptionsController {
         voteOptionService.removeById(id);
         return Result.success("删除成功");
     }
-    
+
 }

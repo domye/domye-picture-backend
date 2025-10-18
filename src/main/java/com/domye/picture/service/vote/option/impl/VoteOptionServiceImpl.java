@@ -1,6 +1,7 @@
 package com.domye.picture.service.vote.option.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.mapper.VoteOptionsMapper;
 import com.domye.picture.service.user.UserService;
@@ -49,8 +50,12 @@ public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOp
         List<VoteOptionVO> voteOptionVO = voteOptions.stream().map(VoteOptionVO::objToVo).collect(Collectors.toList());
         return voteOptionVO;
     }
+    
+    @Override
+    public boolean incrementVoteCount(Long optionId, int increment) {
+        UpdateWrapper<VoteOption> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", optionId);
+        updateWrapper.setSql("vote_count = vote_count + " + increment);
+        return update(updateWrapper);
+    }
 }
-
-
-
-

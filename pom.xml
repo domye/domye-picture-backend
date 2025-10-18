@@ -109,6 +109,10 @@
             <artifactId>mybatis-plus-jsqlparser-4.9</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
             <version>5.6.227</version>
