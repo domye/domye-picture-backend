@@ -1,25 +1,15 @@
-package com.domye.picture.service.vote.model.entity;
+package com.domye.picture.service.vote.activity.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.domye.picture.service.vote.activity.model.entity.VoteActivities;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
 
-/**
- * 投票活动表
- * @TableName vote_activities
- */
-@TableName(value = "vote_activities")
 @Data
-public class VoteActivities {
-    /**
-     *
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+public class VoteActivityVO {
 
+    private Long id;
     /**
      * 活动标题
      */
@@ -55,23 +45,19 @@ public class VoteActivities {
      */
     private Integer maxVotesPerUser;
 
+    private Long spaceId;
+
     /**
      * 总投票数
      */
     private Long totalVotes;
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-
-    /**
-     * 关联空间
-     */
-    private Long spaceId;
+    public static VoteActivityVO objToVo(VoteActivities voteActivities) {
+        if (voteActivities == null) {
+            return null;
+        }
+        VoteActivityVO voteActivityVO = new VoteActivityVO();
+        BeanUtils.copyProperties(voteActivities, voteActivityVO);
+        return voteActivityVO;
+    }
 }

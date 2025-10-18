@@ -1,4 +1,4 @@
-package com.domye.picture.service.vote.model.entity;
+package com.domye.picture.service.vote.record.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

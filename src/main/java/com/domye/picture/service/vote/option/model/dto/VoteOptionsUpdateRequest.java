@@ -1,4 +1,4 @@
-package com.domye.picture.service.vote.model.dto;
+package com.domye.picture.service.vote.option.model.dto;
 
 import lombok.Data;
 

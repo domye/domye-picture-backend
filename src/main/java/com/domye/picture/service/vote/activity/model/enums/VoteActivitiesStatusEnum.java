@@ -1,4 +1,4 @@
-package com.domye.picture.service.vote.model.enums;
+package com.domye.picture.service.vote.activity.model.enums;
 
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;

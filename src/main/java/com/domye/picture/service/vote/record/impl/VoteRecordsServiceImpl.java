@@ -1,9 +1,9 @@
-package com.domye.picture.service.vote.impl;
+package com.domye.picture.service.vote.record.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.mapper.VoteRecordsMapper;
-import com.domye.picture.service.vote.VoteRecordsService;
-import com.domye.picture.service.vote.model.entity.VoteRecords;
+import com.domye.picture.service.vote.record.VoteRecordsService;
+import com.domye.picture.service.vote.record.model.entity.VoteRecords;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class VoteRecordsServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRecords>
         implements VoteRecordsService {
-    
+
 }
 
 
