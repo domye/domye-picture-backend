@@ -1,7 +1,12 @@
 package com.domye.picture.service.vote.option;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.domye.picture.service.vote.option.model.dto.VoteOptionsAddRequest;
 import com.domye.picture.service.vote.option.model.entity.VoteOptions;
+import com.domye.picture.service.vote.option.model.vo.VoteOptionsVO;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author Domye
@@ -10,4 +15,7 @@ import com.domye.picture.service.vote.option.model.entity.VoteOptions;
  */
 public interface VoteOptionsService extends IService<VoteOptions> {
 
+    boolean addVoteOptions(VoteOptionsAddRequest voteOptionsAddRequest, HttpServletRequest request);
+
+    List<VoteOptionsVO> getVoteOptionsList(Long activityId);
 }

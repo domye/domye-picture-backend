@@ -1,16 +1,19 @@
 package com.domye.picture.service.vote.option.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.mapper.VoteOptionsMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.option.VoteOptionsService;
 import com.domye.picture.service.vote.option.model.dto.VoteOptionsAddRequest;
-import com.domye.picture.service.vote.option.model.dto.VoteOptionsUpdateRequest;
 import com.domye.picture.service.vote.option.model.entity.VoteOptions;
+import com.domye.picture.service.vote.option.model.vo.VoteOptionsVO;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Domye
@@ -27,6 +30,7 @@ public class VoteOptionsServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteO
         this.userService = userService;
     }
 
+    @Override
     public boolean addVoteOptions(VoteOptionsAddRequest voteOptionsAddRequest, HttpServletRequest request) {
 //        User user = userService.getLoginUser(request);
         //TODO 鉴权
@@ -37,15 +41,14 @@ public class VoteOptionsServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteO
         return save(voteOptions);
     }
 
-    public boolean updateVoteOptions(VoteOptionsUpdateRequest voteOptionsUpdateRequest, HttpServletRequest request) {
-        //TODO 鉴权
-        VoteOptions voteOptions = new VoteOptions();
-        voteOptions.setId(voteOptionsUpdateRequest.getOptionId());
-        voteOptions.setActivityId(voteOptionsUpdateRequest.getActivityId());
-        voteOptions.setOptionText(voteOptionsUpdateRequest.getOptionText());
-        return updateById(voteOptions);
+    @Override
+    public List<VoteOptionsVO> getVoteOptionsList(Long activityId) {
+        QueryWrapper<VoteOptions> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("activityId", activityId);
+        List<VoteOptions> voteOptions = this.baseMapper.selectList(queryWrapper);
+        List<VoteOptionsVO> voteOptionsVO = voteOptions.stream().map(VoteOptionsVO::objToVo).collect(Collectors.toList());
+        return voteOptionsVO;
     }
-
 }
 
 

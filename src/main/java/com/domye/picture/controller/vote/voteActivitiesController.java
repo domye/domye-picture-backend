@@ -10,12 +10,12 @@ import com.domye.picture.service.vote.activity.model.dto.VoteActivitiesAddReques
 import com.domye.picture.service.vote.activity.model.dto.VoteActivitiesQueryRequest;
 import com.domye.picture.service.vote.activity.model.dto.VoteActivitiesUpdateRequest;
 import com.domye.picture.service.vote.activity.model.entity.VoteActivities;
+import com.domye.picture.service.vote.activity.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.activity.model.vo.VoteActivityVO;
+import com.domye.picture.service.vote.option.VoteOptionsService;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,9 +24,11 @@ import javax.servlet.http.HttpServletRequest;
 public class voteActivitiesController {
 
     private final VoteActivitiesService voteActivitiesService;
+    private final VoteOptionsService voteOptionsService;
 
-    public voteActivitiesController(VoteActivitiesService voteActivitiesService) {
+    public voteActivitiesController(VoteActivitiesService voteActivitiesService, VoteOptionsService voteOptionsService) {
         this.voteActivitiesService = voteActivitiesService;
+        this.voteOptionsService = voteOptionsService;
     }
 
     @PostMapping("/add")
@@ -65,7 +67,7 @@ public class voteActivitiesController {
     }
 
     /** 分页获取脱敏后的信息 **/
-    @PostMapping("/activity/list/page/vo")
+    @PostMapping("/list/page/vo")
     @ApiOperation(value = "分页获取脱敏后的信息")
     public BaseResponse<Page<VoteActivityVO>> listVoteActivitiesVOByPage(@RequestBody VoteActivitiesQueryRequest voteActivitiesQueryRequest) {
         long current = voteActivitiesQueryRequest.getCurrent();
@@ -76,5 +78,17 @@ public class voteActivitiesController {
         Page<VoteActivityVO> voteActivityVOPage = voteActivitiesService.getVoteActivityVOPage(voteActivitiesPage);
 
         return Result.success(voteActivityVOPage);
+    }
+
+    @GetMapping("/detail/{id}")
+    public BaseResponse<VoteActivityDetailVO> getVoteActivityVOById(@PathVariable("id") Long id) {
+        Throw.throwIf(id == null, ErrorCode.PARAMS_ERROR, "参数不能为空");
+        VoteActivities voteActivities = voteActivitiesService.getById(id);
+        Throw.throwIf(voteActivities == null, ErrorCode.NOT_FOUND_ERROR, "数据不存在");
+        VoteActivityVO voteActivityVO = voteActivitiesService.getVoteActivityVO(voteActivities);
+        VoteActivityDetailVO voteActivityDetailVO = new VoteActivityDetailVO();
+        BeanUtils.copyProperties(voteActivityVO, voteActivityDetailVO);
+        voteActivityDetailVO.setOptions(voteOptionsService.getVoteOptionsList(id));
+        return Result.success(voteActivityDetailVO);
     }
 }
