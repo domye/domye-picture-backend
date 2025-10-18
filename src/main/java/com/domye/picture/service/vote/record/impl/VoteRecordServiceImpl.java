@@ -4,11 +4,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.VoteRecordsMapper;
+import com.domye.picture.service.vote.activity.VoteActivityService;
+import com.domye.picture.service.vote.activity.model.entity.VoteActivity;
+import com.domye.picture.service.vote.option.VoteOptionService;
+import com.domye.picture.service.vote.option.model.entity.VoteOption;
 import com.domye.picture.service.vote.record.VoteRecordService;
-import com.domye.picture.service.vote.record.model.dto.VoteEventRequest;
 import com.domye.picture.service.vote.record.model.dto.VoteRequest;
 import com.domye.picture.service.vote.record.model.entity.VoteRecord;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -31,7 +35,9 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource
-    private RabbitTemplate rabbitTemplate;
+    private VoteActivityService voteActivityService;
+    @Autowired
+    private VoteOptionService voteOptionService;
 
     @Override
     public void submitVote(VoteRequest request) {
@@ -51,22 +57,21 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             boolean voteSuccess = recordVote(activityId, userId, optionId);
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
 
-            // 异步持久化到数据库
-            VoteEventRequest vote = new VoteEventRequest();
+            VoteRecord vote = new VoteRecord();
             vote.setActivityId(activityId);
             vote.setUserId(userId);
             vote.setOptionId(optionId);
             vote.setVoteTime(new Date());
+            this.save(vote);
+            VoteActivity activity = voteActivityService.getById(activityId);
+            activity.setTotalVotes(activity.getTotalVotes() + 1);
+            voteActivityService.updateById(activity);
 
-            // 发送到消息队列异步处理
-            rabbitTemplate.convertAndSend("vote.record.exchange",
-                    "vote.record.save", vote);
+            VoteOption option = voteOptionService.getById(optionId);
+            option.setVoteCount(option.getVoteCount() + 1);
+            voteOptionService.updateById(option);
 
-            //实时统计更新
-            vote.setIncrement(1);
-            rabbitTemplate.convertAndSend("vote.statistics.exchange",
-                    "vote.statistics.update",
-                    vote);
+
         } finally {
             if (lockAcquired) {
                 stringRedisTemplate.delete(lockKey);
