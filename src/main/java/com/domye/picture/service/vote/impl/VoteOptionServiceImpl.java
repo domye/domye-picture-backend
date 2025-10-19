@@ -11,6 +11,7 @@ import com.domye.picture.service.vote.model.entity.VoteOption;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOp
             VoteOption voteOption = new VoteOption();
             voteOption.setActivityId(id);
             voteOption.setOptionText(optionAddRequest.getOptionText());
+            voteOption.setCreateTime(new Date());
             return voteOption;
         }).collect(Collectors.toList());
         saveBatch(voteOptions);

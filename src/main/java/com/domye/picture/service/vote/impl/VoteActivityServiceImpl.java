@@ -26,6 +26,7 @@ import com.domye.picture.service.vote.model.vo.VoteOptionVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -50,19 +51,31 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     private VoteOptionService voteOptionService;
 
     @Override
+    @Transactional
     public Long createVoteActivity(VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
         VoteActivity voteActivity = new VoteActivity();
+        Date now = new Date();
         User user = userService.getLoginUser(request);
         Throw.throwIf(user == null, ErrorCode.NO_AUTH_ERROR);
         voteActivity.setCreateUser(user.getId());
-        voteActivity.setTitle(voteActivityAddRequest.getTitle());
+
+        String title = voteActivityAddRequest.getTitle();
+        Throw.throwIf(StrUtil.isBlank(title), ErrorCode.PARAMS_ERROR);
+        voteActivity.setTitle(title);
         voteActivity.setDescription(voteActivityAddRequest.getDescription());
-        voteActivity.setStartTime(voteActivityAddRequest.getStartTime());
-        voteActivity.setEndTime(voteActivityAddRequest.getEndTime());
-        voteActivity.setMaxVotesPerUser(voteActivityAddRequest.getMaxVotesPerUser());
+
+        Date startTime = voteActivityAddRequest.getStartTime();
+        Date endTime = voteActivityAddRequest.getEndTime();
+        Throw.throwIf(startTime == null || endTime == null, ErrorCode.PARAMS_ERROR, "时间不能为空");
+        Throw.throwIf(startTime.before(now) || endTime.before(now), ErrorCode.PARAMS_ERROR, "时间不能早于当前时间");
+        Throw.throwIf(startTime.after(endTime), ErrorCode.PARAMS_ERROR, "开始时间不能晚于结束时间");
+
+        voteActivity.setStartTime(startTime);
+        voteActivity.setEndTime(endTime);
+
         voteActivity.setStatus(VoteActivitiesStatusEnum.IN_PROGRESS.getValue());
-        voteActivity.setCreateTime(new Date());
-        voteActivity.setUpdateTime(new Date());
+        voteActivity.setCreateTime(now);
+        voteActivity.setUpdateTime(now);
         save(voteActivity);
         Long id = voteActivity.getId();
         List<VoteOptionAddRequest> voteOptionAddRequests = voteActivityAddRequest.getOptions();
@@ -89,8 +102,9 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
             BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
             voteActivityDetailVO.setOptions(optionsVO);
             stringRedisTemplate.opsForValue().set("vote:detail:" + id, JSON.toJSONString(voteActivityDetailVO));
-        } else
+        } else {
             voteActivityDetailVO = JSON.parseObject(jsonStr, VoteActivityDetailVO.class);
+        }
         Map<Object, Object> optionHash = stringRedisTemplate.opsForHash().entries("vote:count:" + id);
         List<VoteOptionVO> optionsVO = voteActivityDetailVO.getOptions();
 
@@ -98,6 +112,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         if (CollUtil.isEmpty(optionsVO) || CollUtil.isEmpty(optionHash)) {
             return voteActivityDetailVO;
         }
+
         Long totalVotes = optionsVO.stream()
                 .mapToLong(option -> {
                     Object countObj = optionHash.get(option.getId().toString());

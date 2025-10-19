@@ -16,5 +16,4 @@ public class VoteActivityDetailVO {
     private Integer maxVotesPerUser;       // 每人最大投票数
     private Long totalVotes;               // 活动总票数
     private List<VoteOptionVO> options;        // 选项列表（含票数）
-    private Boolean hasVoted;              // 当前用户是否已投票（前端展示用）
 }

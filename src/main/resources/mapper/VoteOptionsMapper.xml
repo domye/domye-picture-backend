@@ -9,12 +9,11 @@
         <result property="activityId" column="activityId"/>
         <result property="optionText" column="optionText"/>
         <result property="voteCount" column="voteCount"/>
-        <result property="sortOrder" column="sortOrder"/>
         <result property="createTime" column="createTime"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id
-        ,activityId,optionText,voteCount,sortOrder,createTime
+        ,activityId,optionText,voteCount,createTime
     </sql>
 </mapper>

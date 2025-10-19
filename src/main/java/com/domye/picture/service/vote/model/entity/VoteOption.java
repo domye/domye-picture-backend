@@ -36,12 +36,7 @@ public class VoteOption {
     private Long voteCount;
 
     /**
-     * 排序
-     */
-    private Integer sortOrder;
-
-    /**
-     *
+     * 创建时间
      */
     private Date createTime;
 }
