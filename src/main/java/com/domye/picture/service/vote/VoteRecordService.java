@@ -1,8 +1,8 @@
-package com.domye.picture.service.vote.record;
+package com.domye.picture.service.vote;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.service.vote.record.model.dto.VoteRequest;
-import com.domye.picture.service.vote.record.model.entity.VoteRecord;
+import com.domye.picture.service.vote.model.dto.old.VoteRequest;
+import com.domye.picture.service.vote.model.entity.VoteRecord;
 
 /**
  * @author Domye

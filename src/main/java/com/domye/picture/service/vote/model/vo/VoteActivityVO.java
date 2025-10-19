@@ -1,15 +1,13 @@
-package com.domye.picture.service.vote.activity.model.vo;
+package com.domye.picture.service.vote.model.vo;
 
-import com.domye.picture.service.vote.activity.model.entity.VoteActivity;
-import com.domye.picture.service.vote.option.model.vo.VoteOptionVO;
+import com.domye.picture.service.vote.model.entity.VoteActivity;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
-public class VoteActivityDetailVO {
+public class VoteActivityVO {
 
     private Long id;
     /**
@@ -54,14 +52,11 @@ public class VoteActivityDetailVO {
      */
     private Long totalVotes;
 
-
-    private List<VoteOptionVO> options;
-
-    public static VoteActivityDetailVO objToVo(VoteActivity voteActivity) {
+    public static VoteActivityVO objToVo(VoteActivity voteActivity) {
         if (voteActivity == null) {
             return null;
         }
-        VoteActivityDetailVO voteActivityVO = new VoteActivityDetailVO();
+        VoteActivityVO voteActivityVO = new VoteActivityVO();
         BeanUtils.copyProperties(voteActivity, voteActivityVO);
         return voteActivityVO;
     }
