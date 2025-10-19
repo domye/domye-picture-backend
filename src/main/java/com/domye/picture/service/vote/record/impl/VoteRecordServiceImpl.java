@@ -11,6 +11,7 @@ import com.domye.picture.service.vote.option.model.entity.VoteOption;
 import com.domye.picture.service.vote.record.VoteRecordService;
 import com.domye.picture.service.vote.record.model.dto.VoteRequest;
 import com.domye.picture.service.vote.record.model.entity.VoteRecord;
+import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,42 +36,27 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource
-    private VoteActivityService voteActivityService;
-    @Autowired
-    private VoteOptionService voteOptionService;
-
+    private VoteProducer voteProducer;
     @Override
     public void submitVote(VoteRequest request) {
         Long activityId = request.getActivityId();
         Long userId = request.getUserId();
         Long optionId = request.getOptionId();
-        //TODO基础检验
-        //TODO反作弊
-        //分布式锁防止重复投票
+
+        // 分布式锁防止重复投票
         String lockKey = String.format("vote:lock:%d:%d", activityId, userId);
         boolean lockAcquired = false;
         try {
             lockAcquired = Boolean.TRUE.equals(stringRedisTemplate.opsForValue()
                     .setIfAbsent(lockKey, "1", Duration.ofSeconds(10)));
             Throw.throwIf(!lockAcquired, ErrorCode.SYSTEM_ERROR, "投票过于频繁");
-            //原子锁操作
+
+            // 使用Redis记录投票状态
             boolean voteSuccess = recordVote(activityId, userId, optionId);
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
 
-            VoteRecord vote = new VoteRecord();
-            vote.setActivityId(activityId);
-            vote.setUserId(userId);
-            vote.setOptionId(optionId);
-            vote.setVoteTime(new Date());
-            this.save(vote);
-            VoteActivity activity = voteActivityService.getById(activityId);
-            activity.setTotalVotes(activity.getTotalVotes() + 1);
-            voteActivityService.updateById(activity);
-
-            VoteOption option = voteOptionService.getById(optionId);
-            option.setVoteCount(option.getVoteCount() + 1);
-            voteOptionService.updateById(option);
-
+            // 发送消息到MQ
+            voteProducer.sendVoteMessage(request);
 
         } finally {
             if (lockAcquired) {
@@ -78,7 +64,6 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             }
         }
     }
-
     /**
      * 记录用户投票
      * 使用SET + HASH组合存储
