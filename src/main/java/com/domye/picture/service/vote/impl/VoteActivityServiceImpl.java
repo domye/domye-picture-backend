@@ -12,17 +12,17 @@ import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.VoteActivitiesMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import com.domye.picture.service.vote.ActivityService;
+import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteOptionService;
-import com.domye.picture.service.vote.model.dto.ActivityAddRequest;
-import com.domye.picture.service.vote.model.dto.OptionAddRequest;
+import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
+import com.domye.picture.service.vote.model.dto.VoteOptionAddRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteOption;
 import com.domye.picture.service.vote.model.enums.VoteActivitiesStatusEnum;
-import com.domye.picture.service.vote.model.vo.ActivityDetailVO;
-import com.domye.picture.service.vote.model.vo.OptionVO;
+import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
+import com.domye.picture.service.vote.model.vo.VoteOptionVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
  * @createDate 2025-10-17 21:15:50
  */
 @Service
-public class ActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, VoteActivity>
-        implements ActivityService {
+public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, VoteActivity>
+        implements VoteActivityService {
     @Resource
     StringRedisTemplate stringRedisTemplate;
     @Resource
@@ -50,53 +50,53 @@ public class ActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, VoteA
     private VoteOptionService voteOptionService;
 
     @Override
-    public Long createVoteActivity(ActivityAddRequest activityAddRequest, HttpServletRequest request) {
+    public Long createVoteActivity(VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
         VoteActivity voteActivity = new VoteActivity();
         User user = userService.getLoginUser(request);
         Throw.throwIf(user == null, ErrorCode.NO_AUTH_ERROR);
         voteActivity.setCreateUser(user.getId());
-        voteActivity.setTitle(activityAddRequest.getTitle());
-        voteActivity.setDescription(activityAddRequest.getDescription());
-        voteActivity.setStartTime(activityAddRequest.getStartTime());
-        voteActivity.setEndTime(activityAddRequest.getEndTime());
-        voteActivity.setMaxVotesPerUser(activityAddRequest.getMaxVotesPerUser());
+        voteActivity.setTitle(voteActivityAddRequest.getTitle());
+        voteActivity.setDescription(voteActivityAddRequest.getDescription());
+        voteActivity.setStartTime(voteActivityAddRequest.getStartTime());
+        voteActivity.setEndTime(voteActivityAddRequest.getEndTime());
+        voteActivity.setMaxVotesPerUser(voteActivityAddRequest.getMaxVotesPerUser());
         voteActivity.setStatus(VoteActivitiesStatusEnum.IN_PROGRESS.getValue());
         voteActivity.setCreateTime(new Date());
         voteActivity.setUpdateTime(new Date());
         save(voteActivity);
         Long id = voteActivity.getId();
-        List<OptionAddRequest> optionAddRequests = activityAddRequest.getOptions();
-        voteOptionService.addOptions(optionAddRequests, id);
+        List<VoteOptionAddRequest> voteOptionAddRequests = voteActivityAddRequest.getOptions();
+        voteOptionService.addOptions(voteOptionAddRequests, id);
         return id;
     }
 
     @Override
-    public ActivityDetailVO getActivityDetailVOById(Long id) {
+    public VoteActivityDetailVO getActivityDetailVOById(Long id) {
         String jsonStr = stringRedisTemplate.opsForValue().get("vote:detail:" + id);
-        ActivityDetailVO activityDetailVO = null;
+        VoteActivityDetailVO voteActivityDetailVO = null;
         if (StrUtil.isBlank(jsonStr)) {
             VoteActivity voteActivity = getById(id);
             List<VoteOption> options = voteOptionService.getVoteOptionsList(id);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
-            List<OptionVO> optionsVO = options.stream().map(option -> {
-                        OptionVO optionVO = new OptionVO();
-                        BeanUtils.copyProperties(option, optionVO);
-                        return optionVO;
+            List<VoteOptionVO> optionsVO = options.stream().map(option -> {
+                        VoteOptionVO voteOptionVO = new VoteOptionVO();
+                        BeanUtils.copyProperties(option, voteOptionVO);
+                        return voteOptionVO;
                     }
             ).collect(Collectors.toList());
 
-            activityDetailVO = new ActivityDetailVO();
-            BeanUtils.copyProperties(voteActivity, activityDetailVO);
-            activityDetailVO.setOptions(optionsVO);
-            stringRedisTemplate.opsForValue().set("vote:detail:" + id, JSON.toJSONString(activityDetailVO));
+            voteActivityDetailVO = new VoteActivityDetailVO();
+            BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
+            voteActivityDetailVO.setOptions(optionsVO);
+            stringRedisTemplate.opsForValue().set("vote:detail:" + id, JSON.toJSONString(voteActivityDetailVO));
         } else
-            activityDetailVO = JSON.parseObject(jsonStr, ActivityDetailVO.class);
+            voteActivityDetailVO = JSON.parseObject(jsonStr, VoteActivityDetailVO.class);
         Map<Object, Object> optionHash = stringRedisTemplate.opsForHash().entries("vote:count:" + id);
-        List<OptionVO> optionsVO = activityDetailVO.getOptions();
+        List<VoteOptionVO> optionsVO = voteActivityDetailVO.getOptions();
 
 
         if (CollUtil.isEmpty(optionsVO) || CollUtil.isEmpty(optionHash)) {
-            return activityDetailVO;
+            return voteActivityDetailVO;
         }
         Long totalVotes = optionsVO.stream()
                 .mapToLong(option -> {
@@ -107,8 +107,8 @@ public class ActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, VoteA
                 })
                 .sum();
 
-        activityDetailVO.setTotalVotes(totalVotes);
-        return activityDetailVO;
+        voteActivityDetailVO.setTotalVotes(totalVotes);
+        return voteActivityDetailVO;
 
     }
 

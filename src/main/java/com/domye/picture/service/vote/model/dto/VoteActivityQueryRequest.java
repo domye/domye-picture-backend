@@ -1,4 +1,4 @@
-package com.domye.picture.service.vote.model.dto.old;
+package com.domye.picture.service.vote.model.dto;
 
 import com.domye.picture.common.PageRequest;
 import lombok.Data;

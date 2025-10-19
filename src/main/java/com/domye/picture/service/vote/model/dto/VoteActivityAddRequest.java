@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class ActivityAddRequest implements Serializable {
+public class VoteActivityAddRequest implements Serializable {
     private String title;
     private String description;
 
@@ -15,5 +15,5 @@ public class ActivityAddRequest implements Serializable {
     private Date EndTime;
     private Integer maxVotesPerUser;
     private Long spaceId;
-    private List<OptionAddRequest> options; // 投票选项列表
+    private List<VoteOptionAddRequest> options; // 投票选项列表
 }

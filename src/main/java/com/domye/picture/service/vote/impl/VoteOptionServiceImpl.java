@@ -1,12 +1,13 @@
-package com.domye.picture.service.vote.old.impl;
+package com.domye.picture.service.vote.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.VoteOptionsMapper;
+import com.domye.picture.service.vote.VoteOptionService;
 import com.domye.picture.service.vote.model.dto.VoteOptionAddRequest;
 import com.domye.picture.service.vote.model.entity.VoteOption;
-import com.domye.picture.service.vote.old.VoteOptionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,12 @@ import java.util.stream.Collectors;
 @Service
 public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOption> implements VoteOptionService {
 
+
+    @Override
+    public List<VoteOption> getVoteOptionsList(Long activityId) {
+        Throw.throwIf(activityId == null, ErrorCode.PARAMS_ERROR);
+        return list(new QueryWrapper<VoteOption>().eq("activity_id", activityId));
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

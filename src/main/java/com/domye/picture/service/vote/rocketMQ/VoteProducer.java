@@ -1,6 +1,6 @@
 package com.domye.picture.service.vote.rocketMQ;
 
-import com.domye.picture.service.vote.record.model.dto.VoteRequest;
+import com.domye.picture.service.vote.model.dto.VoteRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;

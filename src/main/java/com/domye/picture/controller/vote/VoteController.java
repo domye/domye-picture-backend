@@ -5,13 +5,13 @@ import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.service.vote.ActivityService;
+import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteRecordService;
-import com.domye.picture.service.vote.model.dto.ActivityAddRequest;
+import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
-import com.domye.picture.service.vote.model.vo.ActivityDetailVO;
+import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +21,18 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vote/activity")
-public class voteActivityController {
+public class VoteController {
 
     @Resource
-    ActivityService activitiesService;
+    VoteActivityService activitiesService;
     @Resource
     private VoteRecordService voteRecordService;
 
     @PostMapping("/create")
-    public BaseResponse<Long> addVoteActivities(@RequestBody ActivityAddRequest activityAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addVoteActivities(@RequestBody VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
 
-        Throw.throwIf(activityAddRequest == null, ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Long id = activitiesService.createVoteActivity(activityAddRequest, request);
+        Throw.throwIf(voteActivityAddRequest == null, ErrorCode.PARAMS_ERROR, "参数不能为空");
+        Long id = activitiesService.createVoteActivity(voteActivityAddRequest, request);
         return Result.success(id);
 
     }
@@ -45,9 +45,9 @@ public class voteActivityController {
     }
 
     @GetMapping("/detail/{id}")
-    public BaseResponse<ActivityDetailVO> getVoteActivities(@PathVariable Long id) {
-        ActivityDetailVO activityDetailVO = activitiesService.getActivityDetailVOById(id);
-        return Result.success(activityDetailVO);
+    public BaseResponse<VoteActivityDetailVO> getVoteActivities(@PathVariable Long id) {
+        VoteActivityDetailVO voteActivityDetailVO = activitiesService.getActivityDetailVOById(id);
+        return Result.success(voteActivityDetailVO);
     }
 
     @PostMapping("/list/page")

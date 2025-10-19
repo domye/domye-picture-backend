@@ -1,12 +1,12 @@
 package com.domye.picture.service.vote.rocketMQ;
 
-import com.domye.picture.service.vote.activity.VoteActivityService;
-import com.domye.picture.service.vote.activity.model.entity.VoteActivity;
-import com.domye.picture.service.vote.option.VoteOptionService;
-import com.domye.picture.service.vote.option.model.entity.VoteOption;
-import com.domye.picture.service.vote.record.VoteRecordService;
-import com.domye.picture.service.vote.record.model.dto.VoteRequest;
-import com.domye.picture.service.vote.record.model.entity.VoteRecord;
+import com.domye.picture.service.vote.VoteActivityService;
+import com.domye.picture.service.vote.VoteOptionService;
+import com.domye.picture.service.vote.VoteRecordService;
+import com.domye.picture.service.vote.model.dto.VoteRequest;
+import com.domye.picture.service.vote.model.entity.VoteActivity;
+import com.domye.picture.service.vote.model.entity.VoteOption;
+import com.domye.picture.service.vote.model.entity.VoteRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -24,17 +24,17 @@ import java.util.Date;
 )
 @Slf4j
 public class VoteConsumer implements RocketMQListener<VoteRequest> {
-    
-    public VoteConsumer() {
-        log.info("VoteConsumer 初始化成功，准备监听投票消息...");
-    }
+
     @Resource
     private VoteRecordService voteRecordService;
     @Resource
-    private VoteActivityService voteActivityService;
+    private VoteActivityService VoteActivityService;
     @Resource
     private VoteOptionService voteOptionService;
 
+    public VoteConsumer() {
+        log.info("VoteConsumer 初始化成功，准备监听投票消息...");
+    }
 
     @Override
     public void onMessage(VoteRequest request) {
@@ -49,15 +49,15 @@ public class VoteConsumer implements RocketMQListener<VoteRequest> {
             voteRecordService.save(vote);
 
             // 更新活动总票数
-            VoteActivity activity = voteActivityService.getById(request.getActivityId());
+            VoteActivity activity = VoteActivityService.getById(request.getActivityId());
             activity.setTotalVotes(activity.getTotalVotes() + 1);
-            voteActivityService.updateById(activity);
+            VoteActivityService.updateById(activity);
 
             // 更新选项票数
             VoteOption option = voteOptionService.getById(request.getOptionId());
             option.setVoteCount(option.getVoteCount() + 1);
             voteOptionService.updateById(option);
-            
+
             log.info("投票消息处理完成: {}", request);
 
         } catch (Exception e) {

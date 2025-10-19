@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class OptionResultVO {
+public class VoteOptionResultVO {
     private Long optionId;
     private String optionText;
     private Long voteCount;
