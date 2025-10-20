@@ -41,7 +41,6 @@ public class VoteActivityQueryRequest extends PageRequest {
      */
     private Integer status;
 
-    private Long spaceId;
     /**
      * 搜索词（同时搜名称、简介等）
      */

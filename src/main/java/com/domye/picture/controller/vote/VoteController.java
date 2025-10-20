@@ -40,7 +40,7 @@ public class VoteController {
     @PostMapping("/vote")
     public BaseResponse<String> addVoteRecord(@RequestBody VoteRequest voteOptionAddRequest, HttpServletRequest request) {
         Throw.throwIf(voteOptionAddRequest == null, ErrorCode.PARAMS_ERROR);
-        voteRecordService.submitVote(voteOptionAddRequest);
+        voteRecordService.submitVote(voteOptionAddRequest, request);
         return Result.success("添加成功");
     }
 

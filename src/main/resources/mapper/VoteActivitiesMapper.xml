@@ -15,13 +15,12 @@
         <result property="totalVotes" column="totalVotes"/>
         <result property="createTime" column="createTime"/>
         <result property="updateTime" column="updateTime"/>
-        <result property="spaceId" column="spaceId"/>
         <result property="createUser" column="createUser"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id
         ,title,description,startTime,endTime,status,
-        maxVotesPerUser,totalVotes,createTime,updateTime,SpaceId,CreateUser
+        maxVotesPerUser,totalVotes,createTime,updateTime,CreateUser
     </sql>
 </mapper>

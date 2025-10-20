@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author Domye
  * @description 针对表【vote_records(投票记录表)】的数据库操作Service
@@ -11,5 +13,6 @@ import com.domye.picture.service.vote.model.entity.VoteRecord;
  */
 public interface VoteRecordService extends IService<VoteRecord> {
 
-    void submitVote(VoteRequest request);
+
+    void submitVote(VoteRequest voteRequest, HttpServletRequest request);
 }

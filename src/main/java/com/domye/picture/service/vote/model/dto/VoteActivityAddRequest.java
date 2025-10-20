@@ -14,6 +14,5 @@ public class VoteActivityAddRequest implements Serializable {
     private Date StartTime;
     private Date EndTime;
     private Integer maxVotesPerUser;
-    private Long spaceId;
     private List<VoteOptionAddRequest> options; // 投票选项列表
 }

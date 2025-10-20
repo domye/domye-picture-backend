@@ -70,8 +70,4 @@ public class VoteActivity {
      */
     private Date updateTime;
 
-    /**
-     * 关联空间
-     */
-    private Long spaceId;
 }

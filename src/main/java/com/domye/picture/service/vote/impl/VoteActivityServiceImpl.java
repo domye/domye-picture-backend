@@ -80,6 +80,9 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         Long id = voteActivity.getId();
         List<VoteOptionAddRequest> voteOptionAddRequests = voteActivityAddRequest.getOptions();
         voteOptionService.addOptions(voteOptionAddRequests, id);
+        stringRedisTemplate.opsForValue().set("vote:activity:" + id, JSON.toJSONString(voteActivity));
+
+        //TODO rocketmq设计定时消息处理
         return id;
     }
 
@@ -92,14 +95,15 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         //如果redis中没有，则从数据库中获取
         if (StrUtil.isBlank(jsonStr)) {
             // 创建封装类
-            VoteActivity voteActivity = getById(id);
+            String json = stringRedisTemplate.opsForValue().get("vote:activity:" + id);
+            VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
             voteActivityDetailVO = new VoteActivityDetailVO();
             BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
 
             // 获取选项
             List<VoteOption> options = voteOptionService.getVoteOptionsList(id);
-            Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
+            Throw.throwIf(options == null, ErrorCode.NOT_FOUND_ERROR);
             optionsVO = options.stream().map(option -> {
                         VoteOptionVO voteOptionVO = new VoteOptionVO();
                         BeanUtils.copyProperties(option, voteOptionVO);
@@ -154,7 +158,6 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         Date startTime = voteActivityQueryRequest.getStartTime();
         Date endTime = voteActivityQueryRequest.getEndTime();
         Integer status = voteActivityQueryRequest.getStatus();
-        Long spaceId = voteActivityQueryRequest.getSpaceId();
         String searchText = voteActivityQueryRequest.getSearchText();
         if (StrUtil.isNotBlank(searchText)) {
             queryWrapper.and(
@@ -165,11 +168,6 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         }
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjUtil.isNotEmpty(createUser), "createUser", createUser);
-        if (spaceId != null) {
-            queryWrapper.eq("spaceId", spaceId);
-        } else {
-            queryWrapper.isNull("spaceId");
-        }
         queryWrapper.like(StrUtil.isNotBlank(title), "title", title);
         queryWrapper.like(StrUtil.isNotBlank(description), "description", description);
         queryWrapper.eq(ObjUtil.isNotEmpty(status), "status", status);

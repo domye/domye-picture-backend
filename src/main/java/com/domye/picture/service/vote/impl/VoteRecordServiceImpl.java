@@ -1,11 +1,13 @@
 package com.domye.picture.service.vote.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.VoteRecordsMapper;
 import com.domye.picture.service.vote.VoteRecordService;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
+import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,8 +15,10 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 
@@ -30,11 +34,21 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private VoteProducer voteProducer;
+
     @Override
-    public void submitVote(VoteRequest request) {
-        Long activityId = request.getActivityId();
-        Long userId = request.getUserId();
-        Long optionId = request.getOptionId();
+    public void submitVote(VoteRequest voteRequest, HttpServletRequest request) {
+        Long activityId = voteRequest.getActivityId();
+        Long userId = voteRequest.getUserId();
+        Long optionId = voteRequest.getOptionId();
+
+        Throw.throwIf(activityId == null || userId == null || optionId == null, ErrorCode.PARAMS_ERROR);
+        String json = stringRedisTemplate.opsForValue().get("vote:activity:" + activityId);
+        VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
+        Throw.throwIf(voteActivity == null, ErrorCode.PARAMS_ERROR, "投票活动不存在");
+        Throw.throwIf(voteActivity.getStatus() != 1, ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
+        Date now = new Date();
+        Throw.throwIf(now.before(voteActivity.getStartTime()) || now.after(voteActivity.getEndTime()), ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
+        
 
         // 分布式锁防止重复投票
         String lockKey = String.format("vote:lock:%d:%d", activityId, userId);
@@ -49,7 +63,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
 
             // 发送消息到MQ
-            voteProducer.sendVoteMessage(request);
+            voteProducer.sendVoteMessage(voteRequest);
 
         } finally {
             if (lockAcquired) {
@@ -57,6 +71,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             }
         }
     }
+
     /**
      * 记录用户投票
      * 使用SET + HASH组合存储

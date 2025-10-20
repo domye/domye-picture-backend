@@ -45,7 +45,6 @@ public class VoteActivityVO {
      */
     private Integer maxVotesPerUser;
 
-    private Long spaceId;
 
     /**
      * 总投票数
