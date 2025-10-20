@@ -85,28 +85,40 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
 
     @Override
     public VoteActivityDetailVO getActivityDetailVOById(Long id) {
+        //从redis中获取
         String jsonStr = stringRedisTemplate.opsForValue().get("vote:detail:" + id);
         VoteActivityDetailVO voteActivityDetailVO = null;
+        List<VoteOptionVO> optionsVO = null;
+        //如果redis中没有，则从数据库中获取
         if (StrUtil.isBlank(jsonStr)) {
+            // 创建封装类
             VoteActivity voteActivity = getById(id);
+            Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
+            voteActivityDetailVO = new VoteActivityDetailVO();
+            BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
+
+            // 获取选项
             List<VoteOption> options = voteOptionService.getVoteOptionsList(id);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
-            List<VoteOptionVO> optionsVO = options.stream().map(option -> {
+            optionsVO = options.stream().map(option -> {
                         VoteOptionVO voteOptionVO = new VoteOptionVO();
                         BeanUtils.copyProperties(option, voteOptionVO);
                         return voteOptionVO;
                     }
             ).collect(Collectors.toList());
 
-            voteActivityDetailVO = new VoteActivityDetailVO();
-            BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
             voteActivityDetailVO.setOptions(optionsVO);
+
+            //将数据存入redis
             stringRedisTemplate.opsForValue().set("vote:detail:" + id, JSON.toJSONString(voteActivityDetailVO));
         } else {
+            //如果redis中有，则直接解析
             voteActivityDetailVO = JSON.parseObject(jsonStr, VoteActivityDetailVO.class);
+            optionsVO = voteActivityDetailVO.getOptions();
         }
+
+        //从redis中读取选项票数
         Map<Object, Object> optionHash = stringRedisTemplate.opsForHash().entries("vote:count:" + id);
-        List<VoteOptionVO> optionsVO = voteActivityDetailVO.getOptions();
 
 
         if (CollUtil.isEmpty(optionsVO) || CollUtil.isEmpty(optionHash)) {
