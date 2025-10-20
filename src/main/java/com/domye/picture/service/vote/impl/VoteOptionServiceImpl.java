@@ -27,7 +27,7 @@ public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOp
     @Override
     public List<VoteOption> getVoteOptionsList(Long activityId) {
         Throw.throwIf(activityId == null, ErrorCode.PARAMS_ERROR);
-        return list(new QueryWrapper<VoteOption>().eq("activity_id", activityId));
+        return list(new QueryWrapper<VoteOption>().eq("activityId", activityId));
     }
 
     @Override

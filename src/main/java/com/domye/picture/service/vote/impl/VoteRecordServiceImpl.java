@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.mapper.VoteRecordsMapper;
+import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.VoteRecordService;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
@@ -21,6 +22,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static com.domye.picture.constant.VoteConstant.*;
+
 
 /**
  * @author Domye
@@ -34,24 +37,26 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private VoteProducer voteProducer;
+    @Resource
+    private UserService userService;
 
     @Override
     public void submitVote(VoteRequest voteRequest, HttpServletRequest request) {
         Long activityId = voteRequest.getActivityId();
-        Long userId = voteRequest.getUserId();
         Long optionId = voteRequest.getOptionId();
+        Long userId = userService.getLoginUser(request).getId();
 
         Throw.throwIf(activityId == null || userId == null || optionId == null, ErrorCode.PARAMS_ERROR);
-        String json = stringRedisTemplate.opsForValue().get("vote:activity:" + activityId);
+        String json = stringRedisTemplate.opsForValue().get(VOTE_ACTIVITY_KEY + activityId);
         VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
         Throw.throwIf(voteActivity == null, ErrorCode.PARAMS_ERROR, "投票活动不存在");
         Throw.throwIf(voteActivity.getStatus() != 1, ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
         Date now = new Date();
         Throw.throwIf(now.before(voteActivity.getStartTime()) || now.after(voteActivity.getEndTime()), ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
-        
+
 
         // 分布式锁防止重复投票
-        String lockKey = String.format("vote:lock:%d:%d", activityId, userId);
+        String lockKey = VOTE_LOCK_KEY + activityId + ":" + userId;
         boolean lockAcquired = false;
         try {
             lockAcquired = Boolean.TRUE.equals(stringRedisTemplate.opsForValue()
@@ -77,8 +82,8 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
      * 使用SET + HASH组合存储
      */
     public boolean recordVote(Long activityId, Long userId, Long optionId) {
-        String userSetKey = String.format("vote:users:%d", activityId);
-        String countHashKey = String.format("vote:count:%d", activityId);
+        String userSetKey = VOTE_USER_KEY + activityId;
+        String countHashKey = VOTE_COUNT_KEY + activityId;
 
         // 使用Lua脚本保证原子性
         String luaScript =

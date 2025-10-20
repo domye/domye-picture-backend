@@ -7,6 +7,5 @@ import java.io.Serializable;
 @Data
 public class VoteRequest implements Serializable {
     Long activityId;
-    Long userId;
     Long optionId;
 }

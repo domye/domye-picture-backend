@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.domye.picture.constant.VoteConstant.*;
+
 /**
  * @author Domye
  * @description 针对表【vote_activities(投票活动表)】的数据库操作Service实现
@@ -80,7 +82,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         Long id = voteActivity.getId();
         List<VoteOptionAddRequest> voteOptionAddRequests = voteActivityAddRequest.getOptions();
         voteOptionService.addOptions(voteOptionAddRequests, id);
-        stringRedisTemplate.opsForValue().set("vote:activity:" + id, JSON.toJSONString(voteActivity));
+        stringRedisTemplate.opsForValue().set(VOTE_ACTIVITY_KEY + id, JSON.toJSONString(voteActivity));
 
         //TODO rocketmq设计定时消息处理
         return id;
@@ -89,13 +91,13 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     @Override
     public VoteActivityDetailVO getActivityDetailVOById(Long id) {
         //从redis中获取
-        String jsonStr = stringRedisTemplate.opsForValue().get("vote:detail:" + id);
+        String jsonStr = stringRedisTemplate.opsForValue().get(VOTE_ACTIVITY_DETAIL_KEY + id);
         VoteActivityDetailVO voteActivityDetailVO = null;
         List<VoteOptionVO> optionsVO = null;
         //如果redis中没有，则从数据库中获取
         if (StrUtil.isBlank(jsonStr)) {
             // 创建封装类
-            String json = stringRedisTemplate.opsForValue().get("vote:activity:" + id);
+            String json = stringRedisTemplate.opsForValue().get(VOTE_ACTIVITY_KEY + id);
             VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
             voteActivityDetailVO = new VoteActivityDetailVO();
@@ -114,7 +116,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
             voteActivityDetailVO.setOptions(optionsVO);
 
             //将数据存入redis
-            stringRedisTemplate.opsForValue().set("vote:detail:" + id, JSON.toJSONString(voteActivityDetailVO));
+            stringRedisTemplate.opsForValue().set(VOTE_ACTIVITY_DETAIL_KEY + id, JSON.toJSONString(voteActivityDetailVO));
         } else {
             //如果redis中有，则直接解析
             voteActivityDetailVO = JSON.parseObject(jsonStr, VoteActivityDetailVO.class);
@@ -122,7 +124,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         }
 
         //从redis中读取选项票数
-        Map<Object, Object> optionHash = stringRedisTemplate.opsForHash().entries("vote:count:" + id);
+        Map<Object, Object> optionHash = stringRedisTemplate.opsForHash().entries(VOTE_COUNT_KEY + id);
 
 
         if (CollUtil.isEmpty(optionsVO) || CollUtil.isEmpty(optionHash)) {
