@@ -63,12 +63,12 @@ public class WxCodeServiceImpl implements WxCodeService {
         String codeToOpenIdKey = type ? WX_LOGIN_CODE_KEY + code : WX_BIND_CODE_KEY + code;
         String openIdToCodeKey = WX_OPENID_TO_CODE_KEY + openId;
 
-        RedisUtil.set(codeToOpenIdKey, openId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-        RedisUtil.set(openIdToCodeKey, code, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire(codeToOpenIdKey, openId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire(openIdToCodeKey, code, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
 
 
         String codeToSceneIdKey = "code_to_scene_id:" + code;
-        RedisUtil.set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("验证码已存储到Redis: codeToOpenIdKey={}, openIdToCodeKey={}", codeToOpenIdKey, openIdToCodeKey);
 
 
@@ -132,7 +132,7 @@ public class WxCodeServiceImpl implements WxCodeService {
         Throw.throwIf(StringUtils.isEmpty(code) || StringUtils.isEmpty(sceneId), ErrorCode.PARAMS_ERROR, "参数不能为空");
 
         String codeToSceneIdKey = "code_to_scene_id:" + code;
-        RedisUtil.set(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire(codeToSceneIdKey, sceneId, CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("验证码与sceneId关联关系已存储: code={}, sceneId={}", code, sceneId);
     }
 }

@@ -63,7 +63,7 @@ public class WxQrCodeController {
         String qrCodeUrl = wxQrCodeUtil.getQrCodeImageUrl(ticket);
         // 生成唯一验证码
         String code = wxCodeService.generateUniqueCode();
-        RedisUtil.set("qr_scene_code:" + sceneId, code, 5, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire("qr_scene_code:" + sceneId, code, 5, TimeUnit.MINUTES);
         QrcodeVO qrcodeVO = new QrcodeVO();
         qrcodeVO.setUrl(qrCodeUrl);
         qrcodeVO.setSceneId(Integer.valueOf(sceneId));
@@ -73,7 +73,7 @@ public class WxQrCodeController {
         // 如果用户已登录，将sceneId与用户ID关联存储到Redis中
         if (loginUser != null) {
             String sceneUserKey = "qr_scene_user:" + sceneId;
-            RedisUtil.set(sceneUserKey, String.valueOf(loginUser.getId()), 5, TimeUnit.MINUTES);
+            RedisUtil.setWithExpire(sceneUserKey, String.valueOf(loginUser.getId()), 5, TimeUnit.MINUTES);
             log.info("生成微信公众号二维码成功: sceneId={}, ticket={}, userId={}", sceneId, ticket, loginUser.getId());
         } else {
             log.info("生成微信公众号二维码成功（未登录用户）: sceneId={}, ticket={}", sceneId, ticket);

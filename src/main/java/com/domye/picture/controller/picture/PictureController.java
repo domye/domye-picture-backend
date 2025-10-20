@@ -304,7 +304,7 @@ public class PictureController {
         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
         // 5 - 10 分钟随机过期，防止雪崩
         int cacheExpireTime = 300 + RandomUtil.randomInt(0, 300);
-        RedisUtil.set(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
+        RedisUtil.setWithExpire(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
         LOCAL_CACHE.put(cacheKey, cacheValue);
         // 返回结果
         return Result.success(pictureVOPage);

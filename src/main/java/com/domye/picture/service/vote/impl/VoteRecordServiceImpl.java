@@ -11,13 +11,12 @@ import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
+import com.domye.picture.utils.RedisUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -47,7 +46,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         Long userId = userService.getLoginUser(request).getId();
 
         Throw.throwIf(activityId == null || userId == null || optionId == null, ErrorCode.PARAMS_ERROR);
-        String json = stringRedisTemplate.opsForValue().get(VOTE_ACTIVITY_KEY + activityId);
+        String json = RedisUtil.get(VOTE_ACTIVITY_KEY + activityId);
         VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
         Throw.throwIf(voteActivity == null, ErrorCode.PARAMS_ERROR, "投票活动不存在");
         Throw.throwIf(voteActivity.getStatus() != 1, ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
@@ -59,8 +58,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         String lockKey = VOTE_LOCK_KEY + activityId + ":" + userId;
         boolean lockAcquired = false;
         try {
-            lockAcquired = Boolean.TRUE.equals(stringRedisTemplate.opsForValue()
-                    .setIfAbsent(lockKey, "1", Duration.ofSeconds(10)));
+            lockAcquired = RedisUtil.tryLock(lockKey, 10);
             Throw.throwIf(!lockAcquired, ErrorCode.SYSTEM_ERROR, "投票过于频繁");
 
             // 使用Redis记录投票状态
@@ -72,7 +70,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
 
         } finally {
             if (lockAcquired) {
-                stringRedisTemplate.delete(lockKey);
+                RedisUtil.unlock(lockKey);
             }
         }
     }
@@ -100,9 +98,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         List<String> keys = Arrays.asList(userSetKey, countHashKey);
         List<String> args = Arrays.asList(userId.toString(), optionId.toString(), "86400");
 
-        Long result = stringRedisTemplate.execute(
-                new DefaultRedisScript<>(luaScript, Long.class), keys, args.toArray());
-
+        Long result = RedisUtil.executeLuaScript(luaScript, keys, args);
         return result != null && result == 1;
     }
 }

@@ -27,7 +27,7 @@ public class WxQrServiceImpl implements WxQrService {
         String scanStatus = "scanned:" + openId;
 
         // 更新扫描状态
-        RedisUtil.set(qrScanStatusKey, scanStatus, 30, TimeUnit.MINUTES);
+        RedisUtil.setWithExpire(qrScanStatusKey, scanStatus, 30, TimeUnit.MINUTES);
 
         log.info("二维码扫描状态已更新: qrCodeId={}, openId={}, qrScanStatusKey={}", qrCodeId, openId, qrScanStatusKey);
         return true;
