@@ -12,7 +12,6 @@ import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,8 +31,6 @@ import static com.domye.picture.constant.VoteConstant.*;
 @Service
 public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRecord>
         implements VoteRecordService {
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
     @Resource
     private VoteProducer voteProducer;
     @Resource
@@ -64,7 +61,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             // 使用Redis记录投票状态
             boolean voteSuccess = recordVote(activityId, userId, optionId);
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
-
+            voteRequest.setUserId(userId);
             // 发送消息到MQ
             voteProducer.sendVoteMessage(voteRequest);
 

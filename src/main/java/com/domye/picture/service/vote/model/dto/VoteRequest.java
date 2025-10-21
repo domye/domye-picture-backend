@@ -8,4 +8,5 @@ import java.io.Serializable;
 public class VoteRequest implements Serializable {
     Long activityId;
     Long optionId;
+    Long userId;
 }
