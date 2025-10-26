@@ -16,6 +16,7 @@ import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteOptionService;
 import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
+import com.domye.picture.service.vote.model.dto.VoteEndRequest;
 import com.domye.picture.service.vote.model.dto.VoteOptionAddRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteOption;
@@ -23,6 +24,7 @@ import com.domye.picture.service.vote.model.enums.VoteActivitiesStatusEnum;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
 import com.domye.picture.service.vote.model.vo.VoteOptionVO;
+import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,8 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     private UserService userService;
     @Resource
     private VoteOptionService voteOptionService;
+    @Resource
+    private VoteProducer voteProducer;
 
     @Override
     @Transactional
@@ -83,7 +87,13 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         voteOptionService.addOptions(voteOptionAddRequests, id);
         RedisUtil.set(VOTE_ACTIVITY_KEY + id, JSON.toJSONString(voteActivity));
 
-        //TODO rocketmq设计定时消息处理
+        // 发送延迟消息，在活动结束时自动处理
+        VoteEndRequest voteEndRequest = new VoteEndRequest();
+        voteEndRequest.setActivityId(id);
+
+        // 计算延迟时间（毫秒）
+        long delayMillis = endTime.getTime() - System.currentTimeMillis();
+        voteProducer.sendVoteEndDelayMessage(voteEndRequest, delayMillis);
         return id;
     }
 
