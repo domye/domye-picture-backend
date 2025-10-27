@@ -1,10 +1,6 @@
 package com.domye.picture.config;
 
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.ElasticsearchTransport;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
@@ -14,6 +10,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,46 +61,41 @@ public class ElasticsearchConfig {
 
 
     /**
-     * 如果@Bean没有指定bean的名称，那么这个bean的名称就是方法名
+     * 创建Elasticsearch客户端
      */
     @Bean(name = "restHighLevelClient")
-    public ElasticsearchClient elasticsearchClient() {
+    public RestHighLevelClient restHighLevelClient() {
+        try {
+            // 此处为单节点es
+            String host = hosts.split(":")[0];
+            String port = hosts.split(":")[1];
+            HttpHost httpHost = new HttpHost(host, Integer.parseInt(port), scheme);
 
-        // 此处为单节点es
-        String host = hosts.split(":")[0];
-        String port = hosts.split(":")[1];
-        HttpHost httpHost = new HttpHost(host, Integer.parseInt(port));
+            // 设置用户名、密码
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(userName, password));
 
-        // 构建连接对象
-        RestClientBuilder builder = RestClient.builder(httpHost);
-
-        // 设置用户名、密码
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
-
-        // 连接延时配置
-        builder.setRequestConfigCallback(requestConfigBuilder -> {
-            requestConfigBuilder.setConnectTimeout(connectTimeOut);
-            requestConfigBuilder.setSocketTimeout(socketTimeOut);
-            requestConfigBuilder.setConnectionRequestTimeout(connectionRequestTimeOut);
-            return requestConfigBuilder;
-        });
-        // 连接数配置
-        builder.setHttpClientConfigCallback(httpClientBuilder -> {
-            httpClientBuilder.setMaxConnTotal(maxConnectNum);
-            httpClientBuilder.setMaxConnPerRoute(maxConnectNumPerRoute);
-            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            return httpClientBuilder;
-        });
-
-        // 创建低级客户端
-        RestClient restClient = builder.build();
-        
-        // 创建传输层
-        ElasticsearchTransport transport = new RestClientTransport(
-            restClient, new JacksonJsonpMapper());
-        
-        // 创建API客户端
-        return new ElasticsearchClient(transport);
+            // 构建连接对象
+            RestClientBuilder builder = RestClient.builder(httpHost)
+                    .setHttpClientConfigCallback(httpClientBuilder -> {
+                        httpClientBuilder.setMaxConnTotal(maxConnectNum);
+                        httpClientBuilder.setMaxConnPerRoute(maxConnectNumPerRoute);
+                        httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                        return httpClientBuilder;
+                    })
+                    .setRequestConfigCallback(requestConfigBuilder -> {
+                        requestConfigBuilder.setConnectTimeout(connectTimeOut);
+                        requestConfigBuilder.setSocketTimeout(socketTimeOut);
+                        requestConfigBuilder.setConnectionRequestTimeout(connectionRequestTimeOut);
+                        return requestConfigBuilder;
+                    });
+            log.info("成功");
+            // 创建高级客户端
+            return new RestHighLevelClient(builder);
+        } catch (Exception e) {
+            log.error("Elasticsearch客户端创建失败", e);
+            throw new RuntimeException("Elasticsearch客户端创建失败", e);
+        }
     }
 }
