@@ -1,7 +1,7 @@
 package com.domye.picture.service.vote.rocketMQ;
 
-import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.dto.VoteEndRequest;
+import com.domye.picture.service.vote.model.dto.VoteRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -36,17 +36,16 @@ public class VoteProducer {
 
     /**
      * 发送投票活动结束的延迟消息
-     *
-     * @param request 投票活动结束请求
+     * @param request     投票活动结束请求
      * @param delayMillis 延迟时间（毫秒）
      */
     public void sendVoteEndDelayMessage(VoteEndRequest request, long delayMillis) {
         String topic = "vote_end_topic";
         log.info("准备发送投票活动结束延迟消息到主题: {}, 延迟时间: {}ms, 内容: {}", topic, delayMillis, request);
-        
+
         // 创建消息
         Message<VoteEndRequest> message = MessageBuilder.withPayload(request).build();
-        
+
         // 发送延迟消息
         rocketMQTemplate.asyncSend(topic, message, new SendCallback() {
             @Override
@@ -59,5 +58,6 @@ public class VoteProducer {
                 log.error("发送投票活动结束延迟消息失败", e);
             }
         }, delayMillis);
+
     }
 }
