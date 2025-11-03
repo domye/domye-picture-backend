@@ -11,6 +11,7 @@ import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteRecordService;
 import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
+import com.domye.picture.service.vote.model.dto.VoteEndRequest;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
@@ -49,6 +50,15 @@ public class VoteController {
         return Result.success("添加成功");
     }
 
+    @ApiOperation(value = "结束投票")
+    @PostMapping("/end")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<String> endVoteActivities(@RequestBody VoteEndRequest voteEndRequest, HttpServletRequest request) {
+        Throw.throwIf(voteEndRequest == null, ErrorCode.PARAMS_ERROR);
+        activitiesService.endActivity(voteEndRequest.getActivityId());
+        return Result.success("添加成功");
+    }
+
     @ApiOperation(value = "获取投票活动详情")
     @GetMapping("/detail/{id}")
     public BaseResponse<VoteActivityDetailVO> getVoteActivities(@PathVariable Long id) {
@@ -81,7 +91,8 @@ public class VoteController {
 
         return Result.success(voteActivityVOPage);
     }
-    //TODO停止投票
+
+
     //TODO获取投票结果
 
 }

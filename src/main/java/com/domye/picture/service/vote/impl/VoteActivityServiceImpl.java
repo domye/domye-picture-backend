@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.domye.picture.constant.VoteConstant.*;
@@ -55,6 +56,12 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     @Resource
     private VoteProducer voteProducer;
 
+    /**
+     * 创建新活动
+     * @param voteActivityAddRequest 活动信息
+     * @param request                请求
+     * @return 活动id
+     */
     @Override
     @Transactional
     public Long createVoteActivity(VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
@@ -97,6 +104,11 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         return id;
     }
 
+    /**
+     * 获取活动详情信息
+     * @param id 活动id
+     * @return 活动详情信息
+     */
     @Override
     public VoteActivityDetailVO getActivityDetailVOById(Long id) {
         //从redis中获取
@@ -154,7 +166,21 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
 
     }
 
+    @Override
+    public void endActivity(Long id) {
+        VoteActivity voteActivity = getById(id);
+        Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
+        Throw.throwIf(!Objects.equals(voteActivity.getStatus(), VoteActivitiesStatusEnum.IN_PROGRESS.getValue()), ErrorCode.PARAMS_ERROR, "活动已结束");
+        voteActivity.setStatus(VoteActivitiesStatusEnum.FINISHED.getValue());
+        updateById(voteActivity);
+        RedisUtil.delete(VOTE_ACTIVITY_KEY + id);
+    }
 
+
+    /**
+     * @param voteActivityQueryRequest 查询条件
+     * @return 查询构造器
+     */
     @Override
     public QueryWrapper<VoteActivity> getQueryWrapper(VoteActivityQueryRequest voteActivityQueryRequest) {
         QueryWrapper<VoteActivity> queryWrapper = new QueryWrapper<>();
@@ -197,6 +223,11 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         return VoteActivityVO.objToVo(voteActivity);
     }
 
+    /**
+     * 获取活动详情封装类
+     * @param voteActivitiesPage 活动列表
+     * @return 活动详情封装类
+     */
     @Override
     public Page<VoteActivityVO> getVoteActivityVOPage(Page<VoteActivity> voteActivitiesPage) {
         List<VoteActivity> voteActivityList = voteActivitiesPage.getRecords();

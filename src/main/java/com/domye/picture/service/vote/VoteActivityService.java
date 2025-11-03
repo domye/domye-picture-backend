@@ -23,6 +23,8 @@ public interface VoteActivityService extends IService<VoteActivity> {
 
     VoteActivityDetailVO getActivityDetailVOById(Long id);
 
+    void endActivity(Long id);
+
     QueryWrapper<VoteActivity> getQueryWrapper(VoteActivityQueryRequest voteActivityQueryRequest);
 
     VoteActivityVO getVoteActivityVO(VoteActivity voteActivity);
