@@ -16,7 +16,6 @@ import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteOptionService;
 import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
-import com.domye.picture.service.vote.model.dto.VoteEndRequest;
 import com.domye.picture.service.vote.model.dto.VoteOptionAddRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteOption;
@@ -28,7 +27,6 @@ import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -63,7 +61,6 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
      * @return 活动id
      */
     @Override
-    @Transactional
     public Long createVoteActivity(VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
         VoteActivity voteActivity = new VoteActivity();
         Date now = new Date();
@@ -95,12 +92,12 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         RedisUtil.set(VOTE_ACTIVITY_KEY + id, JSON.toJSONString(voteActivity));
 
         // 发送延迟消息，在活动结束时自动处理
-        VoteEndRequest voteEndRequest = new VoteEndRequest();
-        voteEndRequest.setActivityId(id);
+//        VoteEndRequest voteEndRequest = new VoteEndRequest();
+//        voteEndRequest.setActivityId(id);
 
         // 计算延迟时间（毫秒）
-        long delayMillis = endTime.getTime() - System.currentTimeMillis();
-        voteProducer.sendVoteEndDelayMessage(voteEndRequest, delayMillis);
+//        long delayMillis = endTime.getTime() - System.currentTimeMillis();
+//        voteProducer.sendVoteEndDelayMessage(voteEndRequest, delayMillis);
         return id;
     }
 
