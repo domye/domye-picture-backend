@@ -12,7 +12,7 @@ public enum VoteActivitiesStatusEnum {
     NOT_STARTED("未开始", 0),
     IN_PROGRESS("进行中", 1),
     FINISHED("已结束", 2),
-    PAUSED("已暂停", 3);
+    ;
 
     private final String text;
     private final Integer value;
