@@ -30,5 +30,6 @@ public interface VoteActivityService extends IService<VoteActivity> {
     VoteActivityVO getVoteActivityVO(VoteActivity voteActivity);
 
     Page<VoteActivityVO> getVoteActivityVOPage(Page<VoteActivity> voteActivitiesPage);
-    
+
+    void deleteById(Long id);
 }

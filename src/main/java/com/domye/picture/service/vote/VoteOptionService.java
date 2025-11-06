@@ -16,4 +16,6 @@ public interface VoteOptionService extends IService<VoteOption> {
     List<VoteOption> getVoteOptionsList(Long activityId);
 
     void addOptions(List<VoteOptionAddRequest> voteOptionAddRequests, Long id);
+
+    boolean deleteOptions(Long activityId);
 }

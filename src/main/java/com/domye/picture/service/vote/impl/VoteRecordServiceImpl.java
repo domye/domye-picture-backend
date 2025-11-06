@@ -1,6 +1,7 @@
 package com.domye.picture.service.vote.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
@@ -13,6 +14,7 @@ import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -72,6 +74,12 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByActivityId(Long id) {
+        return remove(new QueryWrapper<VoteRecord>().eq("activityId", id));
+    }
+
     /**
      * 记录用户投票
      * 使用SET + HASH组合存储
@@ -98,4 +106,5 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         Long result = RedisUtil.executeLuaScript(luaScript, keys, args);
         return result != null && result == 1;
     }
+
 }

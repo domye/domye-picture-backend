@@ -9,10 +9,7 @@ import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
 import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteRecordService;
-import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
-import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
-import com.domye.picture.service.vote.model.dto.VoteEndRequest;
-import com.domye.picture.service.vote.model.dto.VoteRequest;
+import com.domye.picture.service.vote.model.dto.*;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
@@ -58,6 +55,16 @@ public class VoteController {
         activitiesService.endActivity(voteEndRequest.getActivityId());
         return Result.success("添加成功");
     }
+
+    @ApiOperation(value = "删除投票")
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<String> deleteVoteActivities(@RequestBody VoteActivityDeleteRequest voteActivityDeleteRequest) {
+        Throw.throwIf(voteActivityDeleteRequest == null, ErrorCode.PARAMS_ERROR);
+        activitiesService.deleteById(voteActivityDeleteRequest.getActivityId());
+        return Result.success("删除成功");
+    }
+
 
     @ApiOperation(value = "获取投票活动详情")
     @GetMapping("/detail/{id}")

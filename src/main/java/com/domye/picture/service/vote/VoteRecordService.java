@@ -15,4 +15,6 @@ public interface VoteRecordService extends IService<VoteRecord> {
 
 
     void submitVote(VoteRequest voteRequest, HttpServletRequest request);
+
+    boolean deleteByActivityId(Long id);
 }

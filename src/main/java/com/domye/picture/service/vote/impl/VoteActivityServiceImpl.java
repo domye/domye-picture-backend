@@ -14,6 +14,7 @@ import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.vote.VoteActivityService;
 import com.domye.picture.service.vote.VoteOptionService;
+import com.domye.picture.service.vote.VoteRecordService;
 import com.domye.picture.service.vote.model.dto.VoteActivityAddRequest;
 import com.domye.picture.service.vote.model.dto.VoteActivityQueryRequest;
 import com.domye.picture.service.vote.model.dto.VoteOptionAddRequest;
@@ -26,14 +27,13 @@ import com.domye.picture.service.vote.model.vo.VoteOptionVO;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.domye.picture.constant.VoteConstant.*;
@@ -53,6 +53,8 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     private VoteOptionService voteOptionService;
     @Resource
     private VoteProducer voteProducer;
+    @Autowired
+    private VoteRecordService voteRecordService;
 
     /**
      * 创建新活动
@@ -234,7 +236,20 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
 
         List<VoteActivityVO> voteActivityVOList = voteActivityList.stream().map(this::getVoteActivityVO).collect(Collectors.toList());
         voteActivityVOPage.setRecords(voteActivityVOList);
+        Collections.reverse(voteActivityVOList);
         return voteActivityVOPage;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteById(Long id) {
+        VoteActivity voteActivity = getById(id);
+        Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
+        boolean a = voteRecordService.deleteByActivityId(id);
+        boolean b = voteOptionService.deleteOptions(id);
+        Throw.throwIf(!a || !b, ErrorCode.SYSTEM_ERROR, "删除失败");
+        removeById(id);
+        RedisUtil.delete(VOTE_ACTIVITY_KEY + id);
     }
 
 }

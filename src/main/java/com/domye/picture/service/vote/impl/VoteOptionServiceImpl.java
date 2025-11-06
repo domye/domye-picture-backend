@@ -43,4 +43,11 @@ public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOp
         }).collect(Collectors.toList());
         saveBatch(voteOptions);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteOptions(Long activityId) {
+        boolean result = remove(new QueryWrapper<VoteOption>().eq("activityId", activityId));
+        return result;
+    }
 }
