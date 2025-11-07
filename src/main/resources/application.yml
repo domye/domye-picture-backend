@@ -7,7 +7,7 @@ server:
 # Spring框架配置
 spring:
   profiles:
-    active: local  # 激活生产环境配置
+    active: prod  # 激活生产环境配置
   # 应用配置
   application:
     name: domye-picture-backend

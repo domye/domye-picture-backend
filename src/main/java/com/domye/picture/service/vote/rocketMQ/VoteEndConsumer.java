@@ -1,4 +1,3 @@
-
 package com.domye.picture.service.vote.rocketMQ;
 
 import com.domye.picture.service.vote.VoteActivityService;
@@ -6,10 +5,7 @@ import com.domye.picture.service.vote.model.dto.VoteEndRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.enums.VoteActivitiesStatusEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.annotation.MessageModel;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -17,12 +13,12 @@ import java.util.Date;
 /**
  * 投票活动结束消息消费者
  */
-@Component
-@RocketMQMessageListener(
-        topic = "vote_end_topic",
-        consumerGroup = "vote-end-consumer-group",
-        messageModel = MessageModel.CLUSTERING
-)
+//@Component
+//@RocketMQMessageListener(
+//        topic = "vote_end_topic",
+//        consumerGroup = "vote-end-consumer-group",
+//        messageModel = MessageModel.CLUSTERING
+//)
 @Slf4j
 public class VoteEndConsumer implements RocketMQListener<VoteEndRequest> {
 
@@ -47,7 +43,7 @@ public class VoteEndConsumer implements RocketMQListener<VoteEndRequest> {
 
             // 检查活动状态，只有进行中的活动才能被设置为已结束
             if (!VoteActivitiesStatusEnum.IN_PROGRESS.getValue().equals(activity.getStatus())) {
-                log.warn("投票活动状态不是进行中，无需处理结束逻辑，活动ID: {}, 当前状态: {}", 
+                log.warn("投票活动状态不是进行中，无需处理结束逻辑，活动ID: {}, 当前状态: {}",
                         activityId, activity.getStatus());
                 return;
             }

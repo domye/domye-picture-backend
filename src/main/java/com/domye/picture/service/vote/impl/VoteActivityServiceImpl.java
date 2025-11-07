@@ -24,10 +24,8 @@ import com.domye.picture.service.vote.model.enums.VoteActivitiesStatusEnum;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
 import com.domye.picture.service.vote.model.vo.VoteOptionVO;
-import com.domye.picture.service.vote.rocketMQ.VoteProducer;
 import com.domye.picture.utils.RedisUtil;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +50,6 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     @Resource
     private VoteOptionService voteOptionService;
     @Resource
-    private VoteProducer voteProducer;
-    @Autowired
     private VoteRecordService voteRecordService;
 
     /**

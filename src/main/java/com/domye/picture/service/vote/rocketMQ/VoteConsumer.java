@@ -8,20 +8,17 @@ import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteOption;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.annotation.MessageModel;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
 
-@Component
-@RocketMQMessageListener(
-        topic = "vote_topic",
-        consumerGroup = "vote-consumer-group",
-        messageModel = MessageModel.CLUSTERING
-)
+//@Component
+//@RocketMQMessageListener(
+//        topic = "vote_topic",
+//        consumerGroup = "vote-consumer-group",
+//        messageModel = MessageModel.CLUSTERING
+//)
 @Slf4j
 public class VoteConsumer implements RocketMQListener<VoteRequest> {
 
