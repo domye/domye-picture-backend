@@ -2,8 +2,8 @@ package com.domye.picture;
 
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.rank.model.dto.UserActivityScoreAddRequest;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;

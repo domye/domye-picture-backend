@@ -18,9 +18,9 @@ import com.domye.picture.service.space.model.entity.SpaceUser;
 import com.domye.picture.service.space.model.enums.SpaceRoleEnum;
 import com.domye.picture.service.space.model.vo.SpaceUserVO;
 import com.domye.picture.service.space.model.vo.SpaceVO;
+import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.UserVO;
-import com.domye.picture.service.user.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 

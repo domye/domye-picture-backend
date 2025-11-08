@@ -16,8 +16,8 @@ import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.model.dto.analyze.*;
 import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.space.model.vo.analyze.*;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

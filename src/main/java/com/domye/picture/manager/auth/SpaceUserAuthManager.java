@@ -11,8 +11,8 @@ import com.domye.picture.service.space.model.entity.Space;
 import com.domye.picture.service.space.model.entity.SpaceUser;
 import com.domye.picture.service.space.model.enums.SpaceRoleEnum;
 import com.domye.picture.service.space.model.enums.SpaceTypeEnum;
-import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.user.model.entity.User;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
