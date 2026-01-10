@@ -49,7 +49,7 @@ public class MdcAspect implements ApplicationContextAware {
             }
         }
     }
-
+    
     private boolean addMdcCode(ProceedingJoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();

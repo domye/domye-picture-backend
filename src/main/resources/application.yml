@@ -13,7 +13,7 @@ spring:
     name: domye-picture-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/dmoye_picture
+    url: jdbc:mysql://localhost:3306/domye_picture
     username:
     password:
 
@@ -21,11 +21,11 @@ spring:
   shardingsphere:
     # 数据源配置
     datasource:
-      names: dmoye_picture
-      dmoye_picture:
+      names: domye_picture
+      domye_picture:
         type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
-        jdbc-url: jdbc:mysql://localhost:3306/dmoye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+        jdbc-url: jdbc:mysql://localhost:3306/domye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
         username:
         password:
 
@@ -35,7 +35,7 @@ spring:
         # 分表配置
         tables:
           picture:
-            actual-data-nodes: dmoye_picture.picture
+            actual-data-nodes: domye_picture.picture
             table-strategy:
               standard:
                 sharding-column: spaceId
@@ -60,9 +60,9 @@ spring:
 
   # Redis配置
   redis:
-    database: 1
+    database: 0
     host: 127.0.0.1
-    port: 6379
+    port: 63793
     timeout: 5000
     password:
     lettuce:
