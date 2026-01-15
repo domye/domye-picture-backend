@@ -2,8 +2,8 @@ package com.domye.picture.service.WxMessage.impl;
 
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.helper.RedisUtil;
 import com.domye.picture.service.WxMessage.WxCodeService;
-import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

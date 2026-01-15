@@ -2,14 +2,14 @@ package com.domye.picture.controller.wxMessage;
 
 import com.domye.picture.common.BaseResponse;
 import com.domye.picture.common.Result;
+import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.WxQrCodeUtil;
 import com.domye.picture.service.WxMessage.WxCodeService;
 import com.domye.picture.service.WxMessage.WxQrService;
 import com.domye.picture.service.WxMessage.model.vo.QrcodeStatusVO;
 import com.domye.picture.service.WxMessage.model.vo.QrcodeVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import com.domye.picture.utils.RedisUtil;
-import com.domye.picture.utils.WxQrCodeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

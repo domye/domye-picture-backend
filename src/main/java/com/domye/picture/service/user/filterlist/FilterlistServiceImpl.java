@@ -2,13 +2,13 @@ package com.domye.picture.service.user.filterlist;
 
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.helper.RedisUtil;
 import com.domye.picture.service.user.FilterlistService;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.enums.FilterModeEnum;
 import com.domye.picture.service.user.model.enums.FilterTypeEnum;
 import com.domye.picture.service.user.model.vo.UserVO;
-import com.domye.picture.utils.RedisUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

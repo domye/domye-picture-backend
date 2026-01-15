@@ -1,7 +1,7 @@
 package com.domye.picture.service.WxMessage.impl;
 
+import com.domye.picture.helper.RedisUtil;
 import com.domye.picture.service.WxMessage.WxQrService;
-import com.domye.picture.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

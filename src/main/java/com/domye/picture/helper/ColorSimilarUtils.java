@@ -1,4 +1,4 @@
-package com.domye.picture.utils;
+package com.domye.picture.helper;
 
 import java.awt.*;
 
@@ -67,5 +67,5 @@ public class ColorSimilarUtils {
         Color color2 = Color.decode(expandShortHex(hexColor2));
         return calculateSimilarity(color1, color2);
     }
-    
+
 }

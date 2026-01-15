@@ -1,4 +1,4 @@
-package com.domye.picture.utils;
+package com.domye.picture.helper;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

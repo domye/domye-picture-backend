@@ -1,13 +1,13 @@
 package com.domye.picture.service.WxMessage.impl;
 
+import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.WxMsgUtil;
 import com.domye.picture.manager.wxlogin.BaseWxMsgResVo;
 import com.domye.picture.service.WxMessage.WxCodeService;
 import com.domye.picture.service.WxMessage.WxPublicService;
 import com.domye.picture.service.WxMessage.WxQrService;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
-import com.domye.picture.utils.RedisUtil;
-import com.domye.picture.utils.WxMsgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;

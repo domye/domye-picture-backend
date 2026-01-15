@@ -1,4 +1,4 @@
-package com.domye.picture.utils;
+package com.domye.picture.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -21,15 +21,12 @@ import java.util.Map;
 @Component
 public class WxQrCodeUtil {
 
-    @Value("${wx.app-id}")
-    private String appId;
-
-    @Value("${wx.app-secret}")
-    private String appSecret;
-
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential";
     private static final String QRCODE_URL = "https://api.weixin.qq.com/cgi-bin/qrcode/create";
-
+    @Value("${wx.app-id}")
+    private String appId;
+    @Value("${wx.app-secret}")
+    private String appSecret;
     private ObjectMapper objectMapper = new ObjectMapper();
     private String accessToken;
     private long tokenExpireTime;

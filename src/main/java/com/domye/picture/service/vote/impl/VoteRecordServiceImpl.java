@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
+import com.domye.picture.helper.RedisUtil;
 import com.domye.picture.mapper.VoteRecordsMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.VoteRecordService;
@@ -12,7 +13,6 @@ import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
-import com.domye.picture.utils.RedisUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
