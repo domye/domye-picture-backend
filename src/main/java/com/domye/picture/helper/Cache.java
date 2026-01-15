@@ -195,8 +195,9 @@ public interface Cache<T> {
      * @param sortedSetName sortedSetName的Sorted Set不用预先创建，不存在会自动创建，存在则向里添加数据
      * @param keyword       关键词
      * @param score         分数
+     * @return
      */
-    void incrementScore(String sortedSetName, String keyword, Integer score);
+    Double incrementScore(String sortedSetName, String keyword, Integer score);
 
     /**
      * zrevrange命令, 查询Sorted Set中指定范围的值
@@ -253,5 +254,68 @@ public interface Cache<T> {
      * @return 成功or失败
      */
     Boolean lock(String key, Long lockTimeout, Integer checkCount);
+
+    //-----------------------------------------------用于Set操作---------------------------------------------
+
+    /**
+     * 向Set集合中添加元素
+     * @param key    Set的键
+     * @param values 要添加的元素
+     * @return 添加成功的元素数量（不包括已存在的元素）
+     */
+    Long sAdd(String key, Object... values);
+
+    /**
+     * 获取Set集合中的所有元素
+     * @param key Set的键
+     * @return Set集合中的所有元素
+     */
+    Set<Object> sMembers(String key);
+
+    /**
+     * 判断元素是否存在于Set集合中
+     * @param key   Set的键
+     * @param value 要判断的元素
+     * @return 存在返回true，不存在返回false
+     */
+    Boolean sIsMember(String key, Object value);
+
+    /**
+     * 获取Set集合的大小
+     * @param key Set的键
+     * @return Set集合的大小
+     */
+    Long sSize(String key);
+
+    /**
+     * 从Set集合中移除指定元素
+     * @param key    Set的键
+     * @param values 要移除的元素
+     * @return 实际移除的元素数量
+     */
+    Long sRemove(String key, Object... values);
+
+    /**
+     * 获取多个Set集合的交集
+     * @param keys 多个Set的键
+     * @return 交集结果
+     */
+    Set<Object> sIntersect(String... keys);
+
+    /**
+     * 获取多个Set集合的并集
+     * @param keys 多个Set的键
+     * @return 并集结果
+     */
+    Set<Object> sUnion(String... keys);
+
+    /**
+     * 获取Set集合的差集（第一个Set与其他Set的差集）
+     * @param key       第一个Set的键
+     * @param otherKeys 其他Set的键
+     * @return 差集结果
+     */
+    Set<Object> sDifference(String key, String... otherKeys);
+
 
 }

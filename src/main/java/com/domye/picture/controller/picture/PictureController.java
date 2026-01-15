@@ -17,7 +17,7 @@ import com.domye.picture.common.Result;
 import com.domye.picture.constant.UserConstant;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.impl.RedisCache;
 import com.domye.picture.manager.auth.SpaceUserAuthManager;
 import com.domye.picture.manager.auth.StpKit;
 import com.domye.picture.manager.auth.annotation.SaSpaceCheckPermission;
@@ -68,6 +68,8 @@ public class PictureController {
     private SpaceService spaceService;
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
+    @Resource
+    private RedisCache redisCache;
 
     /**
      * 上传图片
@@ -286,7 +288,7 @@ public class PictureController {
             return Result.success(cachedPage);
         }
 
-        cachedValue = RedisUtil.get(cacheKey);
+        cachedValue = (String) redisCache.get(cacheKey);
         if (cachedValue != null) {
             // 如果缓存命中，返回结果
             Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
@@ -303,8 +305,8 @@ public class PictureController {
         // 存入 Redis 缓存
         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
         // 5 - 10 分钟随机过期，防止雪崩
-        int cacheExpireTime = 300 + RandomUtil.randomInt(0, 300);
-        RedisUtil.setWithExpire(cacheKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
+        Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
+        redisCache.put(cacheKey, cacheValue, cacheExpireTime);
         LOCAL_CACHE.put(cacheKey, cacheValue);
         // 返回结果
         return Result.success(pictureVOPage);

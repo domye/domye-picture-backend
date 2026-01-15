@@ -5,7 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.impl.LockService;
+import com.domye.picture.helper.impl.RedisCache;
 import com.domye.picture.mapper.VoteRecordsMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.VoteRecordService;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.domye.picture.constant.VoteConstant.*;
 
@@ -37,6 +39,11 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
     private VoteProducer voteProducer;
     @Resource
     private UserService userService;
+    @Resource
+    private RedisCache redisCache;
+    @Resource
+    private LockService lockService;
+
 
     @Override
     public void submitVote(VoteRequest voteRequest, HttpServletRequest request) {
@@ -45,7 +52,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         Long userId = userService.getLoginUser(request).getId();
 
         Throw.throwIf(activityId == null || userId == null || optionId == null, ErrorCode.PARAMS_ERROR);
-        String json = RedisUtil.get(VOTE_ACTIVITY_KEY + activityId);
+        String json = (String) redisCache.get(VOTE_ACTIVITY_KEY + activityId);
         VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
         Throw.throwIf(voteActivity == null, ErrorCode.PARAMS_ERROR, "投票活动不存在");
         Throw.throwIf(voteActivity.getStatus() != 1, ErrorCode.PARAMS_ERROR, "投票活动未开始或已结束");
@@ -55,23 +62,16 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
 
         // 分布式锁防止重复投票
         String lockKey = VOTE_LOCK_KEY + activityId + ":" + userId;
-        boolean lockAcquired = false;
-        try {
-            lockAcquired = RedisUtil.tryLock(lockKey, 10);
-            Throw.throwIf(!lockAcquired, ErrorCode.SYSTEM_ERROR, "投票过于频繁");
 
+        lockService.executeWithLock(lockKey, 10, TimeUnit.SECONDS, () -> {
             // 使用Redis记录投票状态
             boolean voteSuccess = recordVote(activityId, userId, optionId);
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
             voteRequest.setUserId(userId);
             // 发送消息到MQ
             voteProducer.sendVoteMessage(voteRequest);
-
-        } finally {
-            if (lockAcquired) {
-                RedisUtil.unlock(lockKey);
-            }
-        }
+            return true;
+        });
     }
 
     @Override
@@ -103,7 +103,7 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
         List<String> keys = Arrays.asList(userSetKey, countHashKey);
         List<String> args = Arrays.asList(userId.toString(), optionId.toString(), "86400");
 
-        Long result = RedisUtil.executeLuaScript(luaScript, keys, args);
+        Long result = redisCache.executeLuaScript(luaScript, keys, args);
         return result != null && result == 1;
     }
 

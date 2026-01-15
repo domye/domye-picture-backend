@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.impl.RedisCache;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.picture.model.entity.Picture;
 import com.domye.picture.service.rank.RankService;
@@ -34,6 +34,9 @@ public class RankServiceImpl implements RankService {
     @Resource
     @Lazy
     private PictureService pictureService;
+
+    @Resource
+    private RedisCache redisCache;
 
     /**
      * 当天活跃度排行榜
@@ -78,25 +81,25 @@ public class RankServiceImpl implements RankService {
         final String todayRankKey = todayRankKey();
         final String monthRankKey = monthRankKey();
         final String userActionKey = ACTIVITY_SCORE_KEY + user.getId() + DateUtil.format(new Date(), "yyyyMMdd");
-        String ansStr = RedisUtil.getHashValue(userActionKey, field);
+        String ansStr = (String) redisCache.getHash(userActionKey, field);
         Integer ans = ansStr != null ? Integer.parseInt(ansStr) : null;
         //如果不存在，执行加分
         if (ans == null) {
-            RedisUtil.setHash(userActionKey, field, String.valueOf(score));
-            RedisUtil.expire(userActionKey, 31, TimeUnit.DAYS);
-            Double newAns = RedisUtil.addZSetScore(todayRankKey, String.valueOf(userId), score);
-            RedisUtil.addZSetScore(monthRankKey, String.valueOf(userId), score);
+            redisCache.putHash(userActionKey, field, score);
+            redisCache.expireKey(userActionKey, 31, TimeUnit.DAYS);
+            Double newAns = redisCache.incrementScore(todayRankKey, String.valueOf(userId), score);
+            redisCache.incrementScore(monthRankKey, String.valueOf(userId), score);
             if (log.isDebugEnabled()) {
                 log.info("活跃度更新加分! key#field = {}#{}, add = {}, newScore = {}", todayRankKey, userId, score, newAns);
             }
             if (newAns <= score) {
-                Long ttl = RedisUtil.getExpire(todayRankKey);
+                Long ttl = redisCache.getExpire(todayRankKey);
                 if (ttl == -1) {
-                    RedisUtil.expire(todayRankKey, 31, TimeUnit.DAYS);
+                    redisCache.expireKey(todayRankKey, 31, TimeUnit.DAYS);
                 }
-                ttl = RedisUtil.getExpire(monthRankKey);
+                ttl = redisCache.getExpire(monthRankKey);
                 if (ttl == -1) {
-                    RedisUtil.expire(monthRankKey, 31, TimeUnit.DAYS);
+                    redisCache.expireKey(monthRankKey, 31, TimeUnit.DAYS);
                 }
             }
         }
@@ -118,8 +121,8 @@ public class RankServiceImpl implements RankService {
         String rankKey = rankTimeEnum == RankTimeEnum.DAY ? todayRankKey() : monthRankKey();
 
         // 1. 获取topN的活跃用户及其分数
-        Set<ZSetOperations.TypedTuple<String>> userTuples = RedisUtil
-                .getZSetRange(rankKey, 0, size - 1);
+        Set<ZSetOperations.TypedTuple<Object>> userTuples = redisCache
+                .reverseRangeWithScores(rankKey, 0, size - 1);
 
         if (CollUtil.isEmpty(userTuples)) {
             return Collections.emptyList();
@@ -127,7 +130,7 @@ public class RankServiceImpl implements RankService {
 
         // 2. 提取用户ID并查询用户信息
         List<Long> userIds = userTuples.stream()
-                .map(tuple -> Long.valueOf(tuple.getValue()))
+                .map(tuple -> Long.valueOf((String) tuple.getValue()))
                 .collect(Collectors.toList());
 
         List<User> userList = userService.listByIds(userIds);
@@ -143,8 +146,8 @@ public class RankServiceImpl implements RankService {
         List<UserActiveRankItemVO> rankItemList = new ArrayList<>();
         int rank = 1;
 
-        for (ZSetOperations.TypedTuple<String> tuple : userTuples) {
-            Long userId = Long.valueOf(tuple.getValue());
+        for (ZSetOperations.TypedTuple<Object> tuple : userTuples) {
+            Long userId = Long.valueOf((String) tuple.getValue());
             User user = userMap.get(userId);
 
             if (user != null) {

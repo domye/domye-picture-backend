@@ -24,12 +24,11 @@ import com.domye.picture.service.space.model.vo.SpaceVO;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
 import com.domye.picture.service.user.model.vo.UserVO;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import com.domye.picture.helper.impl.LockService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +55,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Resource
     private TransactionTemplate transactionTemplate;
     @Resource
-    private RedissonClient redissonClient;
+    private LockService lockService;
     @Resource
     @Lazy
     private SpaceUserService spaceUserService;
@@ -92,15 +91,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Throw.throwIf(!userService.isAdmin(loginUser) && space.getSpaceLevel() != SpaceLevelEnum.COMMON.getValue(), ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
         // 使用分布式锁
         String lockKey = SPACE_CREATE_LOCK_PREFIX + userId;
-        RLock lock = redissonClient.getLock(lockKey);
 
-        try {
-            // 尝试获取锁
-            boolean locked = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.SECONDS);
-            Throw.throwIf(!locked, ErrorCode.OPERATION_ERROR, "系统繁忙，请稍后重试");
-
-            // 执行事务操作
-            Long newSpaceId = transactionTemplate.execute(status -> {
+        // 执行事务操作
+        Long newSpaceId = lockService.executeWithLock(lockKey, (int) LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> {
+            return transactionTemplate.execute(status -> {
                 boolean exists = this.lambdaQuery()
                         .eq(Space::getUserId, userId)
                         .eq(Space::getSpaceType, spaceAddRequest.getSpaceType())
@@ -120,20 +114,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 }
                 // 返回新写入的数据 id
                 return space.getId();
-
             });
+        });
 
-            return Optional.ofNullable(newSpaceId).orElse(-1L);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "创建空间被中断");
-        } finally {
-            // 确保锁被释放
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
+        return Optional.ofNullable(newSpaceId).orElse(-1L);
     }
 
     /**

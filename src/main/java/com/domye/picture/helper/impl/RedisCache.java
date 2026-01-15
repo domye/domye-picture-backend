@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.stereotype.Component;
 
@@ -89,7 +90,7 @@ public class RedisCache implements Cache {
 
     /**
      * 设置键值对，无过期时间
-     * @param key 缓存键
+     * @param key   缓存键
      * @param value 缓存值
      */
     @Override
@@ -99,9 +100,9 @@ public class RedisCache implements Cache {
 
     /**
      * 设置键值对，指定过期时间（秒）
-     * @param key 缓存键
+     * @param key   缓存键
      * @param value 缓存值
-     * @param exp 过期时间，单位为秒
+     * @param exp   过期时间，单位为秒
      */
     @Override
     public void put(Object key, Object value, Long exp) {
@@ -110,9 +111,9 @@ public class RedisCache implements Cache {
 
     /**
      * 设置键值对，指定过期时间和时间单位
-     * @param key 缓存键
-     * @param value 缓存值
-     * @param exp 过期时间
+     * @param key      缓存键
+     * @param value    缓存值
+     * @param exp      过期时间
      * @param timeUnit 时间单位
      */
     @Override
@@ -154,8 +155,8 @@ public class RedisCache implements Cache {
 
     /**
      * 向Hash结构中添加键值对
-     * @param key Hash的键
-     * @param hashKey Hash中的字段键
+     * @param key       Hash的键
+     * @param hashKey   Hash中的字段键
      * @param hashValue Hash中的字段值
      */
     @Override
@@ -176,7 +177,7 @@ public class RedisCache implements Cache {
 
     /**
      * 获取Hash结构中指定字段的值
-     * @param key Hash的键
+     * @param key     Hash的键
      * @param hashKey Hash中的字段键
      * @return 字段对应的值
      */
@@ -247,15 +248,12 @@ public class RedisCache implements Cache {
     /**
      * Redis SCAN命令的实现
      * 用于遍历Redis中的键，避免KEYS命令导致的阻塞问题
-     * @param pattern 键的匹配模式
+     * @param pattern  键的匹配模式
      * @param consumer 对每个匹配到的键执行的操作
      */
     private void scan(String pattern, Consumer<byte[]> consumer) {
         this.redisTemplate.execute((RedisConnection connection) -> {
-            try (Cursor<byte[]> cursor =
-                         connection.scan(ScanOptions.scanOptions()
-                                 .count(Long.MAX_VALUE)
-                                 .match(pattern).build())) {
+            try (Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().count(Long.MAX_VALUE).match(pattern).build())) {
                 cursor.forEachRemaining(consumer);
                 return null;
 
@@ -269,7 +267,7 @@ public class RedisCache implements Cache {
     /**
      * 使用HyperLogLog基数统计添加元素
      * HyperLogLog是一种概率数据结构，用于统计唯一元素的数量（基数）
-     * @param key HyperLogLog结构的键
+     * @param key   HyperLogLog结构的键
      * @param value 要添加的元素
      * @return 如果HyperLogLog内部存储被修改，返回1；否则返回0
      */
@@ -327,7 +325,7 @@ public class RedisCache implements Cache {
     /**
      * 原子性递增指定键的值，并设置过期时间
      * 如果键不存在，会自动创建并初始化为0
-     * @param key 要递增的键
+     * @param key      要递增的键
      * @param liveTime 过期时间，单位为秒
      * @return 递增前的值
      */
@@ -357,7 +355,7 @@ public class RedisCache implements Cache {
      * 使用Sorted Set记录关键词并增加其分数
      * 对应Redis的ZINCRBY命令，对于一个Sorted Set，如果成员存在则将其分数增加指定值，不存在则创建一个分数为1的成员
      * @param sortedSetName Sorted Set的键名，无需预先创建，不存在会自动创建
-     * @param keyword 关键词成员
+     * @param keyword       关键词成员
      */
     @Override
     public void incrementScore(String sortedSetName, String keyword) {
@@ -369,20 +367,21 @@ public class RedisCache implements Cache {
      * 使用Sorted Set记录关键词并增加指定分数
      * 对应Redis的ZINCRBY命令，对于一个Sorted Set，如果成员存在则将其分数增加指定值，不存在则创建一个分数为指定值的成员
      * @param sortedSetName Sorted Set的键名
-     * @param keyword 关键词成员
-     * @param score 要增加的分数值
+     * @param keyword       关键词成员
+     * @param score         要增加的分数值
+     * @return
      */
     @Override
-    public void incrementScore(String sortedSetName, String keyword, Integer score) {
-        redisTemplate.opsForZSet().incrementScore(sortedSetName, keyword, score);
+    public Double incrementScore(String sortedSetName, String keyword, Integer score) {
+        return redisTemplate.opsForZSet().incrementScore(sortedSetName, keyword, score);
     }
 
     /**
      * 查询Sorted Set中指定范围的成员及其分数
      * 对应Redis的ZREVRANGE命令，返回的有序集合按分数降序排列（分数大的在前面）
      * @param sortedSetName Sorted Set的键名
-     * @param start 查询范围开始位置（包含）
-     * @param end 查询范围结束位置（包含）
+     * @param start         查询范围开始位置（包含）
+     * @param end           查询范围结束位置（包含）
      * @return 包含成员及其分数的集合，按分数降序排列
      */
     @Override
@@ -394,7 +393,7 @@ public class RedisCache implements Cache {
      * 查询Sorted Set中前N个成员及其分数
      * 对应Redis的ZREVRANGE命令，返回的有序集合按分数降序排列（分数大的在前面）
      * @param sortedSetName Sorted Set的键名
-     * @param count 要获取的成员数量
+     * @param count         要获取的成员数量
      * @return 包含成员及其分数的集合，按分数降序排列
      */
     @Override
@@ -405,7 +404,7 @@ public class RedisCache implements Cache {
     /**
      * 向Sorted Set中添加成员
      * 对应Redis的ZADD命令
-     * @param key Sorted Set的键名
+     * @param key   Sorted Set的键名
      * @param score 成员的分数，用于排序
      * @param value 成员的值
      * @return 添加成功返回true，否则返回false
@@ -418,9 +417,9 @@ public class RedisCache implements Cache {
     /**
      * 获取Sorted Set中指定分数区间的成员及其分数
      * 对应Redis的ZRANGEBYSCORE命令
-     * @param key Sorted Set的键名
+     * @param key  Sorted Set的键名
      * @param from 起始分数（包含）
-     * @param to 结束分数（包含）
+     * @param to   结束分数（包含）
      * @return 包含成员及其分数的集合
      */
     @Override
@@ -431,7 +430,7 @@ public class RedisCache implements Cache {
     /**
      * 从Sorted Set中移除指定成员
      * 对应Redis的ZREM命令
-     * @param key Sorted Set的键名
+     * @param key   Sorted Set的键名
      * @param value 要移除的成员值
      * @return 实际移除的成员数量
      */
@@ -443,9 +442,9 @@ public class RedisCache implements Cache {
     /**
      * 获取分布式锁
      * 使用SETNX命令实现分布式锁，如果获取失败会进行重试
-     * @param key 锁的键名
+     * @param key         锁的键名
      * @param lockTimeout 锁的超时时间（秒），防止死锁
-     * @param checkCount 获取锁的重试次数
+     * @param checkCount  获取锁的重试次数
      * @return 获取锁成功返回true，失败返回false
      */
     @Override
@@ -463,8 +462,8 @@ public class RedisCache implements Cache {
     /**
      * 仅当键不存在时才设置值
      * 对应Redis的SETNX命令
-     * @param key 键名
-     * @param value 要设置的值
+     * @param key     键名
+     * @param value   要设置的值
      * @param timeout 过期时间（秒）
      * @return 设置成功返回true，键已存在返回false
      */
@@ -472,11 +471,15 @@ public class RedisCache implements Cache {
         return redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.SECONDS);
     }
 
+    public Long getExpire(String key) {
+        return redisTemplate.getExpire(key);
+    }
+
     /**
      * 设置键的过期时间
      * 对应Redis的EXPIRE命令
-     * @param key 键名
-     * @param time 过期时间长度
+     * @param key      键名
+     * @param time     过期时间长度
      * @param timeUnit 时间单位
      */
     @Override
@@ -497,8 +500,8 @@ public class RedisCache implements Cache {
     /**
      * 原子性递增指定键的值并设置过期时间
      * 对应Redis的INCR和EXPIRE命令
-     * @param key 键名
-     * @param time 过期时间长度
+     * @param key      键名
+     * @param time     过期时间长度
      * @param timeUnit 时间单位
      * @return 递增后的值
      */
@@ -518,5 +521,116 @@ public class RedisCache implements Cache {
     public Long decrement(String key) {
         return redisTemplate.boundValueOps(key).decrement();
     }
+
+    //-----------------------------------------------Set操作实现--------------------------------------------
+
+    /**
+     * 向Set集合中添加元素
+     * 对应Redis的SADD命令
+     * @param key    Set的键
+     * @param values 要添加的元素
+     * @return 添加成功的元素数量（不包括已存在的元素）
+     */
+    @Override
+    public Long sAdd(String key, Object... values) {
+        return redisTemplate.opsForSet().add(key, values);
+    }
+
+    /**
+     * 获取Set集合中的所有元素
+     * 对应Redis的SMEMBERS命令
+     * @param key Set的键
+     * @return Set集合中的所有元素
+     */
+    @Override
+    public Set<Object> sMembers(String key) {
+        return redisTemplate.opsForSet().members(key);
+    }
+
+    /**
+     * 判断元素是否存在于Set集合中
+     * 对应Redis的SISMEMBER命令
+     * @param key   Set的键
+     * @param value 要判断的元素
+     * @return 存在返回true，不存在返回false
+     */
+    @Override
+    public Boolean sIsMember(String key, Object value) {
+        return redisTemplate.opsForSet().isMember(key, value);
+    }
+
+    /**
+     * 获取Set集合的大小
+     * 对应Redis的SCARD命令
+     * @param key Set的键
+     * @return Set集合的大小
+     */
+    @Override
+    public Long sSize(String key) {
+        return redisTemplate.opsForSet().size(key);
+    }
+
+    /**
+     * 从Set集合中移除指定元素
+     * 对应Redis的SREM命令
+     * @param key    Set的键
+     * @param values 要移除的元素
+     * @return 实际移除的元素数量
+     */
+    @Override
+    public Long sRemove(String key, Object... values) {
+        return redisTemplate.opsForSet().remove(key, values);
+    }
+
+    /**
+     * 获取多个Set集合的交集
+     * 对应Redis的SINTER命令
+     * @param keys 多个Set的键
+     * @return 交集结果
+     */
+    @Override
+    public Set<Object> sIntersect(String... keys) {
+        return redisTemplate.opsForSet().intersect(Arrays.asList(keys));
+    }
+
+    /**
+     * 获取多个Set集合的并集
+     * 对应Redis的SUNION命令
+     * @param keys 多个Set的键
+     * @return 并集结果
+     */
+    @Override
+    public Set<Object> sUnion(String... keys) {
+        return redisTemplate.opsForSet().union(Arrays.asList(keys));
+    }
+
+    /**
+     * 获取Set集合的差集（第一个Set与其他Set的差集）
+     * 对应Redis的SDIFF命令
+     * @param key       第一个Set的键
+     * @param otherKeys 其他Set的键
+     * @return 差集结果
+     */
+    @Override
+    public Set<Object> sDifference(String key, String... otherKeys) {
+        return redisTemplate.opsForSet().difference(key, otherKeys);
+    }
+
+    /**
+     * 执行Lua脚本
+     * @param luaScript Lua脚本内容
+     * @param keys      Redis键列表
+     * @param args      参数列表
+     * @param <T>       返回值类型
+     * @return Lua脚本执行结果
+     */
+    public <T> T executeLuaScript(String luaScript, List<String> keys, List<String> args) {
+        DefaultRedisScript<T> redisScript = new DefaultRedisScript<>(luaScript);
+        redisScript.setResultType((Class<T>) Long.class);
+        List<Object> keyObjects = new ArrayList<>(keys);
+        List<Object> argObjects = new ArrayList<>(args);
+        return redisTemplate.execute(redisScript, keyObjects, argObjects.toArray());
+    }
+
 
 }

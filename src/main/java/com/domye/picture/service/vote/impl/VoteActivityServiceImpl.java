@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.impl.RedisCache;
 import com.domye.picture.mapper.VoteActivitiesMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
@@ -51,6 +51,8 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     private VoteOptionService voteOptionService;
     @Resource
     private VoteRecordService voteRecordService;
+    @Resource
+    private RedisCache redisCache;
 
     /**
      * 创建新活动
@@ -87,7 +89,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         Long id = voteActivity.getId();
         List<VoteOptionAddRequest> voteOptionAddRequests = voteActivityAddRequest.getOptions();
         voteOptionService.addOptions(voteOptionAddRequests, id);
-        RedisUtil.set(VOTE_ACTIVITY_KEY + id, JSON.toJSONString(voteActivity));
+        redisCache.put(VOTE_ACTIVITY_KEY + id, voteActivity);
 
         // 发送延迟消息，在活动结束时自动处理
 //        VoteEndRequest voteEndRequest = new VoteEndRequest();
@@ -107,13 +109,13 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     @Override
     public VoteActivityDetailVO getActivityDetailVOById(Long id) {
         //从redis中获取
-        String jsonStr = RedisUtil.get(VOTE_ACTIVITY_DETAIL_KEY + id);
+        String jsonStr = (String) redisCache.get(VOTE_ACTIVITY_DETAIL_KEY + id);
         VoteActivityDetailVO voteActivityDetailVO = null;
         List<VoteOptionVO> optionsVO = null;
         //如果redis中没有，则从数据库中获取
         if (StrUtil.isBlank(jsonStr)) {
             // 创建封装类
-            String json = RedisUtil.get(VOTE_ACTIVITY_KEY + id);
+            String json = (String) redisCache.get(VOTE_ACTIVITY_KEY + id);
             VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
             voteActivityDetailVO = new VoteActivityDetailVO();
@@ -132,7 +134,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
             voteActivityDetailVO.setOptions(optionsVO);
 
             //将数据存入redis
-            RedisUtil.set(VOTE_ACTIVITY_DETAIL_KEY + id, JSON.toJSONString(voteActivityDetailVO));
+            redisCache.put(VOTE_ACTIVITY_DETAIL_KEY + id, voteActivityDetailVO);
         } else {
             //如果redis中有，则直接解析
             voteActivityDetailVO = JSON.parseObject(jsonStr, VoteActivityDetailVO.class);
@@ -140,7 +142,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         }
 
         //从redis中读取选项票数
-        Map<Object, Object> optionHash = RedisUtil.getHash(VOTE_COUNT_KEY + id);
+        Map<Object, Object> optionHash = redisCache.getHash(VOTE_COUNT_KEY + id);
 
 
         if (CollUtil.isEmpty(optionsVO) || CollUtil.isEmpty(optionHash)) {
@@ -168,7 +170,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         Throw.throwIf(!Objects.equals(voteActivity.getStatus(), VoteActivitiesStatusEnum.IN_PROGRESS.getValue()), ErrorCode.PARAMS_ERROR, "活动已结束");
         voteActivity.setStatus(VoteActivitiesStatusEnum.FINISHED.getValue());
         updateById(voteActivity);
-        RedisUtil.delete(VOTE_ACTIVITY_KEY + id);
+        redisCache.remove(VOTE_ACTIVITY_KEY + id);
     }
 
 
@@ -245,7 +247,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
         boolean b = voteOptionService.deleteOptions(id);
         Throw.throwIf(!a || !b, ErrorCode.SYSTEM_ERROR, "删除失败");
         removeById(id);
-        RedisUtil.delete(VOTE_ACTIVITY_KEY + id);
+        redisCache.remove(VOTE_ACTIVITY_KEY + id);
     }
 
 }

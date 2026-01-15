@@ -2,7 +2,7 @@ package com.domye.picture.service.user.filterlist;
 
 import com.domye.picture.exception.ErrorCode;
 import com.domye.picture.exception.Throw;
-import com.domye.picture.helper.RedisUtil;
+import com.domye.picture.helper.impl.RedisCache;
 import com.domye.picture.service.user.FilterlistService;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.user.model.entity.User;
@@ -22,6 +22,9 @@ public class FilterlistServiceImpl implements FilterlistService {
     @Resource
     private UserService userService;
 
+    @Resource
+    private RedisCache redisCache;
+
     /**
      * 检查用户是否在名单中
      * @param userId 用户ID
@@ -30,7 +33,7 @@ public class FilterlistServiceImpl implements FilterlistService {
     @Override
     public boolean isInFilterList(Long userId, Long type, Long mode) {
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        Boolean a = RedisUtil.hasSet(key, String.valueOf(userId));
+        Boolean a = redisCache.sIsMember(key, String.valueOf(userId));
         return Boolean.TRUE.equals(a);
     }
 
@@ -41,10 +44,11 @@ public class FilterlistServiceImpl implements FilterlistService {
     @Override
     public List<UserVO> queryAllFilterListUsers(Long type, Long mode) {
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        Set<String> users = RedisUtil.getSet(key);
+        Set<Object> users = redisCache.sMembers(key);
+
         List<User> userList = null;
         if (users != null) {
-            userList = users.stream().map(user -> userService.getById(Long.valueOf(user))).collect(Collectors.toList());
+            userList = users.stream().map(user -> userService.getById(Long.valueOf((String) user))).collect(Collectors.toList());
         }
         if (userList != null) {
             return userList.stream().map(user -> userService.getUserVO(user)).collect(Collectors.toList());
@@ -65,7 +69,7 @@ public class FilterlistServiceImpl implements FilterlistService {
         // 如果用户已经在名单中，则抛出异常
         Throw.throwIf(isInFilterList(userId, type, mode), ErrorCode.OPERATION_ERROR, "用户已经在名单中");
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        RedisUtil.addSet(key, String.valueOf(userId));
+        redisCache.sAdd(key, userId);
 
     }
 
@@ -80,7 +84,7 @@ public class FilterlistServiceImpl implements FilterlistService {
         Throw.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         Throw.throwIf(!isInFilterList(userId, type, mode), ErrorCode.OPERATION_ERROR, "用户不在名单中");
         String key = FilterTypeEnum.getTextByValue(type) + "_" + FilterModeEnum.getTextByValue(mode);
-        RedisUtil.deleteSet(key, String.valueOf(userId));
+        redisCache.sRemove(key, userId);
 
     }
 }
