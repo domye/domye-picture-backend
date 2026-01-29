@@ -10,4 +10,8 @@ public interface UserService {
     long UserRegister(UserRegisterCommand command);
 
     LoginUserVO userLogin(UserLoginCommand command,HttpServletRequest request);
+
+    LoginUserVO getLoginUser(HttpServletRequest request);
+
+    Boolean userLogout(HttpServletRequest request);
 }

@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginUserVO userLogin(UserLoginCommand command, HttpServletRequest request) {
+        Throw.throwIf(command == null, ErrorCode.PARAMS_ERROR);
         String userAccount = command.getUserAccount();
         String userPassword = command.getUserPassword();
         //校验
@@ -71,6 +72,29 @@ public class UserServiceImpl implements UserService {
 //        StpKit.SPACE.login(user.getId());
 //        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
         return userConverter.toVO(user);
+    }
+
+    @Override
+    public LoginUserVO getLoginUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        Throw.throwIf(currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
+        return  userConverter.toVO(currentUser);
+    }
+
+    @Override
+    public Boolean userLogout(HttpServletRequest request) {
+        // 先判断是否已登录
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        Throw.throwIf(userObj == null, ErrorCode.OPERATION_ERROR, "未登录");
+
+        User currentUser = (User) userObj;
+        // TODO Sa-Token 登出
+//        StpKit.SPACE.logout(currentUser.getId());
+
+        // 移除 Session 登录态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return true;
     }
 
     public String getEncryptPassword(String userPassword) {
