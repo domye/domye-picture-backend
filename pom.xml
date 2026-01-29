@@ -39,20 +39,11 @@
     <!-- ==================== 依赖管理 ==================== -->
     <dependencyManagement>
         <dependencies>
-            <!-- 项目BOM -->
+            <!-- 项目BOM（统一管理所有依赖版本） -->
             <dependency>
                 <groupId>com.domye</groupId>
                 <artifactId>picture-bom</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <!-- MyBatis Plus BOM -->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-bom</artifactId>
-                <version>3.5.9</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
