@@ -6,4 +6,6 @@ public interface UserRepository {
     long getUserCount(String UserAccount);
 
     boolean save(User user);
+
+    User getUser(String userAccount, String encryptPassword);
 }

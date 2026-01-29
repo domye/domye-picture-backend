@@ -19,4 +19,5 @@ public interface UserRepoConverter {
         return DigestUtils.md5DigestAsHex((SALT + password).getBytes());
     }
 
+    User fromDO(UserDO user);
 }

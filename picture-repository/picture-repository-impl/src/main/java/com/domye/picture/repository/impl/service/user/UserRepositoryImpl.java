@@ -30,4 +30,13 @@ public class UserRepositoryImpl implements UserRepository {
         user.setId(userDO.getId());
         return true;
     }
+
+    @Override
+    public User getUser(String userAccount, String encryptPassword) {
+        //查询数据是否存在
+        QueryWrapper<UserDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount).eq("userPassword", encryptPassword);
+        UserDO user = userMapper.selectOne(queryWrapper);
+        return userRepoConverter.fromDO(user);
+    }
 }
