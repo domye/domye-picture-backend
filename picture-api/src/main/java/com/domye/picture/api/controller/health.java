@@ -1,6 +1,5 @@
 package com.domye.picture.api.controller;
 
-import com.domye.picture.core.exception.BusinessException;
 import com.domye.picture.core.exception.ErrorCode;
 import com.domye.picture.core.exception.Throw;
 import com.domye.picture.core.result.BaseResponse;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/health")
 @RequiredArgsConstructor
 public class health {
-
     @GetMapping
     public BaseResponse<String> health() {
         return Result.success("success");
