@@ -39,4 +39,15 @@ public class UserRepositoryImpl implements UserRepository {
         UserDO user = userMapper.selectOne(queryWrapper);
         return userRepoConverter.fromDO(user);
     }
+
+    @Override
+    public User getById(long id) {
+        UserDO userDO = userMapper.selectById(id);
+        return userRepoConverter.fromDO(userDO);
+    }
+
+    @Override
+    public void removeById(Long id) {
+        userMapper.deleteById(id);
+    }
 }

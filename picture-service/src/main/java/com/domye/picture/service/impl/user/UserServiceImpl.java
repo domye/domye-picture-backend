@@ -9,7 +9,7 @@ import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.converter.user.UserConverter;
 import com.domye.picture.service.dto.command.user.UserLoginCommand;
 import com.domye.picture.service.dto.command.user.UserRegisterCommand;
-import com.domye.picture.service.dto.presentation.user.LoginUserVO;
+import com.domye.picture.service.dto.presentation.user.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginUserVO userLogin(UserLoginCommand command, HttpServletRequest request) {
+    public UserVO userLogin(UserLoginCommand command, HttpServletRequest request) {
         Throw.throwIf(command == null, ErrorCode.PARAMS_ERROR);
         String userAccount = command.getUserAccount();
         String userPassword = command.getUserPassword();
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginUserVO getLoginUser(HttpServletRequest request) {
+    public UserVO getLoginUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
         Throw.throwIf(currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -96,6 +96,24 @@ public class UserServiceImpl implements UserService {
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
     }
+
+    @Override
+    public User getById(long id) {
+        return userRepository.getById(id);
+    }
+
+    @Override
+    public UserVO getUserVOById(long id) {
+        User user = userRepository.getById(id);
+        return userConverter.toVO(user);
+    }
+
+    @Override
+    public Boolean removeById(Long id) {
+        userRepository.removeById(id);
+        return true;
+    }
+
 
     public String getEncryptPassword(String userPassword) {
         // 盐值，混淆密码

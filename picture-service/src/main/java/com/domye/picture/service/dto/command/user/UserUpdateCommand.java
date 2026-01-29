@@ -1,38 +1,31 @@
-package com.domye.picture.service.dto.presentation.user;
+package com.domye.picture.service.dto.command.user;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class LoginUserVO {
+public class UserUpdateCommand implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     /**
      * id
      */
     private Long id;
-
-    /**
-     * 账号
-     */
-    private String userAccount;
-
-
     /**
      * 用户昵称
      */
     private String userName;
-
     /**
      * 用户头像
      */
     private String userAvatar;
-
     /**
-     * 用户简介
+     * 简介
      */
     private String userProfile;
-
     /**
      * 用户角色：user/admin
      */
     private String userRole;
-
 }
