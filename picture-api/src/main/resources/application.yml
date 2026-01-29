@@ -1,0 +1,37 @@
+# 服务器配置
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+
+# Spring框架配置
+spring:
+  # 应用配置
+  application:
+    name: domye-picture-backend
+
+
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: ""
+  global-config:
+    enable-sql-runner: true
+    db-config:
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# Knife4j配置
+knife4j:
+  enable: true
+  openapi:
+    title: Knife4j官方文档
+    version: v1.0
+    group:
+      test1:
+        group-name: default
+        api-rule: package
+        api-rule-resources:
+          - com.domye.picture.api.controller
