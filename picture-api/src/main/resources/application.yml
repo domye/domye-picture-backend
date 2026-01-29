@@ -10,6 +10,13 @@ spring:
   application:
     name: domye-picture-backend
 
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/domye_picture?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true&useSSL=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 987789qw
+
 
 # MyBatis-Plus配置
 mybatis-plus:

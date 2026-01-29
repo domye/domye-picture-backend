@@ -1,0 +1,49 @@
+package com.domye.picture.service.impl.user;
+
+import cn.hutool.core.util.StrUtil;
+import com.domye.picture.core.exception.ErrorCode;
+import com.domye.picture.core.exception.Throw;
+import com.domye.picture.core.model.user.User;
+import com.domye.picture.repository.user.UserRepository;
+import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.converter.user.UserConverter;
+import com.domye.picture.service.dto.command.user.UserRegisterCommand;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+    private final UserConverter userConverter;
+    private final UserRepository userRepository;
+
+    @Override
+    public long UserRegister(UserRegisterCommand command) {
+        Throw.throwIf(command == null, ErrorCode.PARAMS_ERROR);
+        String userAccount = command.getUserAccount();
+        String password = command.getUserPassword();
+        String checkPassword = command.getCheckPassword();
+
+        //1. 检验参数是否合法
+        Throw.throwIf(StrUtil.hasBlank(userAccount, password, checkPassword), ErrorCode.PARAMS_ERROR, "参数不能为空");
+        Throw.throwIf(userAccount.length() < 6 || userAccount.length() > 16, ErrorCode.PARAMS_ERROR, "账号长度必须在6-16位之间");
+        Throw.throwIf(password.length() < 6 || password.length() > 16, ErrorCode.PARAMS_ERROR, "密码长度必须在6-16位之间");
+        Throw.throwIf(!password.equals(checkPassword), ErrorCode.PARAMS_ERROR, "两次输入密码不一致");
+
+        //2.数据库检测账号是否存在
+        long count = userRepository.getUserCount(userAccount);
+        Throw.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号重复");
+
+        User user = userConverter.fromCommand(command);
+        user.setUserName("无名");
+        boolean saveResult = userRepository.save(user);
+        Throw.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "注册失败");
+
+
+        //5.返回用户id
+        return user.getId();
+    }
+
+
+}

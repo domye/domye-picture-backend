@@ -55,6 +55,9 @@
 
         <!-- 其他 -->
         <jetbrains-annotations.version>RELEASE</jetbrains-annotations.version>
+
+        <!-- 对象映射相关 -->
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
 
     <dependencyManagement>
@@ -206,6 +209,21 @@
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
                 <version>${jetbrains-annotations.version}</version>
+            </dependency>
+
+            <!-- ==================== 对象映射相关依赖 ==================== -->
+            <!-- MapStruct 对象映射 -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
