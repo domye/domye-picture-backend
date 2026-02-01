@@ -1,14 +1,14 @@
 package com.domye.picture.api.controller.user.filterlist;
 
-import com.domye.picture.api.auth.annotation.AuthCheck;
-import com.domye.picture.api.constant.UserConstant;
-import com.domye.picture.api.service.user.FilterlistService;
+import com.domye.picture.auth.annotation.AuthCheck;
+import com.domye.picture.common.constant.UserConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.user.dto.FilterListRequest;
 import com.domye.picture.model.user.vo.UserVO;
+import com.domye.picture.service.user.FilterlistService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

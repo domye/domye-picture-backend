@@ -22,6 +22,8 @@
         <module>picture-api</module>
         <module>picture-model</module>
         <module>picture-common</module>
+        <module>picture-service</module>
+        <module>picture-auth</module>
     </modules>
 
     <!-- 项目属性配置 -->

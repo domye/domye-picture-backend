@@ -1,11 +1,9 @@
 package com.domye.picture.api.controller;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.domye.picture.api.manager.auth.StpKit;
-import com.domye.picture.api.manager.auth.annotation.SaSpaceCheckPermission;
-import com.domye.picture.api.manager.auth.model.SpaceUserPermissionConstant;
-import com.domye.picture.api.service.space.SpaceUserService;
-import com.domye.picture.api.service.user.UserService;
+import com.domye.picture.auth.annotation.SaSpaceCheckPermission;
+import com.domye.picture.auth.model.SpaceUserPermissionConstant;
+import com.domye.picture.common.auth.StpKit;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
@@ -17,6 +15,8 @@ import com.domye.picture.model.space.dto.SpaceUserQueryRequest;
 import com.domye.picture.model.space.entity.SpaceUser;
 import com.domye.picture.model.space.vo.SpaceUserVO;
 import com.domye.picture.model.user.entity.User;
+import com.domye.picture.service.space.SpaceUserService;
+import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

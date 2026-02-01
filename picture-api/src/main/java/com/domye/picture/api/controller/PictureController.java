@@ -10,19 +10,16 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.domye.picture.api.auth.annotation.AuthCheck;
-import com.domye.picture.api.constant.UserConstant;
-import com.domye.picture.api.manager.auth.SpaceUserAuthManager;
-import com.domye.picture.api.manager.auth.StpKit;
-import com.domye.picture.api.manager.auth.annotation.SaSpaceCheckPermission;
-import com.domye.picture.api.manager.auth.model.SpaceUserPermissionConstant;
-import com.domye.picture.api.manager.mdc.MdcDot;
-import com.domye.picture.api.service.picture.PictureService;
-import com.domye.picture.api.service.space.SpaceService;
-import com.domye.picture.api.service.user.UserService;
+import com.domye.picture.auth.SpaceUserAuthManager;
+import com.domye.picture.auth.annotation.AuthCheck;
+import com.domye.picture.auth.annotation.SaSpaceCheckPermission;
+import com.domye.picture.auth.model.SpaceUserPermissionConstant;
+import com.domye.picture.common.auth.StpKit;
+import com.domye.picture.common.constant.UserConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.RedisCache;
+import com.domye.picture.common.mdc.MdcDot;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.DeleteRequest;
 import com.domye.picture.common.result.Result;
@@ -33,6 +30,9 @@ import com.domye.picture.model.picture.vo.PictureTagCategory;
 import com.domye.picture.model.picture.vo.PictureVO;
 import com.domye.picture.model.space.entity.Space;
 import com.domye.picture.model.user.entity.User;
+import com.domye.picture.service.picture.PictureService;
+import com.domye.picture.service.space.SpaceService;
+import com.domye.picture.service.user.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.annotations.ApiOperation;
@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.domye.picture.api.constant.UserConstant.USER_LOGIN_STATE;
+import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
 
 @RestController
 @RequestMapping("/picture")

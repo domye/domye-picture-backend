@@ -1,13 +1,13 @@
 package com.domye.picture.api.controller;
 
 
-import com.domye.picture.api.service.rank.RankService;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.rank.dto.UserActivityScoreQueryRequest;
 import com.domye.picture.model.rank.vo.UserActiveRankItemVO;
+import com.domye.picture.service.rank.RankService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

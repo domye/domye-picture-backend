@@ -1,8 +1,7 @@
 package com.domye.picture.api.controller;
 
 
-import com.domye.picture.api.service.space.SpaceAnalyzeService;
-import com.domye.picture.api.service.user.UserService;
+
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
@@ -11,6 +10,8 @@ import com.domye.picture.model.space.dto.analyze.*;
 import com.domye.picture.model.space.entity.Space;
 import com.domye.picture.model.space.vo.analyze.*;
 import com.domye.picture.model.user.entity.User;
+import com.domye.picture.service.space.SpaceAnalyzeService;
+import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
