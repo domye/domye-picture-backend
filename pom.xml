@@ -15,8 +15,14 @@
     <groupId>com.domye</groupId>
     <artifactId>picture-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>domye-picture-backend</name>
     <description>domye-picture-backend</description>
+    <modules>
+        <module>picture-api</module>
+        <module>picture-model</module>
+        <module>picture-common</module>
+    </modules>
 
     <!-- 项目属性配置 -->
     <properties>
@@ -270,7 +276,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.domye.picture.DomyePictureBackendApplication</mainClass>
+                    <mainClass>com.domye.picture.api.DomyePictureBackendApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

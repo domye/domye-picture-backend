@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.domye.picture.api.mapper.SpaceUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.domye.picture.model.space.entity.SpaceUser">
+        <id property="id" column="id"/>
+        <result property="spaceId" column="spaceId"/>
+        <result property="userId" column="userId"/>
+        <result property="spaceRole" column="spaceRole"/>
+        <result property="createTime" column="createTime"/>
+        <result property="updateTime" column="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,spaceId,userId,spaceRole,createTime,updateTime
+    </sql>
+</mapper>
