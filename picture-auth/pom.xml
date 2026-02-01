@@ -19,21 +19,15 @@
     <dependencies>
         <dependency>
             <groupId>com.domye</groupId>
-            <artifactId>picture-model</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.domye</groupId>
             <artifactId>picture-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.domye</groupId>
-            <artifactId>picture-service</artifactId>
+            <artifactId>picture-model</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.domye</groupId>

@@ -19,11 +19,11 @@
     <name>domye-picture-backend</name>
     <description>domye-picture-backend</description>
     <modules>
-        <module>picture-api</module>
-        <module>picture-model</module>
         <module>picture-common</module>
+        <module>picture-model</module>
         <module>picture-service</module>
         <module>picture-auth</module>
+        <module>picture-api</module>
     </modules>
 
     <!-- 项目属性配置 -->
@@ -260,6 +260,26 @@
 
     <!-- ==================== 构建配置 ==================== -->
     <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Spring Boot 打包插件 -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <mainClass>com.domye.picture.api.DomyePictureBackendApplication</mainClass>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>repackage</id>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <!-- Maven 编译插件 -->
             <plugin>
@@ -271,23 +291,6 @@
                     <target>9</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
-            </plugin>
-
-            <!-- Spring Boot 打包插件 -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.domye.picture.api.DomyePictureBackendApplication</mainClass>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>repackage</id>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
