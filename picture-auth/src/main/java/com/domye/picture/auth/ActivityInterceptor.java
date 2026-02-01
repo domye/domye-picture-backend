@@ -1,4 +1,4 @@
-package com.domye.picture.api;
+package com.domye.picture.auth;
 
 
 import com.domye.picture.model.rank.dto.UserActivityScoreAddRequest;

@@ -1,6 +1,6 @@
 package com.domye.picture.api.config;
 
-import com.domye.picture.api.ActivityInterceptor;
+import com.domye.picture.auth.ActivityInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
