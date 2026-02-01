@@ -1,5 +1,7 @@
-package com.domye.picture.api.manager.websocket;
+package com.domye.picture.api.config;
 
+import com.domye.picture.auth.WsHandshakeInterceptor;
+import com.domye.picture.service.helper.websocket.PictureEditHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

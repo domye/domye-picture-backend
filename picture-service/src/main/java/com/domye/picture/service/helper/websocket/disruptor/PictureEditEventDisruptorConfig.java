@@ -1,4 +1,4 @@
-package com.domye.picture.api.manager.websocket.disruptor;
+package com.domye.picture.service.helper.websocket.disruptor;
 
 import cn.hutool.core.thread.ThreadFactoryBuilder;
 import com.lmax.disruptor.dsl.Disruptor;

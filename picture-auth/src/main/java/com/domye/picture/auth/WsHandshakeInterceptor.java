@@ -1,8 +1,7 @@
-package com.domye.picture.api.manager.websocket;
+package com.domye.picture.auth;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.domye.picture.auth.SpaceUserAuthManager;
 import com.domye.picture.auth.model.SpaceUserPermissionConstant;
 import com.domye.picture.model.picture.entity.Picture;
 import com.domye.picture.model.space.entity.Space;

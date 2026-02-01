@@ -1,4 +1,4 @@
-package com.domye.picture.api.manager.websocket.model;
+package com.domye.picture.service.helper.websocket.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

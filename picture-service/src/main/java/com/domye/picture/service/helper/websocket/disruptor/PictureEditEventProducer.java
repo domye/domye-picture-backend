@@ -1,7 +1,7 @@
-package com.domye.picture.api.manager.websocket.disruptor;
+package com.domye.picture.service.helper.websocket.disruptor;
 
-import com.domye.picture.api.manager.websocket.model.PictureEditRequestMessage;
 import com.domye.picture.model.user.entity.User;
+import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import lombok.extern.slf4j.Slf4j;
