@@ -1,7 +1,7 @@
 package com.domye.picture.common.mdc;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -66,7 +66,7 @@ public class MdcAspect implements ApplicationContextAware {
     }
 
     private String loadBizCode(String key, ProceedingJoinPoint joinPoint) {
-        if (StringUtils.isBlank(key)) {
+        if (StrUtil.isBlank(key)) {
             return "";
         }
 

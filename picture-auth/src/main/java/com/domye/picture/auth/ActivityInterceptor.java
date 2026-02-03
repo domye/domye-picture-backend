@@ -6,7 +6,7 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -43,7 +43,7 @@ public class ActivityInterceptor implements HandlerInterceptor {
 
             // 从请求参数中获取图片ID
             String pictureId = request.getParameter("id");
-            if (StringUtils.isNumeric(pictureId)) {
+            if (StrUtil.isNumeric(pictureId)) {
                 UserActivityScoreAddRequest addRequest = new UserActivityScoreAddRequest();
                 addRequest.setPath(pictureId);
                 rankService.addActivityScore(user, addRequest);
