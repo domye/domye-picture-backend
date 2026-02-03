@@ -2,16 +2,15 @@ package com.domye.picture.service.helper.websocket.disruptor;
 
 import cn.hutool.core.thread.ThreadFactoryBuilder;
 import com.lmax.disruptor.dsl.Disruptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Resource;
-
 @Configuration
+@RequiredArgsConstructor
 public class PictureEditEventDisruptorConfig {
 
-    @Resource
-    private PictureEditEventWorkHandler pictureEditEventWorkHandler;
+    final PictureEditEventWorkHandler pictureEditEventWorkHandler;
 
     @Bean("pictureEditEventDisruptor")
     public Disruptor<PictureEditEvent> messageModelRingBuffer() {

@@ -9,19 +9,20 @@ import com.domye.picture.model.dto.rank.UserActivityScoreQueryRequest;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
 import com.domye.picture.service.rank.RankService;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
 @RequestMapping("/rank")
+@RequiredArgsConstructor
 public class RankController {
-    @Resource
-    private RankService rankService;
+
+    final RankService rankService;
 
 
     /**

@@ -6,20 +6,18 @@ import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class CosManager {
-    @Resource
-    private CosClientConfig cosClientConfig;
-
-    @Resource
-    private COSClient cosClient;
+    final CosClientConfig cosClientConfig;
+    final COSClient cosClient;
 
     public PutObjectResult putObject(String key, File file) {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key,
@@ -29,6 +27,7 @@ public class CosManager {
 
     /**
      * 上传图片对象并进行图片处理的方法
+     *
      * @param key  对象键（文件在存储桶中的唯一标识）
      * @param file 要上传的本地文件对象
      * @return PutObjectResult 上传结果对象

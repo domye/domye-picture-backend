@@ -12,6 +12,7 @@ import com.domye.picture.service.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -19,7 +20,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,15 +30,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * 处理图片编辑相关的WebSocket连接和消息交互
  */
 @Component
+@RequiredArgsConstructor
 public class PictureEditHandler extends TextWebSocketHandler {
     // 每张图片的编辑状态，key: pictureId, value: 当前正在编辑的用户 ID
     private final Map<Long, Long> pictureEditingUsers = new ConcurrentHashMap<>();
     // 保存所有连接的会话，key: pictureId, value: 用户会话集合
     private final Map<Long, Set<WebSocketSession>> pictureSessions = new ConcurrentHashMap<>();
-    @Resource
-    private PictureEditEventProducer pictureEditEventProducer;
-    @Resource
-    private UserService userService;
+    final PictureEditEventProducer pictureEditEventProducer;
+    final UserService userService;
 
     /**
      * 连接建立后的处理

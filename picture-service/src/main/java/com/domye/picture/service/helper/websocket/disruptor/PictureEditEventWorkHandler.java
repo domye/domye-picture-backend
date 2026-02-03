@@ -8,6 +8,7 @@ import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessag
 import com.domye.picture.service.helper.websocket.model.PictureEditResponseMessage;
 import com.domye.picture.service.user.UserService;
 import com.lmax.disruptor.WorkHandler;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,14 +19,14 @@ import javax.annotation.Resource;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent> {
 
     @Resource
     @Lazy
     private PictureEditHandler pictureEditHandler;
 
-    @Resource
-    private UserService userService;
+    final UserService userService;
 
     @Override
     public void onEvent(PictureEditEvent event) throws Exception {

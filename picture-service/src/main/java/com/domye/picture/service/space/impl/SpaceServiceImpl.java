@@ -24,6 +24,7 @@ import com.domye.picture.service.mapper.SpaceMapper;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.SpaceUserService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -44,17 +45,17 @@ import java.util.stream.Collectors;
  * @createDate 2025-09-09 19:12:43
  */
 @Service
+@RequiredArgsConstructor
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         implements SpaceService {
     private static final String SPACE_CREATE_LOCK_PREFIX = "space:create:lock:";
     private static final long LOCK_WAIT_TIME = 10;
     private static final long LOCK_LEASE_TIME = 30;
-    @Resource
-    private UserService userService;
-    @Resource
-    private TransactionTemplate transactionTemplate;
-    @Resource
-    private LockService lockService;
+
+    final UserService userService;
+    final TransactionTemplate transactionTemplate;
+    final LockService lockService;
+
     @Resource
     @Lazy
     private SpaceUserService spaceUserService;

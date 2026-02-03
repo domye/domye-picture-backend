@@ -14,10 +14,10 @@ import com.domye.picture.service.vote.model.dto.VoteRequest;
 import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.entity.VoteRecord;
 import com.domye.picture.service.vote.rocketMQ.VoteProducer;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,16 +33,13 @@ import static com.domye.picture.common.constant.VoteConstant.*;
  * @createDate 2025-10-17 21:15:50
  */
 @Service
+@RequiredArgsConstructor
 public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRecord>
         implements VoteRecordService {
-    @Resource
-    private VoteProducer voteProducer;
-    @Resource
-    private UserService userService;
-    @Resource
-    private RedisCache redisCache;
-    @Resource
-    private LockService lockService;
+   final VoteProducer voteProducer;
+   final UserService userService;
+   final RedisCache redisCache;
+   final LockService lockService;
 
 
     @Override

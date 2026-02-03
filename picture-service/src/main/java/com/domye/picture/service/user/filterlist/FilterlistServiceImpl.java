@@ -10,21 +10,19 @@ import com.domye.picture.model.enums.FilterTypeEnum;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.user.FilterlistService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FilterlistServiceImpl implements FilterlistService {
 
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private RedisCache redisCache;
+    final UserService userService;
+    final RedisCache redisCache;
 
     /**
      * 检查用户是否在名单中

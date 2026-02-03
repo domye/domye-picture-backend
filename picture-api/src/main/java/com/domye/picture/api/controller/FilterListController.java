@@ -9,17 +9,17 @@ import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.user.FilterListRequest;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.user.FilterlistService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.io.Serializable;
 import java.util.List;
 
 @RestController
 @RequestMapping("/filterList")
+@RequiredArgsConstructor
 public class FilterListController implements Serializable {
-    @Resource
-    private FilterlistService filterlistService;
+    final FilterlistService filterlistService;
 
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)

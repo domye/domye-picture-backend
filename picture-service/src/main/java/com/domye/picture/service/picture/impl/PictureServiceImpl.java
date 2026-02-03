@@ -15,12 +15,12 @@ import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureQueryRequest;
 import com.domye.picture.model.dto.picture.PictureReviewRequest;
 import com.domye.picture.model.dto.picture.PictureUploadRequest;
-import com.domye.picture.model.entity.picture.Picture;
-import com.domye.picture.model.enums.PictureReviewStatusEnum;
-import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.PictureReviewStatusEnum;
+import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.helper.upload.CosManager;
 import com.domye.picture.service.helper.upload.FileManager;
@@ -31,13 +31,13 @@ import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.user.FilterlistService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.awt.*;
 import java.util.*;
@@ -50,27 +50,21 @@ import java.util.stream.Collectors;
  * @createDate 2025-08-29 17:03:47
  */
 @Service
+@RequiredArgsConstructor
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         implements PictureService {
-    @Resource
-    private PictureMapper pictureMapper;
-    @Resource
-    private FileManager fileManager;
-    @Resource
-    private CosManager cosManager;
-    @Resource
-    private UserService userService;
-    @Resource
-    private SpaceService spaceService;
-    @Resource
-    private TransactionTemplate transactionTemplate;
-    @Resource
-    private RankService rankService;
-    @Resource
-    private FilterlistService filterlistService;
+    final PictureMapper pictureMapper;
+    final FileManager fileManager;
+    final CosManager cosManager;
+    final UserService userService;
+    final SpaceService spaceService;
+    final TransactionTemplate transactionTemplate;
+    final RankService rankService;
+    final FilterlistService filterlistService;
 
     /**
      * 上传图片
+     *
      * @param multipartFile        文件
      * @param pictureUploadRequest 上传请求
      * @param loginUser            登录用户
@@ -154,6 +148,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 构造查询条件
+     *
      * @param pictureQueryRequest 查询请求
      * @return 查询条件
      */
@@ -224,6 +219,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 获取脱敏后的图片信息
+     *
      * @param picture 图片信息
      * @param request HTTP请求
      * @return 脱敏后的图片信息
@@ -245,6 +241,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 获取图片视图对象分页信息
+     *
      * @param picturePage 图片分页对象
      * @param request     HTTP请求对象
      * @return 返回封装后的图片视图对象分页信息
@@ -280,6 +277,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 检验图片
+     *
      * @param picture
      */
     @Override
@@ -302,6 +300,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 图片审核
+     *
      * @param pictureReviewRequest 审核请求
      * @param loginUser            登录用户
      */
@@ -330,6 +329,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 填充审核参数
+     *
      * @param picture   图片
      * @param loginUser 登录用户
      */
@@ -350,6 +350,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 异步清理文件
+     *
      * @param oldPicture 旧图片
      */
     @Async
@@ -374,6 +375,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 删除图片
+     *
      * @param id        图片id
      * @param loginUser 登录用户
      */
@@ -406,6 +408,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 编辑图片
+     *
      * @param pictureEditRequest 编辑请求
      * @param loginUser          登录用户
      */
@@ -433,6 +436,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 获取颜色查找后的图片列表
+     *
      * @param spaceId   空间id
      * @param picColor  图片颜色
      * @param loginUser 登录用户

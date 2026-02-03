@@ -1,17 +1,16 @@
 package com.domye.picture.api.config;
 
 import com.domye.picture.auth.ActivityInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Resource;
-
 @Configuration
+@RequiredArgsConstructor
 public class ActivityScoreConfig implements WebMvcConfigurer {
 
-    @Resource
-    private ActivityInterceptor activityInterceptor;
+    final ActivityInterceptor activityInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

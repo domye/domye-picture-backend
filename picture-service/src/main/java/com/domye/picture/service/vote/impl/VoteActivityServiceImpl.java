@@ -25,11 +25,11 @@ import com.domye.picture.service.vote.model.enums.VoteActivitiesStatusEnum;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
 import com.domye.picture.service.vote.model.vo.VoteOptionVO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,17 +42,14 @@ import static com.domye.picture.common.constant.VoteConstant.*;
  * @createDate 2025-10-17 21:15:50
  */
 @Service
+@RequiredArgsConstructor
 public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, VoteActivity>
         implements VoteActivityService {
 
-    @Resource
-    private UserService userService;
-    @Resource
-    private VoteOptionService voteOptionService;
-    @Resource
-    private VoteRecordService voteRecordService;
-    @Resource
-    private RedisCache redisCache;
+    final UserService userService;
+    final VoteOptionService voteOptionService;
+    final VoteRecordService voteRecordService;
+    final RedisCache redisCache;
 
     /**
      * 创建新活动

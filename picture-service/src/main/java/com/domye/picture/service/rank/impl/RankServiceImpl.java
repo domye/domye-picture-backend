@@ -13,6 +13,7 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
@@ -26,20 +27,21 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RankServiceImpl implements RankService {
     private static final String ACTIVITY_SCORE_KEY = "activity_rank_";
     Date today = new Date();
-    @Resource
-    private UserService userService;
+    final UserService userService;
+    final RedisCache redisCache;
+
     @Resource
     @Lazy
     private PictureService pictureService;
 
-    @Resource
-    private RedisCache redisCache;
 
     /**
      * 当天活跃度排行榜
+     *
      * @return 当天排行榜key
      */
     private String todayRankKey() {

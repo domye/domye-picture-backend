@@ -12,19 +12,19 @@ import com.domye.picture.model.dto.space.SpaceUserAddRequest;
 import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.model.vo.space.SpaceVO;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.mapper.SpaceUserMapper;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.SpaceUserService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
@@ -38,12 +38,11 @@ import java.util.stream.Collectors;
  * @createDate 2025-09-20 10:51:20
  */
 @Service
+@RequiredArgsConstructor
 public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser>
         implements SpaceUserService {
-    @Resource
-    private SpaceService spaceService;
-    @Resource
-    private UserService userService;
+    final SpaceService spaceService;
+    final UserService userService;
 
     @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {

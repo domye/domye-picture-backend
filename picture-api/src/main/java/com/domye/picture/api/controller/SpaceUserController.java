@@ -13,11 +13,12 @@ import com.domye.picture.model.dto.space.SpaceUserAddRequest;
 import com.domye.picture.model.dto.space.SpaceUserEditRequest;
 import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
 import com.domye.picture.model.entity.space.SpaceUser;
-import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.service.space.SpaceUserService;
 import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -35,13 +35,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/spaceUser")
 @Slf4j
+@RequiredArgsConstructor
 public class SpaceUserController {
 
-    @Resource
-    private SpaceUserService spaceUserService;
+   final SpaceUserService spaceUserService;
 
-    @Resource
-    private UserService userService;
+   final UserService userService;
 
     /**
      * 添加成员到空间

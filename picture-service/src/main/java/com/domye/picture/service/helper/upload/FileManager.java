@@ -12,11 +12,11 @@ import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
 import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,12 +24,12 @@ import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileManager {
-    @Resource
-    private CosClientConfig cosClientConfig;
 
-    @Resource
-    private CosManager cosManager;
+    final CosClientConfig cosClientConfig;
+
+    final CosManager cosManager;
 
     /**
      * 上传图片方法

@@ -4,19 +4,19 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class PictureEditEventProducer {
 
-    @Resource
-    Disruptor<PictureEditEvent> pictureEditEventDisruptor;
+    final Disruptor<PictureEditEvent> pictureEditEventDisruptor;
 
     public void publishEvent(PictureEditRequestMessage pictureEditRequestMessage, WebSocketSession session, User user, Long pictureId) {
         RingBuffer<PictureEditEvent> ringBuffer = pictureEditEventDisruptor.getRingBuffer();

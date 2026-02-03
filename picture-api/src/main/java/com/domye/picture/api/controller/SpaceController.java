@@ -15,16 +15,16 @@ import com.domye.picture.model.dto.space.SpaceQueryRequest;
 import com.domye.picture.model.dto.space.SpaceUpdateRequest;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceLevel;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.vo.space.SpaceVO;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,18 +33,17 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/space")
+@RequiredArgsConstructor
 public class SpaceController {
-    @Resource
-    private UserService userService;
+    final UserService userService;
 
-    @Resource
-    private SpaceService spaceService;
+    final SpaceService spaceService;
 
-    @Resource
-    private SpaceUserAuthManager spaceUserAuthManager;
+    final SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 创建空间
+     *
      * @param spaceAddRequest 空间上传请求
      * @param request         http请求
      * @return 空间id
@@ -62,6 +61,7 @@ public class SpaceController {
 
     /**
      * 删除空间
+     *
      * @param deleteRequest 删除请求
      * @param request       http请求
      * @return 删除是否成功
@@ -79,6 +79,7 @@ public class SpaceController {
 
     /**
      * 更新空间(管理员)
+     *
      * @param spaceUpdateRequest
      * @param request
      * @return 是否更新成功
@@ -108,6 +109,7 @@ public class SpaceController {
 
     /**
      * 根据id获取空间(管理员)
+     *
      * @param id      空间id
      * @param request http请求
      * @return 空间信息
@@ -126,6 +128,7 @@ public class SpaceController {
 
     /**
      * 根据id获取空间封装类
+     *
      * @param id      空间id
      * @param request http请求
      * @return 脱敏后的空间信息
@@ -147,6 +150,7 @@ public class SpaceController {
 
     /**
      * 分页获取空间列表(管理员)
+     *
      * @param spaceQueryRequest 查询请求
      * @return 空间分页信息
      */
@@ -164,6 +168,7 @@ public class SpaceController {
 
     /**
      * 分页获取空间封装类列表
+     *
      * @param spaceQueryRequest 查询请求
      * @param request           http请求
      * @return 脱敏后的空间分页信息
@@ -185,6 +190,7 @@ public class SpaceController {
 
     /**
      * 编辑空间
+     *
      * @param spaceEditRequest 编辑请求
      * @param request          http请求
      * @return 是否编辑成功
@@ -221,6 +227,7 @@ public class SpaceController {
 
     /**
      * 获取空间权限列表
+     *
      * @return 空间权限列表
      */
     @ApiOperation("获取空间权限列表")

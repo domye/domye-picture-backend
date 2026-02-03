@@ -11,6 +11,7 @@ import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.user.UserService;
 import groovyjarjarantlr4.v4.runtime.misc.NotNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -19,26 +20,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class WsHandshakeInterceptor implements HandshakeInterceptor {
 
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private PictureService pictureService;
-
-    @Resource
-    private SpaceService spaceService;
-
-    @Resource
-    private SpaceUserAuthManager spaceUserAuthManager;
+    final UserService userService;
+    final PictureService pictureService;
+    final SpaceService spaceService;
+    final SpaceUserAuthManager spaceUserAuthManager;
 
     @Override
     public boolean beforeHandshake(@NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response, @NotNull WebSocketHandler wsHandler, @NotNull Map<String, Object> attributes) {

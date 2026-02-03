@@ -5,6 +5,7 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
 import com.domye.picture.service.space.SpaceService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.driver.jdbc.core.connection.ShardingSphereConnection;
 import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
@@ -14,7 +15,6 @@ import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfi
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -25,14 +25,14 @@ import java.util.stream.Collectors;
 
 //@Component
 @Slf4j
+@RequiredArgsConstructor
 public class DynamicShardingManager {
 
     private static final String LOGIC_TABLE_NAME = "picture";
     private static final String DATABASE_NAME = "logic_db"; // 配置文件中的数据库名称
-    @Resource
-    private DataSource dataSource;
-    @Resource
-    private SpaceService spaceService;
+
+    final DataSource dataSource;
+    final SpaceService spaceService;
 
     @PostConstruct
     public void initialize() {
@@ -104,6 +104,7 @@ public class DynamicShardingManager {
 
     /**
      * 动态创建空间图片分表
+     *
      * @param space
      */
     public void createSpacePictureTable(Space space) {

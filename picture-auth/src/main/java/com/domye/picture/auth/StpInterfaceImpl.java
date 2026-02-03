@@ -19,25 +19,26 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.space.SpaceUserService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
  * 自定义权限加载接口实现类
  */
+@RequiredArgsConstructor
 @Component    // 保证此类被 SpringBoot 扫描，完成 Sa-Token 的自定义权限验证扩展
 public class StpInterfaceImpl implements StpInterface {
 
@@ -45,20 +46,11 @@ public class StpInterfaceImpl implements StpInterface {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private SpaceService spaceService;
-
-    @Resource
-    private SpaceUserService spaceUserService;
-
-    @Resource
-    private PictureService pictureService;
-
-    @Resource
-    private SpaceUserAuthManager spaceUserAuthManager;
+    final UserService userService;
+    final SpaceService spaceService;
+    final SpaceUserService spaceUserService;
+    final PictureService pictureService;
+    final SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 返回一个账号所拥有的权限码集合

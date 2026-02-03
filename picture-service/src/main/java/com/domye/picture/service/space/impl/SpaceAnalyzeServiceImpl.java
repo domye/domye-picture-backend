@@ -8,19 +8,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.exception.BusinessException;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
-import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.dto.space.analyze.*;
+import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
-import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.mapper.SpaceMapper;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.space.SpaceAnalyzeService;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +33,12 @@ import java.util.stream.Collectors;
  * @createDate 2025-09-09 19:12:43
  */
 @Service
+@RequiredArgsConstructor
 public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         implements SpaceAnalyzeService {
-    @Resource
-    private SpaceService spaceService;
-    @Resource
-    private UserService userService;
-    @Resource
-    private PictureService pictureService;
+    final SpaceService spaceService;
+    final UserService userService;
+    final PictureService pictureService;
 
     private static void fillAnalyzeQueryWrapper(SpaceAnalyzeRequest spaceAnalyzeRequest, QueryWrapper<Picture> queryWrapper) {
         if (spaceAnalyzeRequest.isQueryAll()) {

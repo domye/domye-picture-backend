@@ -8,14 +8,14 @@ import com.domye.picture.auth.model.SpaceUserPermissionConstant;
 import com.domye.picture.auth.model.SpaceUserRole;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.space.SpaceUserService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +24,7 @@ import java.util.List;
  * 空间成员权限管理
  */
 @Component
+@RequiredArgsConstructor
 public class SpaceUserAuthManager {
 
     public static final SpaceUserAuthConfig SPACE_USER_AUTH_CONFIG;
@@ -32,11 +33,8 @@ public class SpaceUserAuthManager {
         String json = ResourceUtil.readUtf8Str("biz/spaceUserAuthConfig.json");
         SPACE_USER_AUTH_CONFIG = JSONUtil.toBean(json, SpaceUserAuthConfig.class);
     }
-
-    @Resource
-    private UserService userService;
-    @Resource
-    private SpaceUserService spaceUserService;
+    final UserService userService;
+    final SpaceUserService spaceUserService;
 
     /**
      * 根据角色获取权限列表

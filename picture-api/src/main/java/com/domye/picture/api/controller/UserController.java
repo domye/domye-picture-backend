@@ -17,10 +17,10 @@ import com.domye.picture.model.vo.user.LoginUserVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.List;
@@ -28,9 +28,9 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController implements Serializable {
-    @Resource
-    private UserService userService;
+    final UserService userService;
 
     /**
      * 用户注册

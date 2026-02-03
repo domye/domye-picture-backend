@@ -1,28 +1,28 @@
 package com.domye.picture.auth;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ActivityInterceptor implements HandlerInterceptor {
 
-    @Resource
-    private UserService userService;
 
-    @Resource
-    private RankService rankService;
+    final UserService userService;
+
+    final RankService rankService;
 
     @Override
     public void afterCompletion(HttpServletRequest request,

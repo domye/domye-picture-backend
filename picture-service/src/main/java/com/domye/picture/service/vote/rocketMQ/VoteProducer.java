@@ -2,6 +2,7 @@ package com.domye.picture.service.vote.rocketMQ;
 
 import com.domye.picture.service.vote.model.dto.VoteEndRequest;
 import com.domye.picture.service.vote.model.dto.VoteRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -10,13 +11,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class VoteProducer {
-    @Resource
-    private RocketMQTemplate rocketMQTemplate;
+  final RocketMQTemplate rocketMQTemplate;
 
     public void sendVoteMessage(VoteRequest request) {
         String topic = "vote_topic";

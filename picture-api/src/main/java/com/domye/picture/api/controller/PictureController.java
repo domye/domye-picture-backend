@@ -25,23 +25,23 @@ import com.domye.picture.common.result.DeleteRequest;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.entity.space.Space;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
 import com.domye.picture.model.vo.picture.PictureVO;
-import com.domye.picture.model.entity.space.Space;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.picture.PictureService;
 import com.domye.picture.service.space.SpaceService;
 import com.domye.picture.service.user.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +52,7 @@ import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/picture")
 @MdcDot(bizCode = "#picture")
+@RequiredArgsConstructor
 public class PictureController {
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)
@@ -60,16 +61,13 @@ public class PictureController {
                     .expireAfterWrite(5L, TimeUnit.MINUTES)
                     .build();
 
-    @Resource
-    private PictureService pictureService;
-    @Resource
-    private UserService userService;
-    @Resource
-    private SpaceService spaceService;
-    @Resource
-    private SpaceUserAuthManager spaceUserAuthManager;
-    @Resource
-    private RedisCache redisCache;
+
+    final PictureService pictureService;
+
+    final UserService userService;
+    final SpaceService spaceService;
+    final SpaceUserAuthManager spaceUserAuthManager;
+    final RedisCache redisCache;
 
     /**
      * 上传图片

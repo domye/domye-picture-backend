@@ -1,36 +1,34 @@
 package com.domye.picture.api.controller;
 
 
-
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.space.analyze.*;
 import com.domye.picture.model.entity.space.Space;
-import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.space.SpaceAnalyzeService;
 import com.domye.picture.service.user.UserService;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
 @RequestMapping("/space/analyze")
+@RequiredArgsConstructor
 public class SpaceAnalyzeController {
 
-    @Resource
-    private SpaceAnalyzeService spaceAnalyzeService;
 
-    @Resource
-    private UserService userService;
+   final SpaceAnalyzeService spaceAnalyzeService;
+   final UserService userService;
 
     /**
      * 获取空间使用状态

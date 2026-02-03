@@ -14,19 +14,18 @@ import com.domye.picture.service.vote.model.entity.VoteActivity;
 import com.domye.picture.service.vote.model.vo.VoteActivityDetailVO;
 import com.domye.picture.service.vote.model.vo.VoteActivityVO;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vote/activity")
+@RequiredArgsConstructor
 public class VoteController {
 
-    @Resource
-    VoteActivityService activitiesService;
-    @Resource
-    private VoteRecordService voteRecordService;
+    final  VoteActivityService activitiesService;
+    final VoteRecordService voteRecordService;
 
     @PostMapping("/create")
     @ApiOperation(value = "创建投票活动")

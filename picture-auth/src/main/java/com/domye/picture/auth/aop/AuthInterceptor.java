@@ -6,6 +6,7 @@ import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
 import com.domye.picture.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,15 +15,14 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class AuthInterceptor {
 
-    @Resource
-    private UserService userService;
+    final UserService userService;
 
     /**
      * 执行拦截
