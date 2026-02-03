@@ -2,7 +2,7 @@ package com.domye.picture.service.helper.websocket;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.helper.websocket.disruptor.PictureEditEventProducer;
 import com.domye.picture.service.helper.websocket.model.PictureEditActionEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditMessageTypeEnum;

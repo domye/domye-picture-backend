@@ -2,10 +2,10 @@ package com.domye.picture.service.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.user.dto.UserQueryRequest;
-import com.domye.picture.model.user.entity.User;
-import com.domye.picture.model.user.vo.LoginUserVO;
-import com.domye.picture.model.user.vo.UserVO;
+import com.domye.picture.model.dto.user.UserQueryRequest;
+import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.user.LoginUserVO;
+import com.domye.picture.model.vo.user.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

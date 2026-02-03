@@ -1,6 +1,6 @@
 package com.domye.picture.service.helper.websocket.disruptor;
 
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import lombok.Data;
 import org.springframework.web.socket.WebSocketSession;

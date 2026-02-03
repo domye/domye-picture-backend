@@ -1,9 +1,9 @@
 package com.domye.picture.service.rank;
 
 
-import com.domye.picture.model.rank.dto.UserActivityScoreAddRequest;
-import com.domye.picture.model.rank.vo.UserActiveRankItemVO;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
+import com.domye.picture.model.entity.user.User;
 
 import java.util.List;
 

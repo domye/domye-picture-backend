@@ -1,10 +1,10 @@
 package com.domye.picture.service.space;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.space.dto.analyze.*;
-import com.domye.picture.model.space.entity.Space;
-import com.domye.picture.model.space.vo.analyze.*;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.dto.space.analyze.*;
+import com.domye.picture.model.entity.space.Space;
+import com.domye.picture.model.vo.space.analyze.*;
+import com.domye.picture.model.entity.user.User;
 
 import java.util.List;
 

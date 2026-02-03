@@ -1,8 +1,8 @@
 package com.domye.picture.auth;
 
 
-import com.domye.picture.model.rank.dto.UserActivityScoreAddRequest;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.rank.RankService;
 import com.domye.picture.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;

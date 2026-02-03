@@ -2,10 +2,10 @@ package com.domye.picture.service.space;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.space.dto.SpaceUserAddRequest;
-import com.domye.picture.model.space.dto.SpaceUserQueryRequest;
-import com.domye.picture.model.space.entity.SpaceUser;
-import com.domye.picture.model.space.vo.SpaceUserVO;
+import com.domye.picture.model.dto.space.SpaceUserAddRequest;
+import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
+import com.domye.picture.model.entity.space.SpaceUser;
+import com.domye.picture.model.vo.space.SpaceUserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

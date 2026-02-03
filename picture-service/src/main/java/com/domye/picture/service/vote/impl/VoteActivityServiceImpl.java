@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.RedisCache;
-import com.domye.picture.model.user.entity.User;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.mapper.VoteActivitiesMapper;
 import com.domye.picture.service.user.UserService;
 import com.domye.picture.service.vote.VoteActivityService;

@@ -1,6 +1,6 @@
 package com.domye.picture.service.user;
 
-import com.domye.picture.model.user.vo.UserVO;
+import com.domye.picture.model.vo.user.UserVO;
 
 import java.util.List;
 
