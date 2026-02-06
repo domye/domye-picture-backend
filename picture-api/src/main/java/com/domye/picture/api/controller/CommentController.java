@@ -28,14 +28,12 @@ public class CommentController {
     //添加评论功能，需要图片id，用户id，评论内容，
     // 而楼中楼回复，需要父评论id，根评论id
     @PostMapping("/add")
-    public BaseResponse<Boolean> addComment(@RequestBody CommentAddRequest commentAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addComment(@RequestBody CommentAddRequest commentAddRequest,
+                                         HttpServletRequest request) {
         User user = userService.getLoginUser(request);
-        Throw.throwIf(user==null,ErrorCode.NOT_LOGIN_ERROR);
-        Throw.throwIf(commentAddRequest == null, ErrorCode.PARAMS_ERROR);
-        String content = commentAddRequest.getContent();
-        Throw.throwIf(content == null, ErrorCode.PARAMS_ERROR);
-        Long commentId = commentService.addComment(commentAddRequest,user.getId(),request);
-        commentContentService.addCommentContent(commentId, content);
-        return Result.success(true);
+        Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR);
+
+        Long commentId = commentService.addComment(commentAddRequest, user.getId(), request);
+        return Result.success(commentId);
     }
 }

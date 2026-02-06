@@ -18,8 +18,8 @@ public class CommentsContentServiceImpl extends ServiceImpl<CommentsContentMappe
     @Override
     public void addCommentContent(Long commentId, String content) {
         CommentsContent commentsContent = new CommentsContent();
-        commentsContent.setCommentid(commentId);
-        commentsContent.setCommenttext(content);
+        commentsContent.setCommentId(commentId);
+        commentsContent.setCommentText(content);
         save(commentsContent);
     }
 }
