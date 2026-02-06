@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.domye.picture.service.mapper.CommentsMapper">
+
+    <resultMap id="BaseResultMap" type="com.domye.picture.model.entity.comment.Comments">
+            <id property="commentid" column="commentId" />
+            <result property="pictureid" column="pictureId" />
+            <result property="parentid" column="parentId" />
+            <result property="userid" column="userId" />
+            <result property="rootid" column="rootId" />
+            <result property="replycount" column="replyCount" />
+            <result property="likecount" column="likeCount" />
+            <result property="createdtime" column="createdTime" />
+            <result property="updatedtime" column="updatedTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        commentId,pictureId,parentId,userId,rootId,replyCount,
+        likeCount,createdTime,updatedTime
+    </sql>
+</mapper>
