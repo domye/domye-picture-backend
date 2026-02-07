@@ -41,5 +41,9 @@ public interface CommentsService extends IService<Comments> {
     CommentVO buildCommentVO(Comments comment, DataMaps dataMaps);
 
     List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps);
+
+    void validateCommentRequest(CommentAddRequest request, Long userId);
+
+    Long resolveRootId(Long parentId);
 }
 

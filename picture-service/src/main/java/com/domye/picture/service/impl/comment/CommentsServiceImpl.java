@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,13 +56,14 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         Long rootId = resolveRootId(parentId);
 
         // 4. 保存评论记录
-        Comments comment = new Comments();
-        comment.setPictureid(pictureId);
-        comment.setUserid(userId);
-        comment.setParentid(parentId);
-        comment.setRootid(rootId);
-        comment.setReplycount(0);
-        comment.setLikecount(0);
+        Comments comment =Comments.builder()
+                .pictureid(pictureId)
+                .userid(userId)
+                .parentid(parentId)
+                .rootid(rootId)
+                .replycount(0)
+                .likecount(0)
+                .build();
         save(comment);
 
         // 5. 保存评论内容
@@ -98,9 +100,11 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         }
 
         List<Comments> firstLevelComments = firstLevelPage.getRecords();
+
         List<Long> rootIds = extractIds(firstLevelComments, Comments::getCommentid);
 
         Map<Long, List<Comments>> repliesMap = fetchAndGroupReplies(rootIds, replyPreviewLimit);
+
         IdCollection idCollection = collectAllIds(firstLevelComments, repliesMap);
         DataMaps dataMaps = buildDataMaps(idCollection);
         List<CommentVO> commentVOList = buildCommentVOList(firstLevelComments, repliesMap, dataMaps);
@@ -110,11 +114,24 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return resultPage;
     }
 
+    /**
+     * 提取ID列表
+     * @param items
+     * @param mapper
+     * @return
+     * @param <T>
+     */
     @Override
-    public <T> List<Long> extractIds(List<T> items, java.util.function.Function<T, Long> mapper) {
+    public <T> List<Long> extractIds(List<T> items, Function<T, Long> mapper) {
         return items.stream().map(mapper).collect(Collectors.toList());
     }
 
+    /**
+     * 批量获取并分组楼中楼
+     * @param rootIds
+     * @param limit
+     * @return
+     */
     @Override
     public Map<Long, List<Comments>> fetchAndGroupReplies(List<Long> rootIds, int limit) {
         if (rootIds.isEmpty()) {
@@ -124,6 +141,12 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return allReplies.stream().collect(Collectors.groupingBy(Comments::getRootid));
     }
 
+    /**
+     * 收集所有需要的ID
+     * @param firstLevelComments
+     * @param repliesMap
+     * @return
+     */
     @Override
     public IdCollection collectAllIds(List<Comments> firstLevelComments, Map<Long, List<Comments>> repliesMap) {
         Set<Long> allUserIds = new HashSet<>(firstLevelComments.size() * 2);
@@ -148,6 +171,11 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return new IdCollection(allUserIds, allCommentIds);
     }
 
+    /**
+     * 批量查询并构建映射
+     * @param idCollection
+     * @return
+     */
     @Override
     public DataMaps buildDataMaps(IdCollection idCollection) {
         Map<Long, User> userMap = idCollection.getUserIds().isEmpty() ? Collections.emptyMap() :
@@ -161,6 +189,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return new DataMaps(userMap, contentMap);
     }
 
+    /**
+     * 构建评论VO列表
+     * @param firstLevelComments
+     * @param repliesMap
+     * @param dataMaps
+     * @return
+     */
     @Override
     public List<CommentVO> buildCommentVOList(List<Comments> firstLevelComments,
                                               Map<Long, List<Comments>> repliesMap,
@@ -180,6 +215,12 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return commentVOList;
     }
 
+    /**
+     * 构建评论VO
+     * @param comment
+     * @param dataMaps
+     * @return
+     */
     @Override
     public CommentVO buildCommentVO(Comments comment, DataMaps dataMaps) {
         User user = dataMaps.getUserMap().get(comment.getUserid());
@@ -196,6 +237,12 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                 .build();
     }
 
+    /**
+     * 构建楼中楼VO列表
+     * @param replies
+     * @param dataMaps
+     * @return
+     */
     @Override
     public List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps) {
         List<CommentReplyVO> replyVOList = new ArrayList<>(replies.size());
@@ -220,7 +267,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return replyVOList;
     }
 
-    private void validateCommentRequest(CommentAddRequest request, Long userId) {
+    /**
+     * 验证评论请求
+     * @param request
+     * @param userId
+     */
+    @Override
+    public void validateCommentRequest(CommentAddRequest request, Long userId) {
         Throw.throwIf(request == null, ErrorCode.PARAMS_ERROR);
         Throw.throwIf(request.getPictureid() == null, ErrorCode.PARAMS_ERROR, "图片ID不能为空");
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -230,7 +283,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         Throw.throwIf(content.length() > 500, ErrorCode.PARAMS_ERROR, "评论内容不能超过500字");
     }
 
-    private Long resolveRootId(Long parentId) {
+    /**
+     * 获取根评论ID
+     * @param parentId
+     * @return
+     */
+    @Override
+    public Long resolveRootId(Long parentId) {
         if (parentId == null) {
             return null;
         }
