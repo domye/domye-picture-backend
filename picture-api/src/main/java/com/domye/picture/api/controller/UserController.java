@@ -15,7 +15,7 @@ import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.LoginUserVO;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.api.user.UserService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;

@@ -8,7 +8,7 @@ import com.domye.picture.service.helper.websocket.model.PictureEditActionEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditMessageTypeEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import com.domye.picture.service.helper.websocket.model.PictureEditResponseMessage;
-import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.api.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;

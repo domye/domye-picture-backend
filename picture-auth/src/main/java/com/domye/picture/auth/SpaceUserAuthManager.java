@@ -11,8 +11,8 @@ import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
-import com.domye.picture.service.space.SpaceUserService;
-import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.api.space.SpaceUserService;
+import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

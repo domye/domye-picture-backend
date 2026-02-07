@@ -8,7 +8,7 @@ import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.user.FilterListRequest;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.user.FilterlistService;
+import com.domye.picture.service.api.user.FilterlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
-import com.domye.picture.service.space.SpaceService;
+import com.domye.picture.service.api.space.SpaceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.driver.jdbc.core.connection.ShardingSphereConnection;

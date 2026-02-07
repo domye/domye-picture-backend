@@ -1,19 +1,19 @@
 package com.domye.picture.api.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
+import com.domye.picture.model.dto.comment.CommentQueryRequest;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.service.comment.CommentsContentService;
-import com.domye.picture.service.comment.CommentsService;
-import com.domye.picture.service.user.UserService;
+import com.domye.picture.model.vo.comment.CommentVO;
+import com.domye.picture.service.api.comment.CommentsContentService;
+import com.domye.picture.service.api.comment.CommentsService;
+import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,8 +25,12 @@ public class CommentController {
     final CommentsContentService commentContentService;
     final UserService userService;
 
-    //添加评论功能，需要图片id，用户id，评论内容，
-    // 而楼中楼回复，需要父评论id，根评论id
+    /**
+     * 添加评论
+     * @param commentAddRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/add")
     public BaseResponse<Long> addComment(@RequestBody CommentAddRequest commentAddRequest,
                                          HttpServletRequest request) {
@@ -35,5 +39,10 @@ public class CommentController {
 
         Long commentId = commentService.addComment(commentAddRequest, user.getId(), request);
         return Result.success(commentId);
+    }
+
+    @GetMapping("/list")
+    public BaseResponse<Page<CommentVO>> listTopComments(CommentQueryRequest request) {
+        return Result.success(commentService.listTopCommentsWithPreview(request));
     }
 }

@@ -5,7 +5,7 @@ import com.domye.picture.common.exception.BusinessException;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
-import com.domye.picture.service.user.UserService;
+import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

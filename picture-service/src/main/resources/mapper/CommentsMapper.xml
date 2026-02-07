@@ -20,4 +20,21 @@
         commentId,pictureId,parentId,userId,rootId,replyCount,
         likeCount,createdTime,updatedTime
     </sql>
+
+    <!-- 查询每个根评论的前N条回复 -->
+    <select id="selectTopRepliesByRootIds" resultMap="BaseResultMap">
+        SELECT t.*
+        FROM (
+            SELECT
+                commentId, pictureId, parentId, userId, rootId, replyCount,
+                likeCount, createdTime, updatedTime,
+                ROW_NUMBER() OVER (PARTITION BY rootId ORDER BY createdTime ASC) as rn
+            FROM comments
+            WHERE rootId IN
+            <foreach collection="rootIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        ) t
+        WHERE t.rn &lt;= #{limit}
+    </select>
 </mapper>

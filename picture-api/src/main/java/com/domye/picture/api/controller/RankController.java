@@ -7,7 +7,7 @@ import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.rank.UserActivityScoreQueryRequest;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
-import com.domye.picture.service.rank.RankService;
+import com.domye.picture.service.api.rank.RankService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
