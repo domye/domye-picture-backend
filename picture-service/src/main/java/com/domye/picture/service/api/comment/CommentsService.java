@@ -4,9 +4,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
 import com.domye.picture.model.dto.comment.CommentQueryRequest;
+import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
 import com.domye.picture.model.entity.comment.Comments;
+import com.domye.picture.model.vo.comment.CommentListVO;
 import com.domye.picture.model.vo.comment.CommentReplyVO;
-import com.domye.picture.model.vo.comment.CommentVO;
 import com.domye.picture.service.helper.comment.DataMaps;
 import com.domye.picture.service.helper.comment.IdCollection;
 
@@ -23,7 +24,7 @@ public interface CommentsService extends IService<Comments> {
 
     Long addComment(CommentAddRequest commentAddRequest, Long userId, HttpServletRequest request);
 
-    Page<CommentVO> listTopCommentsWithPreview(CommentQueryRequest request);
+    Page<CommentListVO> listTopCommentsWithPreview(CommentQueryRequest request);
 
     <T> List<Long> extractIds(List<T> items, java.util.function.Function<T, Long> mapper);
 
@@ -34,16 +35,18 @@ public interface CommentsService extends IService<Comments> {
 
     DataMaps buildDataMaps(IdCollection idCollection);
 
-    List<CommentVO> buildCommentVOList(List<Comments> firstLevelComments,
-                                       Map<Long, List<Comments>> repliesMap,
-                                       DataMaps dataMaps);
+    List<CommentListVO> buildCommentVOList(List<Comments> firstLevelComments,
+                                           Map<Long, List<Comments>> repliesMap,
+                                           DataMaps dataMaps);
 
-    CommentVO buildCommentVO(Comments comment, DataMaps dataMaps);
+    CommentListVO buildCommentVO(Comments comment, DataMaps dataMaps);
 
     List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps);
 
     void validateCommentRequest(CommentAddRequest request, Long userId);
 
     Long resolveRootId(Long parentId);
+
+    Page<CommentListVO> listReplyComments(CommentReplyQueryRequest request);
 }
 

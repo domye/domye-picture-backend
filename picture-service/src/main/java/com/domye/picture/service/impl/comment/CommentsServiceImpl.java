@@ -7,12 +7,13 @@ import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
 import com.domye.picture.model.dto.comment.CommentQueryRequest;
+import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
 import com.domye.picture.model.entity.comment.Comments;
 import com.domye.picture.model.entity.comment.CommentsContent;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.comment.CommentListVO;
 import com.domye.picture.model.vo.comment.CommentReplyVO;
-import com.domye.picture.model.vo.comment.CommentVO;
 import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
 import com.domye.picture.service.api.picture.PictureService;
@@ -81,13 +82,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
     }
 
     @Override
-    public Page<CommentVO> listTopCommentsWithPreview(CommentQueryRequest request) {
+    public Page<CommentListVO> listTopCommentsWithPreview(CommentQueryRequest request) {
         long pictureId = request.getPictureId();
         int current = request.getCurrent();
         int pageSize = request.getPageSize();
         int replyPreviewLimit = request.getPreviewSize();
 
-        Page<Comments> firstLevelPage = commentsMapper.selectPage(
+        Page<Comments> commentsPage = commentsMapper.selectPage(
                 new Page<>(current, pageSize),
                 new QueryWrapper<Comments>()
                         .eq("pictureId", pictureId)
@@ -95,23 +96,15 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                         .orderByDesc("createdTime")
         );
 
-        if (firstLevelPage.getRecords().isEmpty()) {
+        if (commentsPage.getRecords().isEmpty()) {
             return new Page<>(current, pageSize, 0);
         }
 
-        List<Comments> firstLevelComments = firstLevelPage.getRecords();
-
-        List<Long> rootIds = extractIds(firstLevelComments, Comments::getCommentid);
-
+        List<Comments> comments = commentsPage.getRecords();
+        List<Long> rootIds = extractIds(comments, Comments::getCommentid);
         Map<Long, List<Comments>> repliesMap = fetchAndGroupReplies(rootIds, replyPreviewLimit);
 
-        IdCollection idCollection = collectAllIds(firstLevelComments, repliesMap);
-        DataMaps dataMaps = buildDataMaps(idCollection);
-        List<CommentVO> commentVOList = buildCommentVOList(firstLevelComments, repliesMap, dataMaps);
-
-        Page<CommentVO> resultPage = new Page<>(current, pageSize, firstLevelPage.getTotal());
-        resultPage.setRecords(commentVOList);
-        return resultPage;
+        return processCommentPage(commentsPage, comments, repliesMap);
     }
 
     /**
@@ -197,22 +190,22 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      * @return
      */
     @Override
-    public List<CommentVO> buildCommentVOList(List<Comments> firstLevelComments,
-                                              Map<Long, List<Comments>> repliesMap,
-                                              DataMaps dataMaps) {
-        List<CommentVO> commentVOList = new ArrayList<>(firstLevelComments.size());
+    public List<CommentListVO> buildCommentVOList(List<Comments> firstLevelComments,
+                                                  Map<Long, List<Comments>> repliesMap,
+                                                  DataMaps dataMaps) {
+        List<CommentListVO> commentListVOList = new ArrayList<>(firstLevelComments.size());
 
         for (Comments comment : firstLevelComments) {
-            CommentVO vo = buildCommentVO(comment, dataMaps);
+            CommentListVO vo = buildCommentVO(comment, dataMaps);
 
             List<Comments> replies = repliesMap.getOrDefault(comment.getCommentid(), Collections.emptyList());
             List<CommentReplyVO> replyVOList = buildReplyVOList(replies, dataMaps);
 
             vo.setReplyPreviewList(replyVOList);
-            commentVOList.add(vo);
+            commentListVOList.add(vo);
         }
 
-        return commentVOList;
+        return commentListVOList;
     }
 
     /**
@@ -222,11 +215,11 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      * @return
      */
     @Override
-    public CommentVO buildCommentVO(Comments comment, DataMaps dataMaps) {
+    public CommentListVO buildCommentVO(Comments comment, DataMaps dataMaps) {
         User user = dataMaps.getUserMap().get(comment.getUserid());
         CommentsContent content = dataMaps.getContentMap().get(comment.getCommentid());
 
-        return CommentVO.builder()
+        return CommentListVO.builder()
                 .commentId(comment.getCommentid())
                 .userId(comment.getUserid())
                 .userName(user.getUserName())
@@ -257,9 +250,10 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                     .userId(reply.getUserid())
                     .userName(replyUser.getUserName())
                     .userAvatar(replyUser.getUserAvatar())
+                    .createTime(reply.getCreatedtime())
                     .content(replyContent.getCommentText())
                     .parentId(reply.getParentid())
-                    .parentUserName(parentUser.getUserName())
+//                    .parentUserName(parentUser.getUserName())
                     .build();
             replyVOList.add(replyVO);
         }
@@ -298,5 +292,63 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
         // 如果父评论有根评论，则使用父评论的根评论；否则父评论本身就是根评论
         return parentComment.getRootid() != null ? parentComment.getRootid() : parentId;
+    }
+
+    /**
+     * 获取楼中楼评论列表
+     * @param request
+     * @return
+     */
+    @Override
+    public Page<CommentListVO> listReplyComments(CommentReplyQueryRequest request) {
+        long pictureId = request.getPictureId();
+        long rootCommentId = request.getCommentId();
+        int current = request.getCurrent();
+        int pageSize = request.getPageSize();
+
+        Comments rootComment = getById(rootCommentId);
+        if (rootComment == null) {
+            return new Page<>(current, pageSize, 0);
+        }
+
+        Page<Comments> repliesPage = commentsMapper.selectPage(
+                new Page<>(current, pageSize),
+                new QueryWrapper<Comments>()
+                        .eq("pictureId", pictureId)
+                        .eq("rootId", rootCommentId)
+                        .orderByAsc("createdTime")
+        );
+
+        List<Comments> replies = repliesPage.getRecords();
+
+        Map<Long, List<Comments>> repliesMap = new HashMap<>();
+        repliesMap.put(rootCommentId, replies);
+
+        List<Comments> rootCommentList = Collections.singletonList(rootComment);
+
+        return processCommentPage(repliesPage, rootCommentList, repliesMap);
+    }
+
+    /**
+     * 处理评论分页
+     * @param commentsPage
+     * @param comments
+     * @param repliesMap
+     * @return
+     */
+    private Page<CommentListVO> processCommentPage(Page<Comments> commentsPage,
+                                                   List<Comments> comments,
+                                                   Map<Long, List<Comments>> repliesMap) {
+        IdCollection idCollection = collectAllIds(comments, repliesMap);
+        DataMaps dataMaps = buildDataMaps(idCollection);
+        List<CommentListVO> commentListVOList = buildCommentVOList(comments, repliesMap, dataMaps);
+
+        Page<CommentListVO> resultPage = new Page<>(
+                commentsPage.getCurrent(),
+                commentsPage.getSize(),
+                commentsPage.getTotal()
+        );
+        resultPage.setRecords(commentListVOList);
+        return resultPage;
     }
 }

@@ -7,8 +7,9 @@ import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
 import com.domye.picture.model.dto.comment.CommentQueryRequest;
+import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.vo.comment.CommentVO;
+import com.domye.picture.model.vo.comment.CommentListVO;
 import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
 import com.domye.picture.service.api.user.UserService;
@@ -42,7 +43,12 @@ public class CommentController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<Page<CommentVO>> listTopComments(CommentQueryRequest request) {
+    public BaseResponse<Page<CommentListVO>> listTopComments(CommentQueryRequest request) {
         return Result.success(commentService.listTopCommentsWithPreview(request));
+    }
+
+    @GetMapping("/reply")
+    public BaseResponse<Page<CommentListVO>> listReplyComments(CommentReplyQueryRequest request) {
+        return Result.success(commentService.listReplyComments(request));
     }
 }
