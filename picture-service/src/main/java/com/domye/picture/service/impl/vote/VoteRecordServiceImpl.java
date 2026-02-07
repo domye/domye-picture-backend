@@ -7,13 +7,12 @@ import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.LockService;
 import com.domye.picture.common.helper.impl.RedisCache;
-import com.domye.picture.service.mapper.VoteRecordsMapper;
-import com.domye.picture.service.api.user.UserService;
-import com.domye.picture.service.api.vote.VoteRecordService;
 import com.domye.picture.model.dto.vote.VoteRequest;
 import com.domye.picture.model.entity.vote.VoteActivity;
 import com.domye.picture.model.entity.vote.VoteRecord;
-import com.domye.picture.service.api.vote.rocketMQ.VoteProducer;
+import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.api.vote.VoteRecordService;
+import com.domye.picture.service.mapper.VoteRecordsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +35,6 @@ import static com.domye.picture.common.constant.VoteConstant.*;
 @RequiredArgsConstructor
 public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRecord>
         implements VoteRecordService {
-   final VoteProducer voteProducer;
    final UserService userService;
    final RedisCache redisCache;
    final LockService lockService;
@@ -65,8 +63,6 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordsMapper, VoteRe
             boolean voteSuccess = recordVote(activityId, userId, optionId);
             Throw.throwIf(!voteSuccess, ErrorCode.OPERATION_ERROR, "您已经投过票了");
             voteRequest.setUserId(userId);
-            // 发送消息到MQ
-            voteProducer.sendVoteMessage(voteRequest);
             return true;
         });
     }

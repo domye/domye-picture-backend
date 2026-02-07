@@ -15,9 +15,11 @@ import com.domye.picture.model.vo.comment.CommentReplyVO;
 import com.domye.picture.model.vo.comment.CommentVO;
 import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
-import com.domye.picture.service.mapper.CommentsMapper;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.helper.comment.DataMaps;
+import com.domye.picture.service.helper.comment.IdCollection;
+import com.domye.picture.service.mapper.CommentsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,8 +81,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
     @Override
     public Page<CommentVO> listTopCommentsWithPreview(CommentQueryRequest request) {
         long pictureId = request.getPictureId();
-        int current = (int) request.getCurrent();
-        int pageSize = (int) request.getPageSize();
+        int current = request.getCurrent();
+        int pageSize = request.getPageSize();
         int replyPreviewLimit = request.getPreviewSize();
 
         Page<Comments> firstLevelPage = commentsMapper.selectPage(
@@ -108,11 +110,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return resultPage;
     }
 
-    private <T> List<Long> extractIds(List<T> items, java.util.function.Function<T, Long> mapper) {
+    @Override
+    public <T> List<Long> extractIds(List<T> items, java.util.function.Function<T, Long> mapper) {
         return items.stream().map(mapper).collect(Collectors.toList());
     }
 
-    private Map<Long, List<Comments>> fetchAndGroupReplies(List<Long> rootIds, int limit) {
+    @Override
+    public Map<Long, List<Comments>> fetchAndGroupReplies(List<Long> rootIds, int limit) {
         if (rootIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -120,7 +124,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return allReplies.stream().collect(Collectors.groupingBy(Comments::getRootid));
     }
 
-    private IdCollection collectAllIds(List<Comments> firstLevelComments, Map<Long, List<Comments>> repliesMap) {
+    @Override
+    public IdCollection collectAllIds(List<Comments> firstLevelComments, Map<Long, List<Comments>> repliesMap) {
         Set<Long> allUserIds = new HashSet<>(firstLevelComments.size() * 2);
         Set<Long> allCommentIds = new HashSet<>(firstLevelComments.size());
 
@@ -143,7 +148,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return new IdCollection(allUserIds, allCommentIds);
     }
 
-    private DataMaps buildDataMaps(IdCollection idCollection) {
+    @Override
+    public DataMaps buildDataMaps(IdCollection idCollection) {
         Map<Long, User> userMap = idCollection.getUserIds().isEmpty() ? Collections.emptyMap() :
                 userService.listByIds(idCollection.getUserIds()).stream()
                         .collect(Collectors.toMap(User::getId, u -> u));
@@ -155,9 +161,10 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return new DataMaps(userMap, contentMap);
     }
 
-    private List<CommentVO> buildCommentVOList(List<Comments> firstLevelComments,
-                                                Map<Long, List<Comments>> repliesMap,
-                                                DataMaps dataMaps) {
+    @Override
+    public List<CommentVO> buildCommentVOList(List<Comments> firstLevelComments,
+                                              Map<Long, List<Comments>> repliesMap,
+                                              DataMaps dataMaps) {
         List<CommentVO> commentVOList = new ArrayList<>(firstLevelComments.size());
 
         for (Comments comment : firstLevelComments) {
@@ -173,7 +180,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return commentVOList;
     }
 
-    private CommentVO buildCommentVO(Comments comment, DataMaps dataMaps) {
+    @Override
+    public CommentVO buildCommentVO(Comments comment, DataMaps dataMaps) {
         User user = dataMaps.getUserMap().get(comment.getUserid());
         CommentsContent content = dataMaps.getContentMap().get(comment.getCommentid());
 
@@ -188,7 +196,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                 .build();
     }
 
-    private List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps) {
+    @Override
+    public List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps) {
         List<CommentReplyVO> replyVOList = new ArrayList<>(replies.size());
 
         for (Comments reply : replies) {
@@ -210,43 +219,6 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
         return replyVOList;
     }
-
-    private static class IdCollection {
-        private final Set<Long> userIds;
-        private final Set<Long> commentIds;
-
-        public IdCollection(Set<Long> userIds, Set<Long> commentIds) {
-            this.userIds = userIds;
-            this.commentIds = commentIds;
-        }
-
-        public Set<Long> getUserIds() {
-            return userIds;
-        }
-
-        public Set<Long> getCommentIds() {
-            return commentIds;
-        }
-    }
-
-    private static class DataMaps {
-        private final Map<Long, User> userMap;
-        private final Map<Long, CommentsContent> contentMap;
-
-        public DataMaps(Map<Long, User> userMap, Map<Long, CommentsContent> contentMap) {
-            this.userMap = userMap;
-            this.contentMap = contentMap;
-        }
-
-        public Map<Long, User> getUserMap() {
-            return userMap;
-        }
-
-        public Map<Long, CommentsContent> getContentMap() {
-            return contentMap;
-        }
-    }
-
 
     private void validateCommentRequest(CommentAddRequest request, Long userId) {
         Throw.throwIf(request == null, ErrorCode.PARAMS_ERROR);
