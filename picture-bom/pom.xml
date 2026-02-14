@@ -13,9 +13,8 @@
     <description>BOM for managing dependency versions</description>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot.version>2.7.6</spring-boot.version>
 
         <!-- 第三方依赖版本号 -->
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
@@ -28,15 +27,23 @@
         <caffeine.version>3.2.2</caffeine.version>
         <knife4j.version>4.4.0</knife4j.version>
         <hutool.version>5.8.26</hutool.version>
-        <jackson.version>2.15.0</jackson.version>
-        <jackson-xml.version>2.13.0</jackson-xml.version>
         <cos.version>5.6.227</cos.version>
         <disruptor.version>3.4.2</disruptor.version>
-        <jetbrains-annotations.version>RELEASE</jetbrains-annotations.version>
+        <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
+        <lombok.version>1.18.36</lombok.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot 依赖管理 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- ==================== 数据库相关依赖 ==================== -->
             <!-- MyBatis Plus -->
             <dependency>
@@ -94,6 +101,13 @@
             <dependency>
                 <groupId>cn.dev33</groupId>
                 <artifactId>sa-token-spring-boot-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!-- Sa-Token 核心模块 -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-core</artifactId>
                 <version>${sa-token.version}</version>
             </dependency>
 
@@ -158,24 +172,17 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
                 <optional>true</optional>
             </dependency>
 
-            <!-- ==================== 序列化相关依赖 ==================== -->
-            <!-- Jackson JSON处理 -->
+            <!-- ==================== 其他依赖 ==================== -->
+            <!-- JetBrains 注解 -->
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${jetbrains-annotations.version}</version>
             </dependency>
-
-            <!-- Jackson XML处理 -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-xml</artifactId>
-                <version>${jackson-xml.version}</version>
-            </dependency>
-
             <!-- ==================== 云服务相关依赖 ==================== -->
             <!-- 腾讯云COS对象存储 -->
             <dependency>
@@ -192,13 +199,75 @@
                 <version>${disruptor.version}</version>
             </dependency>
 
-            <!-- ==================== 其他依赖 ==================== -->
-            <!-- JetBrains 注解 -->
+            <!-- ==================== 依赖冲突解决 ==================== -->
+            <!-- 统一 Guava 版本（RocketMQ 和 Protobuf 依赖冲突） -->
             <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>${jetbrains-annotations.version}</version>
-                <scope>compile</scope>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>31.1-jre</version>
+            </dependency>
+
+            <!-- 统一 OkIO 版本（腾讯云 SDK 依赖冲突） -->
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>1.17.5</version>
+            </dependency>
+
+            <!-- 统一 Checker Qual 版本（ShardingSphere 和 Caffeine 依赖冲突） -->
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>3.19.0</version>
+            </dependency>
+
+            <!-- 统一 Protobuf 版本（RocketMQ 和 gRPC 依赖冲突） -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>3.19.6</version>
+            </dependency>
+
+            <!-- 统一 Commons Lang 版本（腾讯云 SDK 依赖冲突） -->
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <!-- 统一 Error Prone Annotations 版本（Guava 依赖冲突） -->
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>2.11.0</version>
+            </dependency>
+
+            <!-- 统一 Commons Logging 版本（腾讯云 SDK 依赖冲突） -->
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
+
+            <!-- 统一 BouncyCastle 版本（腾讯云 SDK 和 Elasticsearch 依赖冲突） -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>1.70</version>
+            </dependency>
+
+            <!-- 统一 Fastjson 版本（ShardingSphere 依赖冲突） -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.83_noneautotype</version>
+            </dependency>
+
+            <!-- 统一 Joda Time 版本（腾讯云 SDK 依赖冲突） -->
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.10.10</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
