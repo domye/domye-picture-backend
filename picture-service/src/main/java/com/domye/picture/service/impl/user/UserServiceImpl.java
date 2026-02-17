@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
+import static com.domye.picture.common.constant.UserConstant.*;
 
 /**
  * @author Domye
@@ -49,8 +49,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public Long UserRegister(String userAccount, String password, String checkPassword) {
         //1. 检验参数是否合法
         Throw.throwIf(StrUtil.hasBlank(userAccount, password, checkPassword), ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Throw.throwIf(userAccount.length() < 6 || userAccount.length() > 16, ErrorCode.PARAMS_ERROR, "账号长度必须在6-16位之间");
-        Throw.throwIf(password.length() < 6 || password.length() > 16, ErrorCode.PARAMS_ERROR, "密码长度必须在6-16位之间");
+        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
+        Throw.throwIf(password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
         Throw.throwIf(!password.equals(checkPassword), ErrorCode.PARAMS_ERROR, "两次输入密码不一致");
 
         //2.数据库检测账号是否存在
@@ -89,8 +91,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //校验
         Throw.throwIf(StrUtil.hasBlank(userAccount, userPassword), ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Throw.throwIf(userAccount.length() < 6 || userAccount.length() > 16, ErrorCode.PARAMS_ERROR, "账号长度必须在6-16位之间");
-        Throw.throwIf(userPassword.length() < 6 || userPassword.length() > 16, ErrorCode.PARAMS_ERROR, "密码长度必须在6-16位之间");
+        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
+        Throw.throwIf(userPassword.length() < PASSWORD_MIN_LENGTH || userPassword.length() > PASSWORD_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
 
         //用户传递密码加密
         String encryptPassword = getEncryptPassword(userPassword);
@@ -99,10 +103,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("userAccount", userAccount).eq("userPassword", encryptPassword);
         User user = this.baseMapper.selectOne(queryWrapper);
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
-        //正确则返回用户信息
-        request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        StpKit.SPACE.login(user.getId());
-        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
+        //正确���返回用户信息
+        setLoginState(user, request);
         return this.getLoginUserVO(user);
     }
 
@@ -264,9 +266,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public void wxLogin(User user, HttpServletRequest request) {
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不能为空");
         // 设置登录状态
-        request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        StpKit.SPACE.login(user.getId());
-        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
+        setLoginState(user, request);
 
         log.info("微信登录成功: userId={}, openId={}", user.getId(), user.getWxOpenId());
     }
@@ -276,10 +276,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = findByOpenId(fromUserName);
         //不存在抛出异常
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
-        //正确则返回用户信息
-        request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        StpKit.SPACE.login(user.getId());
-        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
+        //设置登录状态
+        setLoginState(user, request);
     }
 
     @Override
@@ -299,6 +297,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(User user) {
         return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
+
+    /**
+     * 设置用户登录状态
+     * @param user    用户对象
+     * @param request HTTP请求
+     */
+    private void setLoginState(User user, HttpServletRequest request) {
+        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
     }
 
 
