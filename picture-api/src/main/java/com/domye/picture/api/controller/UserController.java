@@ -145,9 +145,10 @@ public class UserController implements Serializable {
 
         User loginUser = userService.getLoginUser(request);
         User oldUser = userService.getById(userUpdateRequest.getId());
+        Throw.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
         User user = new User();
         BeanUtils.copyProperties(userUpdateRequest, user);
-        Throw.throwIf(!Objects.equals(user.getId(), loginUser.getId()) || !userService.isAdmin(user), ErrorCode.NO_AUTH_ERROR);
+        Throw.throwIf(!Objects.equals(user.getId(), loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(!oldUser.getUserRole().equals(user.getUserRole()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
 
 

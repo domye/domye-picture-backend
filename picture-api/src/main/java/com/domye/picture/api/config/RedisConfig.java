@@ -4,7 +4,8 @@ package com.domye.picture.api.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,17 @@ import java.time.Duration;
 public class RedisConfig {
 
     /**
+     * 允许反序列化的类型白名单
+     * 仅允许项目内的类进行反序列化，防止远程代码执行漏洞
+     */
+    private static final PolymorphicTypeValidator TYPE_VALIDATOR = BasicPolymorphicTypeValidator.builder()
+            .allowIfBaseType("com.domye.picture.")      // 项目业务类
+            .allowIfBaseType("java.util.")               // Java集合类
+            .allowIfBaseType("java.lang.")               // Java基础类型
+            .allowIfBaseType("java.time.")               // Java时间类型
+            .build();
+
+    /**
      * 配置RedisTemplate
      * 使用Jackson2JsonRedisSerializer进行序列化
      * 
@@ -45,10 +57,7 @@ public class RedisConfig {
         // 配置ObjectMapper
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(
-            LaissezFaireSubTypeValidator.instance,
-            ObjectMapper.DefaultTyping.NON_FINAL
-        );
+        objectMapper.activateDefaultTyping(TYPE_VALIDATOR, ObjectMapper.DefaultTyping.NON_FINAL);
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
         // String序列化器
@@ -81,10 +90,7 @@ public class RedisConfig {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(
-            LaissezFaireSubTypeValidator.instance,
-            ObjectMapper.DefaultTyping.NON_FINAL
-        );
+        objectMapper.activateDefaultTyping(TYPE_VALIDATOR, ObjectMapper.DefaultTyping.NON_FINAL);
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
         // 配置缓存

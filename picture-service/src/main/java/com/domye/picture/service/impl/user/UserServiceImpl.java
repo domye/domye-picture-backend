@@ -19,6 +19,7 @@ import com.domye.picture.service.mapper.UserMapper;
 import com.domye.picture.service.api.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -176,6 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return 用户对象
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public User createWxUser(String openId) {
         Throw.throwIf(StrUtil.isEmpty(openId), ErrorCode.PARAMS_ERROR, "openId不能为空");
 
@@ -281,6 +283,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void bindWx(String fromUserName, Long userId) {
         User user = getById(userId);
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");

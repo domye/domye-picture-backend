@@ -3,6 +3,7 @@ package com.domye.picture.api.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.auth.SpaceUserAuthManager;
 import com.domye.picture.auth.annotation.AuthCheck;
+import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.constant.UserConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
@@ -50,6 +51,7 @@ public class SpaceController {
      */
     @ApiOperation("创建空间")
     @PostMapping("/add")
+    @AuthCheck(mustRole = UserConstant.DEFAULT_ROLE)
     public BaseResponse<Long> addSpace(
             SpaceAddRequest spaceAddRequest,
             HttpServletRequest request) {
@@ -180,7 +182,7 @@ public class SpaceController {
         long current = spaceQueryRequest.getCurrent();
         long size = spaceQueryRequest.getPageSize();
         // 限制爬虫
-        Throw.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
         // 查询数据库
         Page<Space> spacePage = spaceService.page(new Page<>(current, size),
                 spaceService.getQueryWrapper(spaceQueryRequest));

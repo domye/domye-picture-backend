@@ -76,34 +76,45 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
         Long pictureId = pictureUploadRequest.getId();
-        Long spaceId = pictureUploadRequest.getSpaceId();
-        if (spaceId != null) {
-            Space space = spaceService.getById(spaceId);
-            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            // 必须空间创建人（管理员）才能上传
-            Throw.throwIf(space.getTotalCount() >= space.getMaxCount(), ErrorCode.OPERATION_ERROR, "空间条数不足");
-            Throw.throwIf(space.getTotalSize() >= space.getMaxSize(), ErrorCode.OPERATION_ERROR, "空间大小不足");
-        }
+        Picture oldPicture = null;
         if (pictureId != null) {
-            Picture oldPicture = pictureMapper.selectById(pictureId);
+            oldPicture = pictureMapper.selectById(pictureId);
             Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+        }
+        Long spaceId = resolveAndValidateSpaceId(pictureUploadRequest, oldPicture);
+        String uploadPathPrefix = buildUploadPathPrefix(spaceId, loginUser.getId());
+        UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+        Picture picture = buildPictureEntity(uploadPictureResult, loginUser, pictureId, spaceId);
+        persistPictureData(picture, pictureId, loginUser, spaceId);
+        return PictureVO.objToVo(picture);
+    }
+
+    private Long resolveAndValidateSpaceId(PictureUploadRequest pictureUploadRequest, Picture oldPicture) {
+        Long spaceId = pictureUploadRequest.getSpaceId();
+        if (oldPicture != null) {
             if (spaceId == null) {
-                if (oldPicture.getSpaceId() != null) {
-                    spaceId = oldPicture.getSpaceId();
-                }
+                spaceId = oldPicture.getSpaceId();
             } else {
-                // 传了 spaceId，必须和原有图片一致
                 Throw.throwIf(ObjUtil.notEqual(spaceId, oldPicture.getSpaceId()), ErrorCode.PARAMS_ERROR, "空间 id 不一致");
             }
         }
-
-        String uploadPathPrefix;
-        if (spaceId == null) {
-            uploadPathPrefix = String.format("public/%s", loginUser.getId());
-        } else {
-            uploadPathPrefix = String.format("space/%s", spaceId);
+        if (spaceId != null) {
+            Space space = spaceService.getById(spaceId);
+            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            Throw.throwIf(space.getTotalCount() >= space.getMaxCount(), ErrorCode.OPERATION_ERROR, "空间条数不足");
+            Throw.throwIf(space.getTotalSize() >= space.getMaxSize(), ErrorCode.OPERATION_ERROR, "空间大小不足");
         }
-        UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+        return spaceId;
+    }
+
+    private String buildUploadPathPrefix(Long spaceId, Long userId) {
+        if (spaceId == null) {
+            return String.format("public/%s", userId);
+        }
+        return String.format("space/%s", spaceId);
+    }
+
+    private Picture buildPictureEntity(UploadPictureResult uploadPictureResult, User loginUser, Long pictureId, Long spaceId) {
         Picture picture = new Picture();
         picture.setUrl(uploadPictureResult.getUrl());
         picture.setName(uploadPictureResult.getPicName());
@@ -118,20 +129,19 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setUserId(loginUser.getId());
         fillReviewParams(picture, loginUser);
         if (pictureId != null) {
-            Picture oldPicture = pictureMapper.selectById(pictureId);
-            Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
-
-            // 如果是更新，需要补充 id 和编辑时间
             picture.setId(pictureId);
             picture.setEditTime(new Date());
         }
-        Long finalSpaceId = spaceId;
+        return picture;
+    }
+
+    private void persistPictureData(Picture picture, Long pictureId, User loginUser, Long spaceId) {
         transactionTemplate.execute(status -> {
             boolean result = this.saveOrUpdate(picture);
             Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
-            if (finalSpaceId != null) {
+            if (spaceId != null) {
                 boolean update = spaceService.lambdaUpdate()
-                        .eq(Space::getId, finalSpaceId)
+                        .eq(Space::getId, spaceId)
                         .setSql("totalSize = totalSize + " + picture.getPicSize())
                         .setSql("totalCount = totalCount + 1")
                         .update();
@@ -141,9 +151,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             userActivityScoreAddRequest.setPictureId(pictureId);
             userActivityScoreAddRequest.setUploadPicture(true);
             rankService.addActivityScore(loginUser, userActivityScoreAddRequest);
-            return PictureVO.objToVo(picture);
+            return true;
         });
-        return PictureVO.objToVo(picture);
     }
 
 

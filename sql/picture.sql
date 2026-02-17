@@ -42,6 +42,9 @@ create index idx_reviewStatus
 create index idx_spaceId
     on picture (spaceId);
 
+create index idx_spaceId_reviewStatus
+    on picture (spaceId, reviewStatus);
+
 create index idx_tags
     on picture (tags);
 

@@ -29,3 +29,6 @@ create index idx_spaceType
 create index idx_userId
     on space (userId);
 
+create index idx_userId_spaceType
+    on space (userId, spaceType);
+
