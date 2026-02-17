@@ -2,10 +2,6 @@ package com.domye.picture.api.controller;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.csp.sentinel.Entry;
-import com.alibaba.csp.sentinel.EntryType;
-import com.alibaba.csp.sentinel.SphU;
-import com.alibaba.csp.sentinel.Tracer;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
@@ -15,6 +11,7 @@ import com.domye.picture.auth.annotation.AuthCheck;
 import com.domye.picture.auth.annotation.SaSpaceCheckPermission;
 import com.domye.picture.auth.model.SpaceUserPermissionConstant;
 import com.domye.picture.common.auth.StpKit;
+import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.constant.UserConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
@@ -34,7 +31,6 @@ import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -43,9 +39,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -54,20 +48,13 @@ import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
 @MdcDot(bizCode = "#picture")
 @RequiredArgsConstructor
 public class PictureController {
-    private final Cache<String, String> LOCAL_CACHE =
-            Caffeine.newBuilder().initialCapacity(1024)
-                    .maximumSize(10000L)
-                    // 缓存 5 分钟移除
-                    .expireAfterWrite(5L, TimeUnit.MINUTES)
-                    .build();
-
 
     final PictureService pictureService;
-
     final UserService userService;
     final SpaceService spaceService;
     final SpaceUserAuthManager spaceUserAuthManager;
     final RedisCache redisCache;
+    final Cache<String, String> pictureListLocalCache;
 
     /**
      * 上传图片
@@ -185,49 +172,48 @@ public class PictureController {
      */
     @GetMapping("/get/vo")
     @ApiOperation(value = "根据id获取脱敏后的图片信息")
+    @SentinelResource(value = "getPictureVOById", blockHandler = "handleGetPictureBlock", fallback = "handleGetPictureFallback")
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        // 查询数据库
-        String remoteAddr = request.getRemoteAddr();
-        Entry entry = null;
-        try {
-            entry = SphU.entry("getPictureVOById", EntryType.IN, 1, remoteAddr);
-            Picture picture = pictureService.getById(id);
-            Throw.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
-            // 空间的图片，需要校验权限
-            Space space = null;
-            Long spaceId = picture.getSpaceId();
-            if (spaceId != null) {
-                boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
-                Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
-                space = spaceService.getById(spaceId);
-                Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            }
-            // 获取权限列表
-            Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-            PictureVO pictureVO = pictureService.getPictureVO(picture, request);
-            if (userObj != null) {
-                User loginUser = (User) userObj;
-                List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
-                pictureVO.setPermissionList(permissionList);
-            }
-            // 获取封装类
-            return Result.success(pictureVO);
-        } catch (Throwable t) {
-            if (!BlockException.isBlockException(t)) {
-                Tracer.trace(t);
-                return Result.error(ErrorCode.SYSTEM_ERROR, "系统错误");
-            }
-            if (t instanceof DegradeException) {
-                return Result.success(null);
-            }
-            return Result.error(ErrorCode.SYSTEM_ERROR, "访问过于频繁，请稍后再试");
-        } finally {
-            if (entry != null)
-                entry.exit(1, remoteAddr);
+        Picture picture = pictureService.getById(id);
+        Throw.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
+        // 空间的图片，需要校验权限
+        Space space = null;
+        Long spaceId = picture.getSpaceId();
+        if (spaceId != null) {
+            boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
+            space = spaceService.getById(spaceId);
+            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         }
-
+        // 获取权限列表
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        PictureVO pictureVO = pictureService.getPictureVO(picture, request);
+        if (userObj != null) {
+            User loginUser = (User) userObj;
+            List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+            pictureVO.setPermissionList(permissionList);
+        }
+        return Result.success(pictureVO);
     }
+
+    /**
+     * getPictureVOById 限流处理
+     */
+    public BaseResponse<PictureVO> handleGetPictureBlock(long id, HttpServletRequest request, BlockException ex) {
+        if (ex instanceof DegradeException) {
+            return Result.success(null);
+        }
+        return Result.error(ErrorCode.SYSTEM_ERROR, "访问过于频繁，请稍后再试");
+    }
+
+    /**
+     * getPictureVOById 降级处理
+     */
+    public BaseResponse<PictureVO> handleGetPictureFallback(long id, HttpServletRequest request, Throwable ex) {
+        return Result.success(null);
+    }
+
 
 
     /**
@@ -261,7 +247,7 @@ public class PictureController {
         long current = pictureQueryRequest.getCurrent();
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
-        Throw.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
         // 空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
         // 公开图库
@@ -279,7 +265,7 @@ public class PictureController {
         String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
 
         // 查询缓存
-        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
+        String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
         if (cachedValue != null) {
             // 如果缓存命中，返回结果
             Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
@@ -290,7 +276,7 @@ public class PictureController {
         if (cachedValue != null) {
             // 如果缓存命中，返回结果
             Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-            LOCAL_CACHE.put(cacheKey, cachedValue);
+            pictureListLocalCache.put(cacheKey, cachedValue);
             return Result.success(cachedPage);
         }
 
@@ -305,7 +291,7 @@ public class PictureController {
         // 5 - 10 分钟随机过期，防止雪崩
         Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
         redisCache.put(cacheKey, cacheValue, cacheExpireTime);
-        LOCAL_CACHE.put(cacheKey, cacheValue);
+        pictureListLocalCache.put(cacheKey, cacheValue);
         // 返回结果
         return Result.success(pictureVOPage);
     }
@@ -338,10 +324,8 @@ public class PictureController {
     @ApiOperation(value = "获取图片标签分类")
     public BaseResponse<PictureTagCategory> listPictureTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
-        List<String> tagList = Arrays.asList("热门", "生活", "扫街", "艺术", "旅游", "创意");
-        List<String> categoryList = Arrays.asList("人像", "风光", "扫街");
-        pictureTagCategory.setTagList(tagList);
-        pictureTagCategory.setCategoryList(categoryList);
+        pictureTagCategory.setTagList(PictureConstant.DEFAULT_TAG_LIST);
+        pictureTagCategory.setCategoryList(PictureConstant.DEFAULT_CATEGORY_LIST);
         return Result.success(pictureTagCategory);
     }
 

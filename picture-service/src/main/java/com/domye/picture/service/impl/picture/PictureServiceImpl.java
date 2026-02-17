@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.ColorSimilarUtils;
@@ -468,7 +469,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     return -ColorSimilarUtils.calculateSimilarity(oldColor, newColor);
                     //计算相似值，越大越相似
                 }))
-                .limit(20)
+                .limit(PictureConstant.MAX_COLOR_SEARCH_RESULTS)
                 .collect(Collectors.toList());
         return sortedList.stream()
                 .map(PictureVO::objToVo)
