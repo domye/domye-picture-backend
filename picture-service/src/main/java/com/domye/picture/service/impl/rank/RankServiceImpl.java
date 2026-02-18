@@ -10,17 +10,15 @@ import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.enums.RankTimeEnum;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.service.api.picture.PictureService;
+import com.domye.picture.service.mapper.PictureMapper;
 import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,10 +31,7 @@ public class RankServiceImpl implements RankService {
     Date today = new Date();
     final UserService userService;
     final RedisCache redisCache;
-
-    @Resource
-    @Lazy
-    private PictureService pictureService;
+    final PictureMapper pictureMapper;
 
 
     /**
@@ -65,7 +60,7 @@ public class RankServiceImpl implements RankService {
         String field;
         int score = 0;
         if (userActivityScoreAddRequest.getPath() != null) {
-            Picture picture = pictureService.getById(userActivityScoreAddRequest.getPath());
+            Picture picture = pictureMapper.selectById(userActivityScoreAddRequest.getPath());
             if (picture == null)
                 return true;
             field = "path_" + userActivityScoreAddRequest.getPath();

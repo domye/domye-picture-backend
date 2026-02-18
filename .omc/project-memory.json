@@ -1,0 +1,156 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1771303814316,
+  "projectRoot": "E:\\github\\domye-picture-backend",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Java",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pom.xml"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "maven",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "picture-api": {
+      "path": "picture-api",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814297,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "picture-auth": {
+      "path": "picture-auth",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814298,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "picture-bom": {
+      "path": "picture-bom",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814298,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "picture-common": {
+      "path": "picture-common",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814298,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "picture-model": {
+      "path": "picture-model",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814298,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "picture-service": {
+      "path": "picture-service",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771303814298,
+      "keyFiles": [
+        "pom.xml"
+      ]
+    },
+    "sentinel": {
+      "path": "sentinel",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1771303814298,
+      "keyFiles": []
+    },
+    "sql": {
+      "path": "sql",
+      "purpose": null,
+      "fileCount": 7,
+      "lastAccessed": 1771303814299,
+      "keyFiles": [
+        "picture.sql",
+        "space.sql",
+        "space_user.sql",
+        "user.sql",
+        "vote_activities.sql"
+      ]
+    },
+    "picture-api\\src": {
+      "path": "picture-api\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1771303814299,
+      "keyFiles": []
+    },
+    "picture-auth\\src": {
+      "path": "picture-auth\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1771303814299,
+      "keyFiles": []
+    },
+    "picture-common\\src": {
+      "path": "picture-common\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1771303814299,
+      "keyFiles": []
+    },
+    "picture-model\\src": {
+      "path": "picture-model\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1771303814300,
+      "keyFiles": []
+    },
+    "picture-service\\src": {
+      "path": "picture-service\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1771303814300,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}
