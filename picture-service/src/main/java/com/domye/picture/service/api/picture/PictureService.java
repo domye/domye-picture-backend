@@ -45,4 +45,14 @@ public interface PictureService extends IService<Picture> {
     void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 
     public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+    /**
+     * 分页查询图片（带缓存）
+     * 将缓存逻辑下沉到 Service 层，避免 Controller 层承担业务逻辑
+     *
+     * @param pictureQueryRequest 查询请求
+     * @param request             HTTP请求
+     * @return 分页结果
+     */
+    Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request);
 }

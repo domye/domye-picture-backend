@@ -13,8 +13,8 @@ import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.space.analyze.*;
+import com.domye.picture.service.mapper.PictureMapper;
 import com.domye.picture.service.mapper.SpaceMapper;
-import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceAnalyzeService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
@@ -38,7 +38,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         implements SpaceAnalyzeService {
     final SpaceService spaceService;
     final UserService userService;
-    final PictureService pictureService;
+    final PictureMapper pictureMapper;
 
     private static void fillAnalyzeQueryWrapper(SpaceAnalyzeRequest spaceAnalyzeRequest, QueryWrapper<Picture> queryWrapper) {
         if (spaceAnalyzeRequest.isQueryAll()) {
@@ -83,7 +83,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
             if (!spaceUsageAnalyzeRequest.isQueryAll()) {
                 queryWrapper.isNull("spaceId");
             }
-            List<Object> pictureObjList = pictureService.getBaseMapper().selectObjs(queryWrapper);
+            List<Object> pictureObjList = pictureMapper.selectObjs(queryWrapper);
             Long usedSize = pictureObjList.stream().mapToLong(obj -> (Long) obj).sum();
             Long usedCount = (long) pictureObjList.size();
             SpaceUsageAnalyzeResponse spaceUsageAnalyzeResponse = new SpaceUsageAnalyzeResponse();
@@ -125,7 +125,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
         fillAnalyzeQueryWrapper(spaceCategoryAnalyzeRequest, queryWrapper);
         queryWrapper.select("category", "count(*) as count", "sum(picSize) as size").groupBy("category");
-        return pictureService.getBaseMapper().selectMaps(queryWrapper).stream().map(result -> {
+        return pictureMapper.selectMaps(queryWrapper).stream().map(result -> {
             String category = result.get("category") != null ? result.get("category").toString() : "未分类";
             Long count = ((Number) result.get("count")).longValue();
             Long totalSize = ((Number) result.get("size")).longValue();
@@ -144,7 +144,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
         fillAnalyzeQueryWrapper(spaceTagAnalyzeRequest, queryWrapper);
         queryWrapper.select("tags");
-        List<String> tagsJsonList = pictureService.getBaseMapper().selectObjs(queryWrapper)
+        List<String> tagsJsonList = pictureMapper.selectObjs(queryWrapper)
                 .stream()
                 .filter(ObjUtil::isNotNull)
                 .map(Object::toString)
@@ -181,7 +181,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
         // 查询所有符合条件的图片大小
         queryWrapper.select("picSize");
-        List<Long> picSizes = pictureService.getBaseMapper().selectObjs(queryWrapper)
+        List<Long> picSizes = pictureMapper.selectObjs(queryWrapper)
                 .stream()
                 .map(size -> ((Number) size).longValue())
                 .collect(Collectors.toList());
@@ -226,7 +226,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
         //分组查询
         queryWrapper.groupBy("period").orderByAsc("period");
-        List<Map<String, Object>> result = pictureService.getBaseMapper().selectMaps(queryWrapper);
+        List<Map<String, Object>> result = pictureMapper.selectMaps(queryWrapper);
 
         //返回结果
         return result.stream().map(map -> {

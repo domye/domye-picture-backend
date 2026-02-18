@@ -1,6 +1,5 @@
 package com.domye.picture.api.controller;
 
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
@@ -15,7 +14,6 @@ import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.constant.UserConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
-import com.domye.picture.common.helper.impl.RedisCache;
 import com.domye.picture.common.mdc.MdcDot;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.DeleteRequest;
@@ -30,11 +28,9 @@ import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
-import com.github.benmanes.caffeine.cache.Cache;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,8 +49,6 @@ public class PictureController {
     final UserService userService;
     final SpaceService spaceService;
     final SpaceUserAuthManager spaceUserAuthManager;
-    final RedisCache redisCache;
-    final Cache<String, String> pictureListLocalCache;
 
     /**
      * 上传图片
@@ -244,55 +238,14 @@ public class PictureController {
     @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
-        long current = pictureQueryRequest.getCurrent();
-        long size = pictureQueryRequest.getPageSize();
-        // 限制爬虫
-        Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
         // 空间权限校验
         Long spaceId = pictureQueryRequest.getSpaceId();
-        // 公开图库
-        if (spaceId == null) {
-            // 普通用户默认只能查看已过审的公开数据
-            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-        } else {
-            // 私有空间
+        if (spaceId != null) {
             boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
             Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         }
-        // 构建缓存 key
-        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
-        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
-        String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
-
-        // 查询缓存
-        String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
-        if (cachedValue != null) {
-            // 如果缓存命中，返回结果
-            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-            return Result.success(cachedPage);
-        }
-
-        cachedValue = (String) redisCache.get(cacheKey);
-        if (cachedValue != null) {
-            // 如果缓存命中，返回结果
-            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
-            pictureListLocalCache.put(cacheKey, cachedValue);
-            return Result.success(cachedPage);
-        }
-
-        // 查询数据库
-        Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
-                pictureService.getQueryWrapper(pictureQueryRequest));
-        // 获取封装类
-        Page<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage, request);
-
-        // 存入 Redis 缓存
-        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
-        // 5 - 10 分钟随机过期，防止雪崩
-        Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
-        redisCache.put(cacheKey, cacheValue, cacheExpireTime);
-        pictureListLocalCache.put(cacheKey, cacheValue);
-        // 返回结果
+        // 调用 Service 层缓存方法
+        Page<PictureVO> pictureVOPage = pictureService.listPictureVOByPageWithCache(pictureQueryRequest, request);
         return Result.success(pictureVOPage);
     }
 

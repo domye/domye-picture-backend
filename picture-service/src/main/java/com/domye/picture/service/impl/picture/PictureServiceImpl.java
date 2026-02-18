@@ -3,6 +3,7 @@ package com.domye.picture.service.impl.picture;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -12,6 +13,7 @@ import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.ColorSimilarUtils;
+import com.domye.picture.common.helper.impl.RedisCache;
 import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureQueryRequest;
 import com.domye.picture.model.dto.picture.PictureReviewRequest;
@@ -32,11 +34,13 @@ import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.FilterlistService;
 import com.domye.picture.service.api.user.UserService;
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +66,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     final TransactionTemplate transactionTemplate;
     final RankService rankService;
     final FilterlistService filterlistService;
+    final RedisCache redisCache;
+    final Cache<String, String> pictureListLocalCache;
 
     /**
      * 上传图片
@@ -219,7 +225,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.lt(ObjUtil.isNotEmpty(endEditTime), "editTime", endEditTime);
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
-                queryWrapper.like("tags", "\"" + tag + "\"");
+                // 使用 JSON_CONTAINS 避免索引失效，支持 JSON 数组格式
+                queryWrapper.apply("JSON_CONTAINS(tags, {0})", "\"" + tag + "\"");
             }
         }
         // 排序
@@ -483,6 +490,61 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return sortedList.stream()
                 .map(PictureVO::objToVo)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 分页查询图片（带缓存）
+     * 将缓存逻辑下沉到 Service 层
+     *
+     * @param pictureQueryRequest 查询请求
+     * @param request             HTTP请求
+     * @return 分页结果
+     */
+    @Override
+    public Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+        long current = pictureQueryRequest.getCurrent();
+        long size = pictureQueryRequest.getPageSize();
+
+        // 限制爬虫
+        Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
+
+        // 空间权限校验
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if (spaceId == null) {
+            // 公开图库：普通用户默认只能查看已过审的公开数据
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        }
+
+        // 构建缓存 key
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
+
+        // 查询本地缓存
+        String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
+        if (cachedValue != null) {
+            return JSONUtil.toBean(cachedValue, Page.class);
+        }
+
+        // 查询 Redis 缓存
+        cachedValue = (String) redisCache.get(cacheKey);
+        if (cachedValue != null) {
+            pictureListLocalCache.put(cacheKey, cachedValue);
+            return JSONUtil.toBean(cachedValue, Page.class);
+        }
+
+        // 查询数据库
+        Page<Picture> picturePage = this.page(new Page<>(current, size),
+                this.getQueryWrapper(pictureQueryRequest));
+        Page<PictureVO> pictureVOPage = this.getPictureVOPage(picturePage, request);
+
+        // 存入 Redis 缓存（5-10 分钟随机过期，防止雪崩）
+        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+        Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
+        redisCache.put(cacheKey, cacheValue, cacheExpireTime);
+        pictureListLocalCache.put(cacheKey, cacheValue);
+
+        return pictureVOPage;
     }
 }
 

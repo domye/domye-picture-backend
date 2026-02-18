@@ -21,7 +21,14 @@ public interface SpaceUserService extends IService<SpaceUser> {
 
     QueryWrapper<SpaceUser> getQueryWrapper(SpaceUserQueryRequest spaceUserQueryRequest);
 
-    //获取成员分装类
+    /**
+     * 获取成员封装类（单条）
+     * @deprecated 存在 N+1 查询风险，请使用 {@link #getSpaceUserVOList(List)} 批量方法
+     * @param spaceUser 空间用户
+     * @param request HTTP请求
+     * @return 封装对象
+     */
+    @Deprecated
     SpaceUserVO getSpaceUserVO(SpaceUser spaceUser, HttpServletRequest request);
 
     //查询封装类

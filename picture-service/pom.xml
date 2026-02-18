@@ -61,6 +61,12 @@
             <artifactId>hutool-all</artifactId>
         </dependency>
 
+        <!-- Caffeine 本地缓存 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- JetBrains 注解 -->
         <dependency>
             <groupId>org.jetbrains</groupId>

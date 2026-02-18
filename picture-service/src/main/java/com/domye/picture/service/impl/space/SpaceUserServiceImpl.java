@@ -80,9 +80,12 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         return queryWrapper;
     }
 
-    //获取成员分装类
-
+    /**
+     * 获取成���封装类（单条）
+     * @deprecated 存在 N+1 查询风险，请使用 {@link #getSpaceUserVOList(List)} 批量方法
+     */
     @Override
+    @Deprecated
     public SpaceUserVO getSpaceUserVO(SpaceUser spaceUser, HttpServletRequest request) {
         // 对象转封装类
         SpaceUserVO spaceUserVO = SpaceUserVO.objToVo(spaceUser);
