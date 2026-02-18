@@ -12,7 +12,11 @@ import com.domye.picture.service.api.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -29,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 图片编辑WebSocket处理器
  * 处理图片编辑相关的WebSocket连接和消息交互
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PictureEditHandler extends TextWebSocketHandler {
@@ -36,8 +41,21 @@ public class PictureEditHandler extends TextWebSocketHandler {
     private final Map<Long, Long> pictureEditingUsers = new ConcurrentHashMap<>();
     // 保存所有连接的会话，key: pictureId, value: 用户会话集合
     private final Map<Long, Set<WebSocketSession>> pictureSessions = new ConcurrentHashMap<>();
+    // 保存每张图片的编辑状态（旋转角度、缩放比例），用于新用户同步
+    private final Map<Long, EditState> pictureEditStates = new ConcurrentHashMap<>();
     final PictureEditEventProducer pictureEditEventProducer;
     final UserService userService;
+
+    /**
+     * 编辑状态内部类
+     */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class EditState {
+        private Integer rotateDegree = 0;   // 旋转角度，默认0
+        private Double scaleRatio = 1.0;    // 缩放比例，默认1.0
+    }
 
     /**
      * 连接建立后的处理
@@ -52,7 +70,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
         pictureSessions.putIfAbsent(pictureId, ConcurrentHashMap.newKeySet());
         pictureSessions.get(pictureId).add(session);
 
-        // 构造响应
+        // 构造响应：通知其他用户有人加入
         PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
         pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.INFO.getValue());
         String message = String.format("%s加入编辑", user.getUserName());
@@ -60,6 +78,32 @@ public class PictureEditHandler extends TextWebSocketHandler {
         pictureEditResponseMessage.setUser(userService.getUserVO(user));
         // 广播给同一张图片的用户
         broadcastToPicture(pictureId, pictureEditResponseMessage);
+
+        // 同步当前编辑状态给新用户（单独发送，不广播）
+        syncEditStateToNewUser(session, pictureId);
+    }
+
+    /**
+     * 同步编辑状态给新加入的用户
+     */
+    private void syncEditStateToNewUser(WebSocketSession session, Long pictureId) throws Exception {
+        EditState editState = pictureEditStates.get(pictureId);
+        if (editState != null && session.isOpen()) {
+            PictureEditResponseMessage syncMessage = new PictureEditResponseMessage();
+            syncMessage.setType(PictureEditMessageTypeEnum.SYNC_STATE.getValue());
+            syncMessage.setMessage("同步编辑状态");
+            syncMessage.setRotateDegree(editState.getRotateDegree());
+            syncMessage.setScaleRatio(editState.getScaleRatio());
+            
+            ObjectMapper objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+            module.addSerializer(Long.class, ToStringSerializer.instance);
+            module.addSerializer(Long.TYPE, ToStringSerializer.instance);
+            objectMapper.registerModule(module);
+            
+            String json = objectMapper.writeValueAsString(syncMessage);
+            session.sendMessage(new TextMessage(json));
+        }
     }
 
     /**
@@ -151,6 +195,9 @@ public class PictureEditHandler extends TextWebSocketHandler {
         }
         // 确认是当前编辑者
         if (editingUserId != null && editingUserId.equals(user.getId())) {
+            // 更新编辑状态
+            updateEditState(pictureId, actionEnum);
+            
             PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
             pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.EDIT_ACTION.getValue());
             String message = String.format("%s执行%s", user.getUserName(), actionEnum.getText());
@@ -160,6 +207,29 @@ public class PictureEditHandler extends TextWebSocketHandler {
             // 广播给除了当前客户端之外的其他用户，否则会造成重复编辑
             broadcastToPicture(pictureId, pictureEditResponseMessage, session);
         }
+    }
+
+    /**
+     * 更新编辑状态
+     */
+    private void updateEditState(Long pictureId, PictureEditActionEnum actionEnum) {
+        EditState editState = pictureEditStates.computeIfAbsent(pictureId, k -> new EditState());
+        switch (actionEnum) {
+            case ROTATE_LEFT:
+                editState.setRotateDegree(editState.getRotateDegree() - 90);
+                break;
+            case ROTATE_RIGHT:
+                editState.setRotateDegree(editState.getRotateDegree() + 90);
+                break;
+            case ZOOM_IN:
+                editState.setScaleRatio(editState.getScaleRatio() + 0.1);
+                break;
+            case ZOOM_OUT:
+                editState.setScaleRatio(Math.max(0.1, editState.getScaleRatio() - 0.1));
+                break;
+        }
+        log.info("更新编辑状态: pictureId={}, action={}, rotateDegree={}, scaleRatio={}", 
+                pictureId, actionEnum.getValue(), editState.getRotateDegree(), editState.getScaleRatio());
     }
 
     /**

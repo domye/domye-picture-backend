@@ -29,4 +29,14 @@ public class PictureEditResponseMessage {
      * 用户信息
      */
     private UserVO user;
+
+    /**
+     * 当前旋转角度（用于状态同步）
+     */
+    private Integer rotateDegree;
+
+    /**
+     * 当前缩放比例（用于状态同步）
+     */
+    private Double scaleRatio;
 }
