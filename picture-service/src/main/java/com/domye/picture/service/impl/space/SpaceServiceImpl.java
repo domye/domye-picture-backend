@@ -21,16 +21,14 @@ import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.mapper.SpaceMapper;
+import com.domye.picture.service.mapper.SpaceUserMapper;
 import com.domye.picture.service.api.space.SpaceService;
-import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +53,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     final UserService userService;
     final TransactionTemplate transactionTemplate;
     final LockService lockService;
-
-    @Resource
-    @Lazy
-    private SpaceUserService spaceUserService;
+    final SpaceUserMapper spaceUserMapper;
 
     /**
      * 新增空间
@@ -109,7 +104,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     spaceUser.setSpaceId(space.getId());
                     spaceUser.setUserId(userId);
                     spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
-                    result = spaceUserService.save(spaceUser);
+                    result = spaceUserMapper.insert(spaceUser) > 0;
                     Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
                 }
                 // 返回新写入的数据 id

@@ -187,7 +187,12 @@ public class StpInterfaceImpl implements StpInterface {
         // 获取请求参数
         if (ContentType.JSON.getValue().equals(contentType)) {
             String body = ServletUtil.getBody(request);
-            authRequest = JSONUtil.toBean(body, SpaceUserAuthContext.class);
+            // 检查请求体是否为空或不是有效的 JSON 对象
+            if (StrUtil.isBlank(body) || !body.trim().startsWith("{")) {
+                authRequest = new SpaceUserAuthContext();
+            } else {
+                authRequest = JSONUtil.toBean(body, SpaceUserAuthContext.class);
+            }
         } else {
             Map<String, String> paramMap = ServletUtil.getParamMap(request);
             authRequest = BeanUtil.toBean(paramMap, SpaceUserAuthContext.class);
