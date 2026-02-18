@@ -35,3 +35,7 @@ build/
 ### VS Code ###
 .vscode/
 /sentinel/FlowRule.json
+
+.omc
+
+.m2
