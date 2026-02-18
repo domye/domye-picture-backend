@@ -228,8 +228,6 @@ public class PictureEditHandler extends TextWebSocketHandler {
                 editState.setScaleRatio(Math.max(0.1, editState.getScaleRatio() - 0.1));
                 break;
         }
-        log.info("更新编辑状态: pictureId={}, action={}, rotateDegree={}, scaleRatio={}", 
-                pictureId, actionEnum.getValue(), editState.getRotateDegree(), editState.getScaleRatio());
     }
 
     /**
