@@ -37,5 +37,6 @@ build/
 /sentinel/FlowRule.json
 
 .omc
-
+.sisyphus
 .m2
+.claude
