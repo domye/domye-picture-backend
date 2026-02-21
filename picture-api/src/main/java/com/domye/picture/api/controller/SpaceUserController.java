@@ -12,9 +12,12 @@ import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.space.SpaceUserAddRequest;
 import com.domye.picture.model.dto.space.SpaceUserEditRequest;
 import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
+import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.ContactStatusEnum;
 import com.domye.picture.model.vo.space.SpaceUserVO;
+import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.annotations.ApiOperation;
@@ -42,6 +45,8 @@ public class SpaceUserController {
 
    final UserService userService;
 
+   final ContactService contactService;
+
     /**
      * 添加成员到空间
      */
@@ -52,6 +57,30 @@ public class SpaceUserController {
         boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.SPACE_USER_MANAGE);
         Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
+
+        // 获取当前登录用户ID
+        Long loginUserId = Long.valueOf(StpKit.SPACE.getLoginIdDefaultNull().toString());
+        Long spaceId = spaceUserAddRequest.getSpaceId();
+        Long targetUserId = spaceUserAddRequest.getUserId();
+
+        // 检查当前用户是否是该空间的管理员
+        SpaceUserQueryRequest queryRequest = new SpaceUserQueryRequest();
+        queryRequest.setSpaceId(spaceId);
+        queryRequest.setUserId(loginUserId);
+        SpaceUser currentUserSpaceRole = spaceUserService.getOne(spaceUserService.getQueryWrapper(queryRequest));
+
+        // 如果不是管理员，需要检查是否在联系人列表中
+        if (currentUserSpaceRole == null || !"admin".equals(currentUserSpaceRole.getSpaceRole())) {
+            // 查询联系人表，检查是否存在已通过的联系关系
+            com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Contact> contactQuery =
+                    new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+            contactQuery.eq("user_id", loginUserId)
+                    .eq("contact_user_id", targetUserId)
+                    .eq("status", ContactStatusEnum.ACCEPTED.getValue());
+            Contact contact = contactService.getOne(contactQuery);
+            Throw.throwIf(contact == null, ErrorCode.NO_AUTH_ERROR, "非管理员只能从联系人中添加成员");
+        }
+
         long id = spaceUserService.addSpaceUser(spaceUserAddRequest);
         return Result.success(id);
     }
