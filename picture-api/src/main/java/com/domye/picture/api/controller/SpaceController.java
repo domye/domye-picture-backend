@@ -21,12 +21,12 @@ import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -49,7 +49,7 @@ public class SpaceController {
      * @param request         http请求
      * @return 空间id
      */
-    @ApiOperation("创建空间")
+    @Operation(summary = "创建空间")
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.DEFAULT_ROLE)
     public BaseResponse<Long> addSpace(
@@ -68,7 +68,7 @@ public class SpaceController {
      * @param request       http请求
      * @return 删除是否成功
      */
-    @ApiOperation("删除空间")
+    @Operation(summary = "删除空间")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteSpace(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
@@ -86,7 +86,7 @@ public class SpaceController {
      * @param request
      * @return 是否更新成功
      */
-    @ApiOperation("更新空间")
+    @Operation(summary = "更新空间")
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest, HttpServletRequest request) {
@@ -116,7 +116,7 @@ public class SpaceController {
      * @param request http请求
      * @return 空间信息
      */
-    @ApiOperation("根据id获取空间")
+    @Operation(summary = "根据id获取空间")
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Space> getSpaceById(long id, HttpServletRequest request) {
@@ -135,7 +135,7 @@ public class SpaceController {
      * @param request http请求
      * @return 脱敏后的空间信息
      */
-    @ApiOperation("根据id获取空间封装类")
+    @Operation(summary = "根据id获取空间封装类")
     @GetMapping("/get/vo")
     public BaseResponse<SpaceVO> getSpaceVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -156,7 +156,7 @@ public class SpaceController {
      * @param spaceQueryRequest 查询请求
      * @return 空间分页信息
      */
-    @ApiOperation("分页获取空间列表")
+    @Operation(summary = "分页获取空间列表")
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Space>> listSpaceByPage(@RequestBody SpaceQueryRequest spaceQueryRequest) {
@@ -175,7 +175,7 @@ public class SpaceController {
      * @param request           http请求
      * @return 脱敏后的空间分页信息
      */
-    @ApiOperation("分页获取空间封装类列表")
+    @Operation(summary = "分页获取空间封装类列表")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<SpaceVO>> listSpaceVOByPage(@RequestBody SpaceQueryRequest spaceQueryRequest,
                                                          HttpServletRequest request) {
@@ -197,7 +197,7 @@ public class SpaceController {
      * @param request          http请求
      * @return 是否编辑成功
      */
-    @ApiOperation("编辑空间")
+    @Operation(summary = "编辑空间")
     @PostMapping("/edit")
     public BaseResponse<Boolean> editSpace(@RequestBody SpaceEditRequest spaceEditRequest, HttpServletRequest request) {
         Throw.throwIf(spaceEditRequest == null || spaceEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
@@ -232,7 +232,7 @@ public class SpaceController {
      *
      * @return 空间权限列表
      */
-    @ApiOperation("获取空间权限列表")
+    @Operation(summary = "获取空间权限列表")
     @GetMapping("/list/level")
     public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
         List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()) // 获取所有枚举

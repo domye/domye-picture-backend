@@ -8,13 +8,13 @@ import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.rank.UserActivityScoreQueryRequest;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
 import com.domye.picture.service.api.rank.RankService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -30,7 +30,7 @@ public class RankController {
      * @param request
      * @return
      */
-    @ApiOperation("获取用户活跃排行榜")
+    @Operation(summary = "获取用户活跃排行榜")
     @GetMapping("/UserActivityScore")
     public BaseResponse<List<UserActiveRankItemVO>> getUserActivityScore(UserActivityScoreQueryRequest userActivityScoreQueryRequest, HttpServletRequest request) {
         Throw.throwIf(userActivityScoreQueryRequest == null, ErrorCode.PARAMS_ERROR);

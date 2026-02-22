@@ -28,13 +28,13 @@ import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
@@ -58,7 +58,7 @@ public class PictureController {
      * @return 图片信息
      */
     @PostMapping("/upload")
-    @ApiOperation(value = "上传图片")
+    @Operation(summary = "上传图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
@@ -77,7 +77,7 @@ public class PictureController {
      * @return 删除是否成功
      */
     @PostMapping("/delete")
-    @ApiOperation(value = "删除图片")
+    @Operation(summary = "删除图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
 
@@ -97,7 +97,7 @@ public class PictureController {
      * @return 更新是否成功
      */
     @PostMapping("/edit")
-    @ApiOperation(value = "编辑图片")
+    @Operation(summary = "编辑图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
 
@@ -116,7 +116,7 @@ public class PictureController {
      * @return 更新是否成功
      */
     @PostMapping("/update")
-    @ApiOperation(value = "管理员更新图片")
+    @Operation(summary = "管理员更新图片")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
         Throw.throwIf(pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
@@ -147,7 +147,7 @@ public class PictureController {
      * @return 图片信息
      */
     @GetMapping("/get")
-    @ApiOperation(value = "根据id获取图片")
+    @Operation(summary = "根据id获取图片")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Picture> getPictureById(long id) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -165,7 +165,7 @@ public class PictureController {
      * @return 脱敏后的图片信息
      */
     @GetMapping("/get/vo")
-    @ApiOperation(value = "根据id获取脱敏后的图片信息")
+    @Operation(summary = "根据id获取脱敏后的图片信息")
     @SentinelResource(value = "getPictureVOById", blockHandler = "handleGetPictureBlock", fallback = "handleGetPictureFallback")
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
@@ -216,7 +216,7 @@ public class PictureController {
      * @return 图片列表
      */
     @PostMapping("/list/page")
-    @ApiOperation(value = "分页获取图片列表（仅管理员可用）")
+    @Operation(summary = "分页获取图片列表（仅管理员可用）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<Picture>> listPictureByPage(@RequestBody PictureQueryRequest pictureQueryRequest) {
         long current = pictureQueryRequest.getCurrent();
@@ -234,7 +234,7 @@ public class PictureController {
      * @return 脱敏后的图片列表
      */
     @PostMapping("/list/page/vo")
-    @ApiOperation(value = "分页获取脱敏后的图片列表")
+    @Operation(summary = "分页获取脱敏后的图片列表")
     @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
@@ -274,7 +274,7 @@ public class PictureController {
      * @return
      */
     @GetMapping("/tag_category")
-    @ApiOperation(value = "获取图片标签分类")
+    @Operation(summary = "获取图片标签分类")
     public BaseResponse<PictureTagCategory> listPictureTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
         pictureTagCategory.setTagList(PictureConstant.DEFAULT_TAG_LIST);
@@ -289,7 +289,7 @@ public class PictureController {
      * @return 审核结果
      */
     @PostMapping("/review")
-    @ApiOperation(value = "图片审核")
+    @Operation(summary = "图片审核")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest,
                                                  HttpServletRequest request) {
@@ -306,7 +306,7 @@ public class PictureController {
      * @return 搜索结果
      */
     @PostMapping("/search/color")
-    @ApiOperation(value = "根据颜色搜索图片")
+    @Operation(summary = "根据颜色搜索图片")
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_VIEW)
     public BaseResponse<List<PictureVO>> searchPictureByColor(@RequestBody SearchPictureByColorRequest searchPictureByColorRequest, HttpServletRequest request) {
         Throw.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);

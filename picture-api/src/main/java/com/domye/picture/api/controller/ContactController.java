@@ -13,7 +13,7 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.contact.ContactVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 联系人管理
@@ -39,7 +39,7 @@ public class ContactController {
      * 发起好友申请
      */
     @PostMapping("/apply")
-    @ApiOperation("发起好友申请")
+    @Operation(summary = "发起好友申请")
     public BaseResponse<Long> applyContact(@RequestBody ContactAddRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
 
@@ -57,7 +57,7 @@ public class ContactController {
      * 处理好友申请
      */
     @PostMapping("/handle")
-    @ApiOperation("处理好友申请")
+    @Operation(summary = "处理好友申请")
     public BaseResponse<Boolean> handleContactRequest(@RequestBody ContactHandleRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -75,7 +75,7 @@ public class ContactController {
      * 查询我的联系人列表
      */
     @PostMapping("/list")
-    @ApiOperation("查询我的联系人列表")
+    @Operation(summary = "查询我的联系人列表")
     public BaseResponse<Page<ContactVO>> listContacts(@RequestBody ContactQueryRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -92,7 +92,7 @@ public class ContactController {
      * 查询待处理申请
      */
     @PostMapping("/pending")
-    @ApiOperation("查询待处理申请")
+    @Operation(summary = "查询待处理申请")
     public BaseResponse<Page<ContactVO>> listPendingRequests(@RequestBody ContactQueryRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -109,7 +109,7 @@ public class ContactController {
      * 删除联系人
      */
     @PostMapping("/delete")
-    @ApiOperation("删除联系人")
+    @Operation(summary = "删除联系人")
     public BaseResponse<Boolean> deleteContact(@RequestBody DeleteRequest deleteRequest, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);

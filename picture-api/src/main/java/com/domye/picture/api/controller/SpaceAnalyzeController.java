@@ -11,14 +11,14 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.space.analyze.*;
 import com.domye.picture.service.api.space.SpaceAnalyzeService;
 import com.domye.picture.service.api.user.UserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -33,7 +33,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间使用状态
      */
-    @ApiOperation(value = "获取空间使用状态")
+    @Operation(summary = "获取空间使用状态")
     @PostMapping("/usage")
     public BaseResponse<SpaceUsageAnalyzeResponse> getSpaceUsageAnalyze(
             @RequestBody SpaceUsageAnalyzeRequest spaceUsageAnalyzeRequest,
@@ -48,7 +48,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间分类分析
      */
-    @ApiOperation(value = "获取空间分类分析")
+    @Operation(summary = "获取空间分类分析")
     @PostMapping("/category")
     public BaseResponse<List<SpaceCategoryAnalyzeResponse>> getSpaceCategoryAnalyze(
             @RequestBody SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest,
@@ -63,7 +63,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间标签分析
      */
-    @ApiOperation(value = "获取空间标签分析")
+    @Operation(summary = "获取空间标签分析")
     @PostMapping("/tag")
     public BaseResponse<List<SpaceTagAnalyzeResponse>> getSpaceTagAnalyze(@RequestBody SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, HttpServletRequest request) {
         Throw.throwIf(spaceTagAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
@@ -75,7 +75,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间大小分析
      */
-    @ApiOperation(value = "获取空间大小分析")
+    @Operation(summary = "获取空间大小分析")
     @PostMapping("/size")
     public BaseResponse<List<SpaceSizeAnalyzeResponse>> getSpaceSizeAnalyze(@RequestBody SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, HttpServletRequest request) {
         Throw.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
@@ -87,7 +87,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间用户分析
      */
-    @ApiOperation(value = "获取空间用户分析")
+    @Operation(summary = "获取空间用户分析")
     @PostMapping("/user")
     public BaseResponse<List<SpaceUserAnalyzeResponse>> getSpaceUserAnalyze(@RequestBody SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, HttpServletRequest request) {
         Throw.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
@@ -99,7 +99,7 @@ public class SpaceAnalyzeController {
     /**
      * 获取空间排名分析
      */
-    @ApiOperation(value = "获取空间排名分析")
+    @Operation(summary = "获取空间排名分析")
     @PostMapping("/rank")
     public BaseResponse<List<Space>> getSpaceRankAnalyze(@RequestBody SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, HttpServletRequest request) {
         Throw.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);

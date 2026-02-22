@@ -7,7 +7,7 @@ import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**

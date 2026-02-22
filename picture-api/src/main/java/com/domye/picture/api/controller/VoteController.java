@@ -13,11 +13,11 @@ import com.domye.picture.service.api.vote.VoteRecordService;
 import com.domye.picture.model.entity.vote.VoteActivity;
 import com.domye.picture.model.vo.vote.VoteActivityDetailVO;
 import com.domye.picture.model.vo.vote.VoteActivityVO;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vote/activity")
@@ -28,7 +28,7 @@ public class VoteController {
     final VoteRecordService voteRecordService;
 
     @PostMapping("/create")
-    @ApiOperation(value = "创建投票活动")
+    @Operation(summary = "创建投票活动")
     public BaseResponse<Long> addVoteActivities(@RequestBody VoteActivityAddRequest voteActivityAddRequest, HttpServletRequest request) {
 
         Throw.throwIf(voteActivityAddRequest == null, ErrorCode.PARAMS_ERROR, "参数不能为空");
@@ -37,7 +37,7 @@ public class VoteController {
 
     }
 
-    @ApiOperation(value = "提交投票")
+    @Operation(summary = "提交投票")
     @PostMapping("/vote")
     @AuthCheck(mustRole = UserConstant.USER_LOGIN_STATE)
     public BaseResponse<String> addVoteRecord(@RequestBody VoteRequest voteOptionAddRequest, HttpServletRequest request) {
@@ -46,7 +46,7 @@ public class VoteController {
         return Result.success("添加成功");
     }
 
-    @ApiOperation(value = "结束投票")
+    @Operation(summary = "结束投票")
     @PostMapping("/end")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<String> endVoteActivities(@RequestBody VoteEndRequest voteEndRequest, HttpServletRequest request) {
@@ -55,7 +55,7 @@ public class VoteController {
         return Result.success("添加成功");
     }
 
-    @ApiOperation(value = "删除投票")
+    @Operation(summary = "删除投票")
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<String> deleteVoteActivities(@RequestBody VoteActivityDeleteRequest voteActivityDeleteRequest) {
@@ -65,7 +65,7 @@ public class VoteController {
     }
 
 
-    @ApiOperation(value = "获取投票活动详情")
+    @Operation(summary = "获取投票活动详情")
     @GetMapping("/detail/{id}")
     public BaseResponse<VoteActivityDetailVO> getVoteActivities(@PathVariable Long id) {
         VoteActivityDetailVO voteActivityDetailVO = activitiesService.getActivityDetailVOById(id);
@@ -73,7 +73,7 @@ public class VoteController {
     }
 
     @PostMapping("/list/page")
-    @ApiOperation(value = "分页获取列表（仅管理员可用）")
+    @Operation(summary = "分页获取列表（仅管理员可用）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<VoteActivity>> listVoteActivitiesByPage(@RequestBody VoteActivityQueryRequest voteActivityQueryRequest) {
         long current = voteActivityQueryRequest.getCurrent();
@@ -86,7 +86,7 @@ public class VoteController {
 
     /** 分页获取脱敏后的信息 **/
     @PostMapping("/list/page/vo")
-    @ApiOperation(value = "分页获取脱敏后的信息")
+    @Operation(summary = "分页获取脱敏后的信息")
     public BaseResponse<Page<VoteActivityVO>> listVoteActivitiesVOByPage(@RequestBody VoteActivityQueryRequest voteActivityQueryRequest) {
         long current = voteActivityQueryRequest.getCurrent();
         long size = voteActivityQueryRequest.getPageSize();

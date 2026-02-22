@@ -11,7 +11,6 @@
 - **空间管理**
     - 支持创建个人空间和团队空间
     - 空间容量和数量限制
-    - 动态分表存储图片数据
 
 - **图片管理**
     - 图片上传、预览、删除
@@ -35,7 +34,7 @@
 - **数据库**: MySQL 8.0
 - **ORM框架**: MyBatis-Plus 3.5.12
 - **缓存**: Redis + Redisson
-- **分库分表**: ShardingSphere 5.2.0
+
 - **对象存储**: 腾讯云 COS
 - **文档**: Knife4j (Swagger)
 - **工具库**: Hutool、Lombok、Caffeine
@@ -44,7 +43,7 @@
 
 ### 环境要求
 
-- JDK 1.8+
+- JDK 17+
 - Maven 3.6+
 - MySQL 8.0+
 - Redis 6.0+
@@ -131,5 +130,5 @@ domye-picture-backend/
 
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [MyBatis-Plus](https://baomidou.com/)
-- [ShardingSphere](https://shardingsphere.apache.org/)
+
 - [Sa-Token](https://sa-token.dev33.cn/)

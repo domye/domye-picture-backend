@@ -16,12 +16,12 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.LoginUserVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +37,7 @@ public class UserController implements Serializable {
      * @param userRegisterRequest 用户注册请求
      * @return 用户id
      */
-    @ApiOperation(value = "用户注册")
+    @Operation(summary = "用户注册")
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         Throw.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
@@ -54,7 +54,7 @@ public class UserController implements Serializable {
      * @param request          http请求
      * @return 脱敏后的登录用户信息
      */
-    @ApiOperation(value = "用户登录")
+    @Operation(summary = "用户登录")
     @PostMapping("/login")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         Throw.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
@@ -69,7 +69,7 @@ public class UserController implements Serializable {
      * @param request http请求
      * @return 脱敏后的登录用户信息
      */
-    @ApiOperation(value = "获取当前登录用户信息")
+    @Operation(summary = "获取当前登录用户信息")
     @GetMapping("/get/login")
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -81,7 +81,7 @@ public class UserController implements Serializable {
      * @param request http请求
      * @return 是否退出成功
      */
-    @ApiOperation(value = "用户注销")
+    @Operation(summary = "用户注销")
     @PostMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
         Throw.throwIf(request == null, ErrorCode.PARAMS_ERROR);
@@ -95,7 +95,7 @@ public class UserController implements Serializable {
      * @param id 用户id
      * @return 用户信息
      */
-    @ApiOperation(value = "根据 id 获取用户")
+    @Operation(summary = "根据 id 获取用户")
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<User> getUserById(long id) {
@@ -110,7 +110,7 @@ public class UserController implements Serializable {
      * @param id 用户id
      * @return 脱敏后的用户信息
      */
-    @ApiOperation(value = "根据 id 获取用户封装信息")
+    @Operation(summary = "根据 id 获取用户封装信息")
     @GetMapping("/get/vo")
     public BaseResponse<UserVO> getUserVOById(long id) {
         BaseResponse<User> response = getUserById(id);
@@ -123,7 +123,7 @@ public class UserController implements Serializable {
      * @param deleteRequest 删除请求
      * @return 用户列表
      */
-    @ApiOperation(value = "删除用户")
+    @Operation(summary = "删除用户")
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
@@ -138,7 +138,7 @@ public class UserController implements Serializable {
      * @param request           http请求
      * @return 是否更新成功
      */
-    @ApiOperation(value = "更新用户信息")
+    @Operation(summary = "更新用户信息")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
         Throw.throwIf(userUpdateRequest == null || userUpdateRequest.getId() == null, ErrorCode.PARAMS_ERROR);
@@ -162,7 +162,7 @@ public class UserController implements Serializable {
      * @param userQueryRequest 用户查询请求
      * @return 用户封装列表
      */
-    @ApiOperation(value = "分页获取用户封装列表")
+    @Operation(summary = "分页获取用户封装列表")
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {

@@ -9,7 +9,7 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.entity.user.User;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Domye

@@ -15,7 +15,7 @@
         <!-- Sa-Token 认证授权 -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot-starter</artifactId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
         </dependency>
 
         <!-- Hutool 工具包 -->

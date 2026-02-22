@@ -14,18 +14,18 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>2.7.6</spring-boot.version>
+        <spring-boot.version>3.3.6</spring-boot.version>
 
         <!-- 第三方依赖版本号 -->
-        <mybatis-plus.version>3.5.12</mybatis-plus.version>
-        <shardingsphere.version>5.2.0</shardingsphere.version>
-        <rocketmq.version>2.2.3</rocketmq.version>
+        <mybatis-plus.version>3.5.9</mybatis-plus.version>
+
+        <rocketmq.version>2.3.1</rocketmq.version>
         <sentinel.version>1.8.9</sentinel.version>
         <sa-token.version>1.39.0</sa-token.version>
         <elasticsearch.version>7.17.29</elasticsearch.version>
         <redisson.version>3.51.0</redisson.version>
         <caffeine.version>3.2.2</caffeine.version>
-        <knife4j.version>4.4.0</knife4j.version>
+        <knife4j.version>4.5.0</knife4j.version>
         <hutool.version>5.8.26</hutool.version>
         <cos.version>5.6.227</cos.version>
         <disruptor.version>3.4.2</disruptor.version>
@@ -59,11 +59,11 @@
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-            <!-- ShardingSphere 分库分表 -->
+            <!-- MyBatis Spring 兼容 Spring Boot 3.x -->
             <dependency>
-                <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>
-                <version>${shardingsphere.version}</version>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>3.0.3</version>
             </dependency>
 
             <!-- ==================== 消息队列相关依赖 ==================== -->
@@ -100,7 +100,7 @@
             <!-- Sa-Token 认证授权 -->
             <dependency>
                 <groupId>cn.dev33</groupId>
-                <artifactId>sa-token-spring-boot-starter</artifactId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
                 <version>${sa-token.version}</version>
             </dependency>
 
@@ -156,7 +156,7 @@
             <!-- Knife4j API文档 -->
             <dependency>
                 <groupId>com.github.xiaoymin</groupId>
-                <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${knife4j.version}</version>
             </dependency>
 
@@ -214,11 +214,11 @@
                 <version>1.17.5</version>
             </dependency>
 
-            <!-- 统一 Checker Qual 版本（ShardingSphere 和 Caffeine 依赖冲突） -->
+            <!-- 统一 Checker Qual 版本（Caffeine 和 RocketMQ 依赖冲突） -->
             <dependency>
                 <groupId>org.checkerframework</groupId>
                 <artifactId>checker-qual</artifactId>
-                <version>3.19.0</version>
+                <version>3.37.0</version>
             </dependency>
 
             <!-- 统一 Protobuf 版本（RocketMQ 和 gRPC 依赖冲突） -->
@@ -256,7 +256,14 @@
                 <version>1.70</version>
             </dependency>
 
-            <!-- 统一 Fastjson 版本（ShardingSphere 依赖冲突） -->
+            <!-- 统一 HttpClient 版本（腾讯云 COS 和 Elasticsearch 依赖冲突） -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.14</version>
+            </dependency>
+
+            <!-- 统一 Fastjson 版本（Sentinel 和 RocketMQ 依赖冲突） -->
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>

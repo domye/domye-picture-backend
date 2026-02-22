@@ -9,7 +9,7 @@ import com.domye.picture.model.entity.vote.VoteActivity;
 import com.domye.picture.model.vo.vote.VoteActivityDetailVO;
 import com.domye.picture.model.vo.vote.VoteActivityVO;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Domye

@@ -7,7 +7,7 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.extra.servlet.JakartaServletUtil;
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;
 import cn.hutool.json.JSONUtil;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -194,7 +194,7 @@ public class StpInterfaceImpl implements StpInterface {
                     body = new String(content);
                 }
             } else {
-                body = ServletUtil.getBody(request);
+                body = JakartaServletUtil.getBody(request);
             }
             // 检查请求体是否为空或不是有效的 JSON 对象
             if (StrUtil.isBlank(body) || !body.trim().startsWith("{")) {
@@ -203,7 +203,7 @@ public class StpInterfaceImpl implements StpInterface {
                 authRequest = JSONUtil.toBean(body, SpaceUserAuthContext.class);
             }
         } else {
-            Map<String, String> paramMap = ServletUtil.getParamMap(request);
+            Map<String, String> paramMap = JakartaServletUtil.getParamMap(request);
             authRequest = BeanUtil.toBean(paramMap, SpaceUserAuthContext.class);
         }
         // 根据请求路径区分 id 字段的含义

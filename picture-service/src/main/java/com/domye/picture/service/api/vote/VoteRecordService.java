@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.vote.VoteRequest;
 import com.domye.picture.model.entity.vote.VoteRecord;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Domye

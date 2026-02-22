@@ -12,7 +12,7 @@ import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.entity.user.User;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**

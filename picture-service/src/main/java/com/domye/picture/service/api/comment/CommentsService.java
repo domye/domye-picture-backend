@@ -11,7 +11,7 @@ import com.domye.picture.model.vo.comment.CommentReplyVO;
 import com.domye.picture.service.helper.comment.DataMaps;
 import com.domye.picture.service.helper.comment.IdCollection;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
