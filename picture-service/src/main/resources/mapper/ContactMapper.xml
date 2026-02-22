@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.domye.picture.service.mapper.ContactMapper">
+    <resultMap id="BaseResultMap" type="com.domye.picture.model.entity.contact.Contact">
+        <id column="id" property="id" />
+        <result column="userId" property="userId" />
+        <result column="contactUserId" property="contactUserId" />
+        <result column="status" property="status" />
+        <result column="createTime" property="createTime" />
+        <result column="updateTime" property="updateTime" />
+    </resultMap>
+    
+    <select id="selectMyContacts" resultMap="BaseResultMap">
+        SELECT id, userId, contactUserId, status, createTime, updateTime 
+        FROM contact 
+        WHERE userId = #{userId} AND status = 1
+    </select>
+    
+    <select id="selectPendingRequests" resultMap="BaseResultMap">
+        SELECT id, userId, contactUserId, status, createTime, updateTime 
+        FROM contact 
+        WHERE contactUserId = #{contactUserId} AND status = 0
+    </select>
+</mapper>
