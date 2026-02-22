@@ -186,7 +186,25 @@ public class StpInterfaceImpl implements StpInterface {
         SpaceUserAuthContext authRequest;
         // 获取请求参数
         if (ContentType.JSON.getValue().equals(contentType)) {
-            String body = ServletUtil.getBody(request);
+            String body;
+            // 优先使用 RequestWrapper 获取缓存的请求体
+            if (request instanceof RequestWrapper) {
+                body = ((RequestWrapper) request).getBody();
+            } else if (request instanceof org.springframework.web.util.ContentCachingRequestWrapper) {
+                // ContentCachingRequestWrapper 包装了 RequestWrapper，需要获取内部请求
+                org.springframework.web.util.ContentCachingRequestWrapper cachingWrapper = 
+                    (org.springframework.web.util.ContentCachingRequestWrapper) request;
+                // 获取被包装的请求（可能是 RequestWrapper）
+                HttpServletRequest wrappedRequest = (HttpServletRequest) cachingWrapper.getRequest();
+                if (wrappedRequest instanceof RequestWrapper) {
+                    body = ((RequestWrapper) wrappedRequest).getBody();
+                } else {
+                    byte[] content = cachingWrapper.getContentAsByteArray();
+                    body = content.length > 0 ? new String(content) : "";
+                }
+            } else {
+                body = ServletUtil.getBody(request);
+            }
             // 检查请求体是否为空或不是有效的 JSON 对象
             if (StrUtil.isBlank(body) || !body.trim().startsWith("{")) {
                 authRequest = new SpaceUserAuthContext();

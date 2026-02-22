@@ -2,6 +2,7 @@ package com.domye.picture.api.config;
 
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;
+import com.domye.picture.auth.RequestWrapper;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
  * 请求包装过滤器
  * @author pine
  */
-@Order(1)
+@Order(0)
 @Component
 public class HttpRequestWrapperFilter implements Filter {
 

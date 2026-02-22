@@ -1,5 +1,6 @@
-package com.domye.picture.api.config;
+package com.domye.picture.auth;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.ReadListener;
@@ -12,6 +13,7 @@ import java.io.*;
  * 包装请求，使 InputStream 可以重复读取
  * @author pine
  */
+@Getter
 @Slf4j
 public class RequestWrapper extends HttpServletRequestWrapper {
 
@@ -60,10 +62,6 @@ public class RequestWrapper extends HttpServletRequestWrapper {
     @Override
     public BufferedReader getReader() throws IOException {
         return new BufferedReader(new InputStreamReader(this.getInputStream()));
-    }
-
-    public String getBody() {
-        return this.body;
     }
 
 }
