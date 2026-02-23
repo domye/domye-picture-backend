@@ -42,4 +42,39 @@ public interface UserConstant {
      */
     String ADMIN_ROLE = "admin";
 
+    // endregion
+
+    // region 错误消息
+
+    /**
+     * 账号已存在
+     */
+    String ACCOUNT_ALREADY_EXISTS = "账号重复";
+
+    /**
+     * 密码错误
+     */
+    String PASSWORD_ERROR = "用户不存在或密码错误";
+
+    /**
+     * 用户未找到
+     */
+    String USER_NOT_FOUND = "用户不存在或密码错误";
+
+    /**
+     * 两次密码不一致
+     */
+    String PASSWORD_MISMATCH = "两次输入密码不一致";
+
+    /**
+     * 默认用户名
+     */
+    String DEFAULT_USER_NAME = "无名";
+
+    /**
+     * 默认微信用户名
+     */
+    String DEFAULT_WX_USER_NAME = "微信用户";
+
+    // endregion
 }

@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.LockService;
+import com.domye.picture.common.constant.SpaceConstant;
 import com.domye.picture.model.dto.space.SpaceAddRequest;
 import com.domye.picture.model.dto.space.SpaceQueryRequest;
 import com.domye.picture.model.entity.space.Space;
@@ -46,9 +47,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         implements SpaceService {
-    private static final String SPACE_CREATE_LOCK_PREFIX = "space:create:lock:";
-    private static final long LOCK_WAIT_TIME = 10;
-    private static final long LOCK_LEASE_TIME = 30;
+
 
     final UserService userService;
     final TransactionTemplate transactionTemplate;
@@ -66,7 +65,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Space space = new Space();
         BeanUtil.copyProperties(spaceAddRequest, space);
         if (StrUtil.isBlank(spaceAddRequest.getSpaceName())) {
-            space.setSpaceName("默认空间");
+            space.setSpaceName(SpaceConstant.DEFAULT_SPACE_NAME);
         }
         if (space.getSpaceLevel() == null) {
             space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
@@ -83,18 +82,18 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         // 权限校验
         Long userId = loginUser.getId();
         space.setUserId(userId);
-        Throw.throwIf(!userService.isAdmin(loginUser) && space.getSpaceLevel() != SpaceLevelEnum.COMMON.getValue(), ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
+        Throw.throwIf(!userService.isAdmin(loginUser) && space.getSpaceLevel() != SpaceLevelEnum.COMMON.getValue(), ErrorCode.NO_AUTH_ERROR, SpaceConstant.NO_PERMISSION_CREATE_SPACE);
         // 使用分布式锁
-        String lockKey = SPACE_CREATE_LOCK_PREFIX + userId;
+        String lockKey = SpaceConstant.SPACE_CREATE_LOCK_PREFIX + userId;
 
         // 执行事务操作
-        Long newSpaceId = lockService.executeWithLock(lockKey, (int) LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> {
+        Long newSpaceId = lockService.executeWithLock(lockKey, (int) SpaceConstant.LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> {
             return transactionTemplate.execute(status -> {
                 boolean exists = this.lambdaQuery()
                         .eq(Space::getUserId, userId)
                         .eq(Space::getSpaceType, spaceAddRequest.getSpaceType())
                         .exists();
-                Throw.throwIf(exists, ErrorCode.OPERATION_ERROR, "已存在该类型空间");
+                Throw.throwIf(exists, ErrorCode.OPERATION_ERROR, SpaceConstant.SPACE_ALREADY_EXISTS);
 
                 // 写入数据库
                 boolean result = this.save(space);

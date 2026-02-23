@@ -14,8 +14,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/domye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
-    username:
-    password:
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
 
   # Servlet配置
   servlet:
@@ -29,7 +29,7 @@ spring:
       host: 127.0.0.1
       port: 63793
       timeout: 5000
-      password:
+      password: ${REDIS_PASSWORD:}
       lettuce:
         pool:
           max-active: 10
