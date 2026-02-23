@@ -1,5 +1,6 @@
 package com.domye.picture.service.impl.comment;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,24 +9,31 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
 import com.domye.picture.model.dto.comment.CommentQueryRequest;
 import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
+import com.domye.picture.model.entity.comment.CommentMention;
 import com.domye.picture.model.entity.comment.Comments;
 import com.domye.picture.model.entity.comment.CommentsContent;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.comment.CommentListVO;
+import com.domye.picture.model.vo.comment.CommentMentionVO;
 import com.domye.picture.model.vo.comment.CommentReplyVO;
+import com.domye.picture.service.api.comment.CommentMentionService;
 import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
+import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.helper.comment.DataMaps;
 import com.domye.picture.service.helper.comment.IdCollection;
+import com.domye.picture.service.helper.comment.MentionParser;
+import com.domye.picture.service.mapper.CommentMentionMapper;
 import com.domye.picture.service.mapper.CommentsMapper;
+import com.domye.picture.service.mapper.UserMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,6 +47,10 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
     final CommentsContentService commentsContentService;
     final CommentsMapper commentsMapper;
     final UserService userService;
+    final CommentMentionService commentMentionService;
+    final ContactService contactService;
+    final UserMapper userMapper;
+    final CommentMentionMapper commentMentionMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -72,6 +84,10 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         content.setCommentId(comment.getCommentid());
         content.setCommentText(request.getContent());
         commentsContentService.save(content);
+        // ==== 新增: @功能集成 ====
+        // 7. 解析@并保存提及记录
+        processMentions(comment.getCommentid(), request.getContent(), userId);
+        // ==========================
 
         // 6. 更新父评论回复数（如果是楼中楼）
         if (parentId != null) {
@@ -107,7 +123,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return processCommentPage(commentsPage, comments, repliesMap);
     }
 
-    /**
+   /**
      * 提取ID列表
      * @param items
      * @param mapper
@@ -170,16 +186,119 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      * @return
      */
     @Override
+
     public DataMaps buildDataMaps(IdCollection idCollection) {
+
         Map<Long, User> userMap = idCollection.getUserIds().isEmpty() ? Collections.emptyMap() :
+
                 userService.listByIds(idCollection.getUserIds()).stream()
+
                         .collect(Collectors.toMap(User::getId, u -> u));
 
         Map<Long, CommentsContent> contentMap = idCollection.getCommentIds().isEmpty() ? Collections.emptyMap() :
                 commentsContentService.listByIds(idCollection.getCommentIds()).stream()
-                        .collect(Collectors.toMap(CommentsContent::getCommentId, c -> c));
 
-        return new DataMaps(userMap, contentMap);
+                        .collect(Collectors.toMap(CommentsContent::getCommentId, c -> c));
+        // 批量查询@提及记录
+
+        Map<Long, List<CommentMentionVO>> mentionsMap = idCollection.getCommentIds().isEmpty() ? Collections.emptyMap() :
+
+                batchQueryMentions(idCollection.getCommentIds());
+
+
+
+        return new DataMaps(userMap, contentMap, mentionsMap);
+
+    }
+
+
+
+    /**
+
+     * 批量查询@提及记录并按评论ID分组
+
+     * @param commentIds 评论ID集合
+
+     * @return Map<评论ID, @提及列表>
+
+     */
+
+    private Map<Long, List<CommentMentionVO>> batchQueryMentions(Set<Long> commentIds) {
+
+        QueryWrapper<CommentMention> mentionWrapper = new QueryWrapper<>();
+
+        mentionWrapper.in("commentId", commentIds);
+
+        List<CommentMention> mentions = commentMentionMapper.selectList(mentionWrapper);
+
+
+
+        if (CollUtil.isEmpty(mentions)) {
+
+            return Collections.emptyMap();
+
+        }
+
+
+
+        // 收集所有被提及用户ID
+
+        Set<Long> mentionedUserIds = mentions.stream()
+
+                .map(CommentMention::getMentionedUserId)
+
+                .collect(Collectors.toSet());
+
+
+
+        // 批量查询用户信息
+
+        Map<Long, User> mentionedUserMap = mentionedUserIds.isEmpty() ? Collections.emptyMap() :
+
+                userService.listByIds(mentionedUserIds).stream()
+
+                        .collect(Collectors.toMap(User::getId, u -> u));
+
+
+
+        // 转换为VO并按评论ID分组
+
+        return mentions.stream()
+
+                .map(mention -> {
+
+                    User user = mentionedUserMap.get(mention.getMentionedUserId());
+
+                    if (user == null) {
+
+                        return null;
+
+                    }
+
+                    return CommentMentionVO.builder()
+
+                            .id(mention.getId())
+
+                            .commentId(mention.getCommentId())
+
+                            .mentionedUserId(mention.getMentionedUserId())
+
+                            .mentionedUserName(user.getUserName())
+
+                            .mentionedUserAvatar(user.getUserAvatar())
+
+                            .isRead(mention.getIsRead())
+
+                            .createTime(mention.getCreatedTime())
+
+                            .build();
+
+                })
+
+                .filter(Objects::nonNull)
+
+                .collect(Collectors.groupingBy(CommentMentionVO::getCommentId));
+
     }
 
     /**
@@ -215,19 +334,36 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      * @return
      */
     @Override
+
     public CommentListVO buildCommentVO(Comments comment, DataMaps dataMaps) {
+
         User user = dataMaps.getUserMap().get(comment.getUserid());
+
         CommentsContent content = dataMaps.getContentMap().get(comment.getCommentid());
+
+        List<CommentMentionVO> mentionedUsers = dataMaps.getMentionsMap().getOrDefault(
+
+                comment.getCommentid(), Collections.emptyList());
 
         return CommentListVO.builder()
                 .commentId(comment.getCommentid())
+
                 .userId(comment.getUserid())
+
                 .userName(user.getUserName())
+
                 .userAvatar(user.getUserAvatar())
+
                 .replyCount(comment.getReplycount())
+
                 .createTime(comment.getCreatedtime())
+
                 .content(content.getCommentText())
+
+                .mentionedUsers(mentionedUsers)
+
                 .build();
+
     }
 
     /**
@@ -237,25 +373,43 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      * @return
      */
     @Override
+
     public List<CommentReplyVO> buildReplyVOList(List<Comments> replies, DataMaps dataMaps) {
+
         List<CommentReplyVO> replyVOList = new ArrayList<>(replies.size());
 
         for (Comments reply : replies) {
             User replyUser = dataMaps.getUserMap().get(reply.getUserid());
+
             User parentUser = dataMaps.getUserMap().get(reply.getParentid());
+
             CommentsContent replyContent = dataMaps.getContentMap().get(reply.getCommentid());
+
+            List<CommentMentionVO> mentionedUsers = dataMaps.getMentionsMap().getOrDefault(
+
+                    reply.getCommentid(), Collections.emptyList());
 
             CommentReplyVO replyVO = CommentReplyVO.builder()
                     .commentId(reply.getCommentid())
+
                     .userId(reply.getUserid())
+
                     .userName(replyUser.getUserName())
+
                     .userAvatar(replyUser.getUserAvatar())
+
                     .createTime(reply.getCreatedtime())
+
                     .content(replyContent.getCommentText())
+
                     .parentId(reply.getParentid())
-//                    .parentUserName(parentUser.getUserName())
+
+                    .mentionedUsers(mentionedUsers)
+
                     .build();
+
             replyVOList.add(replyVO);
+
         }
 
         return replyVOList;
@@ -350,5 +504,76 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         );
         resultPage.setRecords(commentListVOList);
         return resultPage;
+    }
+
+    /**
+     * 处理评论中的@提及
+     * @param commentId 评论ID
+     * @param content 评论内容
+     * @param currentUserId 当前用户ID
+     */
+    private void processMentions(Long commentId, String content, Long currentUserId) {
+        // 1. 提取@用户名
+        List<String> userNames = MentionParser.extractUserNames(content);
+        if (CollUtil.isEmpty(userNames)) {
+            return;
+        }
+
+        // 2. 批量查询用户名对应的用户ID
+        List<User> users = userMapper.selectList(
+                new QueryWrapper<User>().in("userName", userNames)
+        );
+        if (CollUtil.isEmpty(users)) {
+            return;
+        }
+
+        // 3. 构建用户名到用户ID的映射
+        Map<String, Long> userNameToIdMap = users.stream()
+                .collect(Collectors.toMap(User::getUserName, User::getId, (existing, replacement) -> existing));
+
+        // 4. 转换为用户ID列表并去重
+        List<Long> mentionedUserIds = userNames.stream()
+                .map(userNameToIdMap::get)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 5. 移除@自己
+        mentionedUserIds.remove(currentUserId);
+
+        if (CollUtil.isEmpty(mentionedUserIds)) {
+            return;
+        }
+
+        // 6. 验证好友关系，仅保留已通过的好友(status=1)
+        List<Long> validFriendIds = filterValidFriends(currentUserId, mentionedUserIds);
+
+        if (CollUtil.isEmpty(validFriendIds)) {
+            return;
+        }
+
+        // 7. 保存@记录
+        commentMentionService.batchSaveMentions(commentId, validFriendIds);
+    }
+
+    /**
+     * 过滤有效好友(已通过的好友关系)
+     * @param currentUserId 当前用户ID
+     * @param candidateUserIds 候选用户ID列表
+     * @return 有效好友ID列表
+     */
+    private List<Long> filterValidFriends(Long currentUserId, List<Long> candidateUserIds) {
+        // 批量查询好友关系
+        // 查询条件: userId = 当前用户 AND contactUserId IN (候选用户) AND status = 1
+        QueryWrapper<com.domye.picture.model.entity.contact.Contact> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", currentUserId)
+                .in("contactUserId", candidateUserIds)
+                .eq("status", 1);  // status=1 表示已通过的好友
+
+        List<com.domye.picture.model.entity.contact.Contact> contacts = contactService.list(queryWrapper);
+
+        return contacts.stream()
+                .map(com.domye.picture.model.entity.contact.Contact::getContactUserId)
+                .collect(Collectors.toList());
     }
 }

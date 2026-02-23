@@ -23,4 +23,7 @@ public class CommentListVO {
     // 预览回复（最多5条）
     private List<CommentReplyVO> replyPreviewList;
 
+    // @用户列表
+    private List<CommentMentionVO> mentionedUsers;
+
 }

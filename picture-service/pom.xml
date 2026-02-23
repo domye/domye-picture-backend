@@ -25,13 +25,13 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
 
-        <!-- MyBatis Plus SQL解析器 -->
+        <!-- MyBatis Plus SQL 解析器 -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser-4.9</artifactId>
         </dependency>
 
-        <!-- 腾讯云COS对象存储 -->
+        <!-- 腾讯云 COS 对象存储 -->
         <dependency>
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
@@ -79,6 +79,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
+            <version>0.36.2</version>
         </dependency>
 
         <!-- 内部模块依赖 -->

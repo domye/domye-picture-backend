@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.domye.picture.service.mapper.CommentMentionMapper">
+    <resultMap id="BaseResultMap" type="com.domye.picture.model.entity.comment.CommentMention">
+        <id column="id" property="id" />
+        <result column="commentId" property="commentId" />
+        <result column="mentionedUserId" property="mentionedUserId" />
+        <result column="isRead" property="isRead" />
+        <result column="createdTime" property="createdTime" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, commentId, mentionedUserId, isRead, createdTime
+    </sql>
+</mapper>
