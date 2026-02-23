@@ -70,3 +70,18 @@ knife4j:
 #    secretKey:
 #    region:
 #    bucket:
+
+# AI 配置 (LangChain4j)
+ai:
+  # OpenAI API Key（必填，支持环境变量）
+  api-key: ${AI_API_KEY:your-api-key-here}
+  # API 基础 URL（可选，用于自定义 OpenAI 兼容接口，如国内代理或本地部署）
+  base-url: ${AI_BASE_URL:https://api.openai.com/v1}
+  # 模型名称（可选）
+  model-name: ${AI_MODEL_NAME:gpt-3.5-turbo}
+  # 温度参数，控制回答的随机性（可选，0-1）
+  temperature: 0.7
+  # 最大 Token 数（可选）
+  max-tokens: 2000
+  # 请求超时时间（秒，可选）
+  timeout: 60

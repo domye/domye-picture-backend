@@ -31,6 +31,7 @@
         <disruptor.version>3.4.2</disruptor.version>
         <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
         <lombok.version>1.18.36</lombok.version>
+        <langchain4j.version>0.36.2</langchain4j.version>
     </properties>
 
     <dependencyManagement>
@@ -174,6 +175,28 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <optional>true</optional>
+            </dependency>
+
+            <!-- ==================== AI 相关依赖 ==================== -->
+            <!-- LangChain4j 核心 -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+            <!-- LangChain4j OpenAI 集成 -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+            <!-- LangChain4j Spring Boot Starter -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-spring-boot-starter</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
 
             <!-- ==================== 其他依赖 ==================== -->

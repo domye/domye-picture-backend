@@ -74,6 +74,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- ==================== AI 相关依赖 ==================== -->
+        <!-- LangChain4j OpenAI 集成 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+        </dependency>
+
         <!-- 内部模块依赖 -->
         <dependency>
             <groupId>com.domye</groupId>

@@ -104,6 +104,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+
+        <!-- ==================== AI 相关依赖 ==================== -->
+        <!-- LangChain4j OpenAI 集成 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
