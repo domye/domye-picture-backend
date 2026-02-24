@@ -1,4 +1,4 @@
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.db;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

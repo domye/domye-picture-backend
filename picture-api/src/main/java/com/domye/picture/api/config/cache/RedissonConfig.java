@@ -1,4 +1,4 @@
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.cache;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

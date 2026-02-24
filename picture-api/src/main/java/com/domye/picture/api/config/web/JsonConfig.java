@@ -1,4 +1,4 @@
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;

@@ -1,5 +1,5 @@
 
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.cache;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

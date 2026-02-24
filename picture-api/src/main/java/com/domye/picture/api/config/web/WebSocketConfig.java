@@ -1,4 +1,4 @@
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.web;
 
 import com.domye.picture.auth.WsHandshakeInterceptor;
 import com.domye.picture.service.helper.websocket.PictureEditHandler;

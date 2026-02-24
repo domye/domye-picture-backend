@@ -1,4 +1,4 @@
-package com.domye.picture.api.config;
+package com.domye.picture.api.config.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
