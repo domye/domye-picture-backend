@@ -82,6 +82,13 @@
             <version>0.36.2</version>
         </dependency>
 
+        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- 内部模块依赖 -->
         <dependency>
             <groupId>com.domye</groupId>
@@ -90,6 +97,11 @@
         <dependency>
             <groupId>com.domye</groupId>
             <artifactId>picture-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
