@@ -78,8 +78,8 @@ public class RankServiceImpl implements RankService {
         final String todayRankKey = todayRankKey();
         final String monthRankKey = monthRankKey();
         final String userActionKey = ACTIVITY_SCORE_KEY + user.getId() + DateUtil.format(new Date(), "yyyyMMdd");
-        String ansStr = (String) redisCache.getHash(userActionKey, field);
-        Integer ans = ansStr != null ? Integer.parseInt(ansStr) : null;
+        Object ansObj = redisCache.getHash(userActionKey, field);
+        Integer ans = ansObj != null ? Integer.parseInt(String.valueOf(ansObj)) : null;
         //如果不存在，执行加分
         if (ans == null) {
             redisCache.putHash(userActionKey, field, score);

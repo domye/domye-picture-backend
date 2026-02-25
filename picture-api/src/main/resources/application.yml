@@ -85,3 +85,9 @@ ai:
   max-tokens: 2000
   # 请求超时时间（秒，可选）
   timeout: 60
+
+# RocketMQ配置
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
+  producer:
+    group: comment-ai-producer-group

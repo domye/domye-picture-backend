@@ -14,6 +14,7 @@ import com.domye.picture.model.entity.comment.Comments;
 import com.domye.picture.model.entity.comment.CommentsContent;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.message.CommentAIReplyMessage;
 import com.domye.picture.model.vo.comment.CommentListVO;
 import com.domye.picture.model.vo.comment.CommentMentionVO;
 import com.domye.picture.model.vo.comment.CommentReplyVO;
@@ -29,19 +30,34 @@ import com.domye.picture.service.helper.comment.MentionParser;
 import com.domye.picture.service.mapper.CommentMentionMapper;
 import com.domye.picture.service.mapper.CommentsMapper;
 import com.domye.picture.service.mapper.UserMapper;
+import com.domye.picture.service.mq.CommentAIReplyProducer;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         implements CommentsService {
+
+    /**
+     * AI助手触发关键词
+     */
+    private static final String AI_TRIGGER_KEYWORD = "@AI助手";
+
+    /**
+     * AI用户ID
+     */
+    private static final Long AI_USER_ID = 2020004031158120450L;
 
     final PictureService pictureService;
     final CommentsContentService commentsContentService;
@@ -51,6 +67,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
     final ContactService contactService;
     final UserMapper userMapper;
     final CommentMentionMapper commentMentionMapper;
+    final CommentAIReplyProducer commentAIReplyProducer;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -94,7 +111,46 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
             commentsMapper.incrementReplyCount(rootId);
         }
 
+        // ==== 新增: AI助手触发逻辑 ====
+        // 8. 检测是否触发AI回复
+        triggerAIReplyIfNeeded(comment.getCommentid(), pictureId, request.getContent(), userId);
+        // ==============================
+
         return comment.getCommentid();
+    }
+
+    /**
+     * 检测是否需要触发AI回复并发送MQ消息
+     *
+     * @param commentId 评论ID
+     * @param pictureId 图片ID
+     * @param content 评论内容
+     * @param userId 评论用户ID
+     */
+    private void triggerAIReplyIfNeeded(Long commentId, Long pictureId, String content, Long userId) {
+        // 检测条件：1. 包含@AI助手 2. 不是AI用户发的评论（防止循环）
+        if (!content.contains(AI_TRIGGER_KEYWORD) || AI_USER_ID.equals(userId)) {
+            return;
+        }
+
+        log.info("[AI回复] 检测到@AI助手触发，准备发送MQ消息: commentId={}, userId={}", commentId, userId);
+
+        // 构建消息
+        CommentAIReplyMessage message = CommentAIReplyMessage.builder()
+                .commentId(commentId)
+                .pictureId(pictureId)
+                .content(content)
+                .userId(userId)
+                .createTime(new java.util.Date())
+                .build();
+
+        // 在事务提交后发送MQ消息
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                commentAIReplyProducer.sendAIReplyRequest(message);
+            }
+        });
     }
 
     @Override
