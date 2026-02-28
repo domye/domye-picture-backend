@@ -1,8 +1,6 @@
 package com.domye.picture.model.vo.vote;
 
-import com.domye.picture.model.entity.vote.VoteActivity;
 import lombok.Data;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
 
@@ -50,13 +48,4 @@ public class VoteActivityVO {
      * 总投票数
      */
     private Long totalVotes;
-
-    public static VoteActivityVO objToVo(VoteActivity voteActivity) {
-        if (voteActivity == null) {
-            return null;
-        }
-        VoteActivityVO voteActivityVO = new VoteActivityVO();
-        BeanUtils.copyProperties(voteActivity, voteActivityVO);
-        return voteActivityVO;
-    }
 }

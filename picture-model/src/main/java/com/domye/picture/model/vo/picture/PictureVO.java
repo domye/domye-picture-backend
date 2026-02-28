@@ -1,10 +1,7 @@
 package com.domye.picture.model.vo.picture;
 
-import cn.hutool.json.JSONUtil;
-import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
-import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -95,19 +92,4 @@ public class PictureVO implements Serializable {
      * 权限列表
      */
     private List<String> permissionList = new ArrayList<>();
-
-
-    /**
-     * 对象转封装类
-     */
-    public static PictureVO objToVo(Picture picture) {
-        if (picture == null) {
-            return null;
-        }
-        PictureVO pictureVO = new PictureVO();
-        BeanUtils.copyProperties(picture, pictureVO);
-        // 类型不同，需要转换
-        pictureVO.setTags(JSONUtil.toList(picture.getTags(), String.class));
-        return pictureVO;
-    }
 }

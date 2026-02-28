@@ -14,6 +14,7 @@ import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.ContactStatusEnum;
 import com.domye.picture.model.mapper.user.UserStructMapper;
+import com.domye.picture.model.mapper.ContactStructMapper;
 import com.domye.picture.model.vo.contact.ContactVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
@@ -38,6 +39,7 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
 
     private final UserService userService;
     private final UserStructMapper userStructMapper;
+    private final ContactStructMapper contactStructMapper;
 
     @Override
     public long applyContact(ContactAddRequest request, Long userId) {
@@ -204,7 +206,7 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
 
         // 对象列表 => 封装对象列表
         List<ContactVO> contactVOList = contactList.stream()
-                .map(ContactVO::objToVo)
+                .map(contactStructMapper::toVo)
                 .collect(Collectors.toList());
 
         // 关联查询联系人用户信息

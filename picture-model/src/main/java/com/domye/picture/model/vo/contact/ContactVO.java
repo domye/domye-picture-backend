@@ -1,7 +1,5 @@
 package com.domye.picture.model.vo.contact;
 
-import com.domye.picture.model.entity.contact.Contact;
-import com.domye.picture.model.mapper.ContactStructMapper;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
@@ -42,16 +40,4 @@ public class ContactVO implements Serializable {
      * 联系人信息
      */
     private UserVO contactUser;
-    
-    /**
-     * 对象转封装类
-     * @param contact
-     * @return
-     */
-    public static ContactVO objToVo(Contact contact) {
-        if (contact == null) {
-            return null;
-        }
-        return ContactStructMapper.INSTANCE.toVo(contact);
-    }
 }

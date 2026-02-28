@@ -11,6 +11,7 @@ import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.RedisCache;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.mapper.vote.VoteStructMapper;
 import com.domye.picture.service.mapper.VoteActivitiesMapper;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.api.vote.VoteActivityService;
@@ -26,7 +27,6 @@ import com.domye.picture.model.vo.vote.VoteActivityDetailVO;
 import com.domye.picture.model.vo.vote.VoteActivityVO;
 import com.domye.picture.model.vo.vote.VoteOptionVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +50,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
     final VoteOptionService voteOptionService;
     final VoteRecordService voteRecordService;
     final RedisCache redisCache;
+    final VoteStructMapper voteStructMapper;
 
     /**
      * 创建新活动
@@ -115,18 +116,12 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
             String json = (String) redisCache.get(VOTE_ACTIVITY_KEY + id);
             VoteActivity voteActivity = JSON.parseObject(json, VoteActivity.class);
             Throw.throwIf(voteActivity == null, ErrorCode.NOT_FOUND_ERROR);
-            voteActivityDetailVO = new VoteActivityDetailVO();
-            BeanUtils.copyProperties(voteActivity, voteActivityDetailVO);
+            voteActivityDetailVO = voteStructMapper.toDetailVo(voteActivity);
 
             // 获取选项
             List<VoteOption> options = voteOptionService.getVoteOptionsList(id);
             Throw.throwIf(options == null, ErrorCode.NOT_FOUND_ERROR);
-            optionsVO = options.stream().map(option -> {
-                        VoteOptionVO voteOptionVO = new VoteOptionVO();
-                        BeanUtils.copyProperties(option, voteOptionVO);
-                        return voteOptionVO;
-                    }
-            ).collect(Collectors.toList());
+            optionsVO = voteStructMapper.toOptionVoList(options);
 
             voteActivityDetailVO.setOptions(optionsVO);
 
@@ -214,7 +209,7 @@ public class VoteActivityServiceImpl extends ServiceImpl<VoteActivitiesMapper, V
      */
     @Override
     public VoteActivityVO getVoteActivityVO(VoteActivity voteActivity) {
-        return VoteActivityVO.objToVo(voteActivity);
+        return voteStructMapper.toVo(voteActivity);
     }
 
     /**

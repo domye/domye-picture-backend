@@ -1,5 +1,6 @@
 package com.domye.picture.model.mapper.space;
 
+import com.domye.picture.model.dto.space.SpaceUserAddRequest;
 import com.domye.picture.model.dto.space.SpaceUserEditRequest;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.vo.space.SpaceUserVO;
@@ -13,6 +14,8 @@ import org.mapstruct.MappingConstants;
 public interface SpaceUserStructMapper {
 
     SpaceUser toEntity(SpaceUserEditRequest request);
+
+    SpaceUser toEntity(SpaceUserAddRequest request);
 
     SpaceUserVO toSpaceUserVo(SpaceUser spaceUser);
 }

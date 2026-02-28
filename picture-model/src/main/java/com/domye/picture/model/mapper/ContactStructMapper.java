@@ -3,11 +3,9 @@ package com.domye.picture.model.mapper;
 import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.vo.contact.ContactVO;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.MappingConstants;
 
-@Mapper
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ContactStructMapper {
-    ContactStructMapper INSTANCE = Mappers.getMapper(ContactStructMapper.class);
-    
     ContactVO toVo(Contact contact);
 }

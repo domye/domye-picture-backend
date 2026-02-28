@@ -1,7 +1,5 @@
 package com.domye.picture.model.vo.space;
 
-import cn.hutool.core.bean.BeanUtil;
-import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
@@ -78,20 +76,4 @@ public class SpaceVO {
      * 权限列表
      */
     private List<String> permissionList = new ArrayList<>();
-
-    public static Space voToObject(SpaceVO spaceVO) {
-        if (spaceVO == null)
-            return null;
-        Space space = new Space();
-        BeanUtil.copyProperties(spaceVO, space);
-        return space;
-    }
-
-    public static SpaceVO objectToVo(Space space) {
-        if (space == null)
-            return null;
-        SpaceVO spaceVO = new SpaceVO();
-        BeanUtil.copyProperties(space, spaceVO);
-        return spaceVO;
-    }
 }

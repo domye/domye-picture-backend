@@ -25,7 +25,7 @@ import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.mapper.SpaceUserMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
+import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -47,13 +47,13 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     final UserService userService;
     final UserStructMapper userStructMapper;
     final SpaceUserStructMapper spaceUserStructMapper;
+    final SpaceStructMapper spaceStructMapper;
 
     @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
         //校验参数
         Throw.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
-        SpaceUser spaceUser = new SpaceUser();
-        BeanUtils.copyProperties(spaceUserAddRequest, spaceUser);
+        SpaceUser spaceUser = spaceUserStructMapper.toEntity(spaceUserAddRequest);
         validSpaceUser(spaceUser, true);
 
         // 数据库操作
@@ -140,7 +140,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
                 space = spaceIdSpaceListMap.get(spaceUserVO.getSpaceId()).get(0);
 
             }
-            spaceUserVO.setSpace(SpaceVO.objectToVo(space));
+            spaceUserVO.setSpace(spaceStructMapper.toVo(space));
         });
         return spaceUserVOList;
     }

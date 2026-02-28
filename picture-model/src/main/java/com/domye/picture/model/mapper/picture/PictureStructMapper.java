@@ -4,18 +4,31 @@ import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureUpdateRequest;
 import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.vo.picture.PictureVO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        imports = {cn.hutool.json.JSONUtil.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface PictureStructMapper {
 
     Picture toEntity(PictureEditRequest request);
+
+    @Mapping(target = "tags", expression = "java(mapJsonToTags(picture.getTags()))")
+    PictureVO toVo(Picture picture);
+
+    List<PictureVO> toVoList(List<Picture> pictures);
+
+    default List<String> mapJsonToTags(String tagsJson) {
+        if (tagsJson == null) {
+            return null;
+        }
+        return JSONUtil.toList(tagsJson, String.class);
+    }
 
     default String mapTagsToJson(List<String> tags) {
         if (tags == null) {
@@ -23,7 +36,7 @@ public interface PictureStructMapper {
         }
         return JSONUtil.toJsonStr(tags);
     }
-    
+
     default Picture toEntity(PictureUpdateRequest request) {
         if (request == null) {
             return null;
@@ -37,6 +50,6 @@ public interface PictureStructMapper {
         picture.setSpaceId(request.getSpaceId());
         return picture;
     }
-    
+
     void copyPicture(@MappingTarget Picture target, Picture source);
 }

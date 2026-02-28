@@ -18,13 +18,13 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceLevel;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceLevelEnum;
+import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -41,6 +41,7 @@ public class SpaceController {
     final SpaceService spaceService;
 
     final SpaceUserAuthManager spaceUserAuthManager;
+    final SpaceStructMapper spaceStructMapper;
 
     /**
      * 创建空间
@@ -92,8 +93,7 @@ public class SpaceController {
     public BaseResponse<Boolean> updateSpace(@RequestBody SpaceUpdateRequest spaceUpdateRequest, HttpServletRequest request) {
         Throw.throwIf(spaceUpdateRequest == null || spaceUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         // 将实体类和 DTO 进行转换
-        Space space = new Space();
-        BeanUtils.copyProperties(spaceUpdateRequest, space);
+        Space space = spaceStructMapper.toEntity(spaceUpdateRequest);
         // 数据校验
         spaceService.fillSpace(space);
         spaceService.validSpace(space, false);
@@ -204,8 +204,7 @@ public class SpaceController {
 
 
         // 在此处将实体类和 DTO 进行转换
-        Space space = new Space();
-        BeanUtils.copyProperties(spaceEditRequest, space);
+        Space space = spaceStructMapper.toEntity(spaceEditRequest);
         // 自动填充数据
         spaceService.fillSpace(space);
         // 设置编辑时间

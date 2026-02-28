@@ -2,7 +2,6 @@ package com.domye.picture.auth;
 
 
 import cn.dev33.satoken.stp.StpInterface;
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
@@ -204,7 +203,7 @@ public class StpInterfaceImpl implements StpInterface {
             }
         } else {
             Map<String, String> paramMap = JakartaServletUtil.getParamMap(request);
-            authRequest = BeanUtil.toBean(paramMap, SpaceUserAuthContext.class);
+            authRequest = JSONUtil.toBean(JSONUtil.toJsonStr(paramMap), SpaceUserAuthContext.class);
         }
         // 根据请求路径区分 id 字段的含义
         Long id = authRequest.getId();

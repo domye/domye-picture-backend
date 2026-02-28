@@ -89,7 +89,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
         Picture picture = buildPictureEntity(uploadPictureResult, loginUser, pictureId, spaceId);
         persistPictureData(picture, pictureId, loginUser, spaceId);
-        return PictureVO.objToVo(picture);
+        return pictureStructMapper.toVo(picture);
     }
 
     private Long resolveAndValidateSpaceId(PictureUploadRequest pictureUploadRequest, Picture oldPicture) {
@@ -254,7 +254,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     @Override
     public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
-        PictureVO pictureVO = PictureVO.objToVo(picture);
+        PictureVO pictureVO = pictureStructMapper.toVo(picture);
         Long userId = picture.getUserId();
         if (userId != null && userId > 0) {
             User user = userService.getById(userId);
@@ -276,7 +276,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (CollUtil.isEmpty(pictureList)) {
             return pictureVOPage;
         }
-        List<PictureVO> pictureVOList = pictureList.stream().map(PictureVO::objToVo).collect(Collectors.toList());
+        List<PictureVO> pictureVOList = pictureStructMapper.toVoList(pictureList);
         Set<Long> userIdSet = pictureList.stream().map(Picture::getUserId).collect(Collectors.toSet());
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
                 .collect(Collectors.groupingBy(User::getId));
@@ -456,7 +456,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 }))
                 .limit(PictureConstant.MAX_COLOR_SEARCH_RESULTS)
                 .collect(Collectors.toList());
-        return sortedList.stream().map(PictureVO::objToVo).collect(Collectors.toList());
+        return pictureStructMapper.toVoList(sortedList);
     }
 
     /**

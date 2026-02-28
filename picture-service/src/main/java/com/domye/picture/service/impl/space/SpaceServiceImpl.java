@@ -1,6 +1,5 @@
 package com.domye.picture.service.impl.space;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -18,6 +17,7 @@ import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
+import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.entity.user.User;
@@ -27,7 +27,6 @@ import com.domye.picture.service.mapper.SpaceUserMapper;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -55,6 +54,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     final LockService lockService;
     final SpaceUserMapper spaceUserMapper;
     final UserStructMapper userStructMapper;
+    final SpaceStructMapper spaceStructMapper;
 
     /**
      * 新增空间
@@ -64,8 +64,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
      */
     @Override
     public Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
-        Space space = new Space();
-        BeanUtil.copyProperties(spaceAddRequest, space);
+        Space space = spaceStructMapper.toEntity(spaceAddRequest);
         if (StrUtil.isBlank(spaceAddRequest.getSpaceName())) {
             space.setSpaceName(SpaceConstant.DEFAULT_SPACE_NAME);
         }
@@ -75,7 +74,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         if (space.getSpaceType() == null) {
             space.setSpaceType(SpaceTypeEnum.PRIVATE.getValue());
         }
-        BeanUtils.copyProperties(spaceAddRequest, space);
         // 填充数据
         this.fillSpace(space);
         // 数据校验
@@ -205,7 +203,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     @Override
     public SpaceVO getSpaceVO(Space space, HttpServletRequest request) {
         // 对象转封装类
-        SpaceVO spaceVO = SpaceVO.objectToVo(space);
+        SpaceVO spaceVO = spaceStructMapper.toVo(space);
         // 关联查询用户信息
         Long userId = space.getUserId();
         if (userId != null && userId > 0) {
@@ -233,7 +231,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
             return spaceVOPage;
         }
         // 对象列表 => 封装对象列表
-        List<SpaceVO> spaceVOList = spaceList.stream().map(SpaceVO::objectToVo).collect(Collectors.toList());
+        List<SpaceVO> spaceVOList = spaceStructMapper.toVoList(spaceList);
         // 1. 关联查询用户信息
         Set<Long> userIdSet = spaceList.stream().map(Space::getUserId).collect(Collectors.toSet());
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
