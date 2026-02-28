@@ -1,9 +1,7 @@
 package com.domye.picture.model.vo.space;
 
-import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
-import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -45,31 +43,4 @@ public class SpaceUserVO implements Serializable {
      */
     private SpaceVO space;
 
-    /**
-     * 封装类转对象
-     * @param spaceUserVO
-     * @return
-     */
-    public static SpaceUser voToObj(SpaceUserVO spaceUserVO) {
-        if (spaceUserVO == null) {
-            return null;
-        }
-        SpaceUser spaceUser = new SpaceUser();
-        BeanUtils.copyProperties(spaceUserVO, spaceUser);
-        return spaceUser;
-    }
-
-    /**
-     * 对象转封装类
-     * @param spaceUser
-     * @return
-     */
-    public static SpaceUserVO objToVo(SpaceUser spaceUser) {
-        if (spaceUser == null) {
-            return null;
-        }
-        SpaceUserVO spaceUserVO = new SpaceUserVO();
-        BeanUtils.copyProperties(spaceUser, spaceUserVO);
-        return spaceUserVO;
-    }
 }

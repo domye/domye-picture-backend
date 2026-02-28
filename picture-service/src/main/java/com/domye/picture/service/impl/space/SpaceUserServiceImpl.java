@@ -14,19 +14,20 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
+import com.domye.picture.model.mapper.space.SpaceUserStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.mapper.SpaceUserMapper;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.mapper.SpaceUserMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     final SpaceService spaceService;
     final UserService userService;
     final UserStructMapper userStructMapper;
+    final SpaceUserStructMapper spaceUserStructMapper;
 
     @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
@@ -90,7 +92,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     @Deprecated
     public SpaceUserVO getSpaceUserVO(SpaceUser spaceUser, HttpServletRequest request) {
         // 对象转封装类
-        SpaceUserVO spaceUserVO = SpaceUserVO.objToVo(spaceUser);
+        SpaceUserVO spaceUserVO = spaceUserStructMapper.toSpaceUserVo(spaceUser);
         // 关联查询用户信息
         Long userId = spaceUser.getUserId();
         if (userId != null && userId > 0) {
@@ -116,7 +118,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
             return Collections.emptyList();
         }
         // 对象列表 => 封装对象列表
-        List<SpaceUserVO> spaceUserVOList = spaceUserList.stream().map(SpaceUserVO::objToVo).collect(Collectors.toList());
+        List<SpaceUserVO> spaceUserVOList = spaceUserList.stream().map(spaceUserStructMapper::toSpaceUserVo).collect(Collectors.toList());
         // 1. 关联查询用户信息
         Set<Long> userIdSet = spaceUserList.stream().map(SpaceUser::getUserId).collect(Collectors.toSet());
         Set<Long> spaceIdSet = spaceUserList.stream().map(SpaceUser::getSpaceId).collect(Collectors.toSet());
