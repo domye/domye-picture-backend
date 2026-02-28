@@ -14,6 +14,7 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceRoleEnum;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.vo.user.UserVO;
@@ -43,6 +44,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         implements SpaceUserService {
     final SpaceService spaceService;
     final UserService userService;
+    final UserStructMapper userStructMapper;
 
     @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
@@ -93,7 +95,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         Long userId = spaceUser.getUserId();
         if (userId != null && userId > 0) {
             User user = userService.getById(userId);
-            UserVO userVO = userService.getUserVO(user);
+            UserVO userVO = userStructMapper.toUserVo(user);
             spaceUserVO.setUser(userVO);
         }
         // 关联查询空间信息
@@ -130,7 +132,7 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            spaceUserVO.setUser(userService.getUserVO(user));
+            spaceUserVO.setUser(userStructMapper.toUserVo(user));
             Space space = null;
             if (spaceIdSpaceListMap.containsKey(spaceUserVO.getSpaceId())) {
                 space = spaceIdSpaceListMap.get(spaceUserVO.getSpaceId()).get(0);

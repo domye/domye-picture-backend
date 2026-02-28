@@ -13,6 +13,7 @@ import com.domye.picture.model.dto.contact.ContactQueryRequest;
 import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.ContactStatusEnum;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.contact.ContactVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
@@ -36,6 +37,7 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
         implements ContactService {
 
     private final UserService userService;
+    private final UserStructMapper userStructMapper;
 
     @Override
     public long applyContact(ContactAddRequest request, Long userId) {
@@ -221,7 +223,7 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
             if (contactUserIdUserMap.containsKey(contactUserId)) {
                 contactUser = contactUserIdUserMap.get(contactUserId).get(0);
             }
-            contactVO.setContactUser(userService.getUserVO(contactUser));
+            contactVO.setContactUser(userStructMapper.toUserVo(contactUser));
         });
 
         contactVOPage.setRecords(contactVOList);

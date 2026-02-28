@@ -1,7 +1,6 @@
 /*******************    💫 Codegeex Inline Diff    *******************/
 package com.domye.picture.service.impl.user;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -13,11 +12,12 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
-import com.domye.picture.model.vo.user.LoginUserVO;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -35,11 +35,14 @@ import static com.domye.picture.common.constant.UserConstant.*;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
 
+    private final UserStructMapper userStructMapper;
     /**
      * 用户注册
+     *
      * @param userAccount   用户账户
      * @param password      用户密码
      * @param checkPassword 确认密码
@@ -54,22 +57,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //2.数据库检测账号是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
-        long count = this.baseMapper.selectCount(queryWrapper);
+        long count = baseMapper.selectCount(queryWrapper);
         Throw.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号重复");
-
 
         //3.加密数据
         String encryptPassword = getEncryptPassword(password);
+
         //4.将加密的数据存入数据库
-        User user = new User();
-        user.setUserAccount(userAccount);
-        user.setUserPassword(encryptPassword);
-        user.setUserName("无名");
-        user.setUserRole(UserRoleEnum.USER.getValue());
-        boolean saveResult = this.save(user);
+        User user = User.builder()
+                .userAccount(userAccount)
+                .userPassword(encryptPassword)
+                .userName("无名")
+                .userRole(UserRoleEnum.USER.getValue())
+                .build();
+        boolean saveResult = save(user);
         Throw.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "注册失败");
-
-
         //5.返回用户id
         return user.getId();
 
@@ -77,6 +79,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户登录
+     *
      * @param userAccount  用户账户
      * @param userPassword 用户密码
      * @param request
@@ -84,7 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return LoginUserVO 登陆的用户信息
      */
     @Override
-    public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public UserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //校验
         validateAccountAndPassword(userAccount, userPassword);
 
@@ -93,28 +96,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //查询数据是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount).eq("userPassword", encryptPassword);
-        User user = this.baseMapper.selectOne(queryWrapper);
+        User user = baseMapper.selectOne(queryWrapper);
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
         //正确返回用户信息
         setLoginState(user, request);
-        return this.getLoginUserVO(user);
-    }
-
-    /**
-     * 获取视图层的登录用户信息
-     * @param user
-     * @param user 用户实体对象
-     * @return LoginUserVO 登录用户的视图对象
-     */
-    @Override
-    public LoginUserVO getLoginUserVO(User user) {
-        LoginUserVO loginUserVO = new LoginUserVO();
-        BeanUtil.copyProperties(user, loginUserVO);
-        return loginUserVO;
+        return userStructMapper.toUserVo(user);
     }
 
     /**
      * 获取当前登录用户
+     *
      * @param request
      * @return User 当前登录用户
      */
@@ -129,6 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 退出登录
+     *
      * @param request
      * @return boolean 是否成功
      */
@@ -149,22 +141,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     /**
-     * 获取视图层用户信息
-     * @param user
-     * @return UserVO 用户视图对象
-     */
-    @Override
-    public UserVO getUserVO(User user) {
-        if (user == null)
-            return null;
-
-        UserVO userVO = new UserVO();
-        BeanUtil.copyProperties(user, userVO);
-        return userVO;
-    }
-
-    /**
      * 获取视图层用户信息列表
+     *
      * @param userList 用户列表
      * @return List<UserVO> 用户视图对象列表
      */
@@ -173,11 +151,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollUtil.isEmpty(userList)) {
             return new ArrayList<>();
         }
-        return userList.stream().map(this::getUserVO).collect(Collectors.toList());
+        return userList.stream().map(userStructMapper::toUserVo).collect(Collectors.toList());
     }
 
     /**
      * 构造查询条件
+     *
      * @param userQueryRequest 用户查询请求
      * @return QueryWrapper<User> 查询条件
      */
@@ -203,6 +182,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 获取加密后的密码
+     *
      * @param userPassword 用户密码
      * @return String 加密后的密码
      */
@@ -216,6 +196,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 判断当前用户是否为管理员
+     *
      * @param user
      * @return boolean 是否为管理员
      */
@@ -226,20 +207,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 校验用户账号和密码参数
+     *
      * @param userAccount 用户账号
      * @param password    用户密码
      */
     @Override
     public void validateAccountAndPassword(String userAccount, String password) {
         Throw.throwIf(StrUtil.hasBlank(userAccount, password), ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
+        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH,
                 ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
-        Throw.throwIf(password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH, 
+        Throw.throwIf(password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH,
                 ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
     }
 
     /**
      * 设置用户登录状态
+     *
      * @param user    用户对象
      * @param request HTTP请求
      */

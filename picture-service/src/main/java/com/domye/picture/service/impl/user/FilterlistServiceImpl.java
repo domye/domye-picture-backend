@@ -7,6 +7,7 @@ import com.domye.picture.common.helper.impl.RedisCache;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.FilterModeEnum;
 import com.domye.picture.model.enums.FilterTypeEnum;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.FilterlistService;
 import com.domye.picture.service.api.user.UserService;
@@ -23,6 +24,7 @@ public class FilterlistServiceImpl implements FilterlistService {
 
     final UserService userService;
     final RedisCache redisCache;
+    final UserStructMapper userStructMapper;
 
     /**
      * 检查用户是否在名单中
@@ -50,7 +52,7 @@ public class FilterlistServiceImpl implements FilterlistService {
             userList = users.stream().map(user -> userService.getById(Long.valueOf((String) user))).collect(Collectors.toList());
         }
         if (userList != null) {
-            return userList.stream().map(user -> userService.getUserVO(user)).collect(Collectors.toList());
+            return userList.stream().map(userStructMapper::toUserVo).collect(Collectors.toList());
         }
         return null;
     }

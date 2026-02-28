@@ -3,12 +3,12 @@ package com.domye.picture.service.helper.websocket;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.service.helper.websocket.disruptor.PictureEditEventProducer;
 import com.domye.picture.service.helper.websocket.model.PictureEditActionEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditMessageTypeEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import com.domye.picture.service.helper.websocket.model.PictureEditResponseMessage;
-import com.domye.picture.service.api.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -44,7 +44,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
     // 保存每张图片的编辑状态（旋转角度、缩放比例），用于新用户同步
     private final Map<Long, EditState> pictureEditStates = new ConcurrentHashMap<>();
     final PictureEditEventProducer pictureEditEventProducer;
-    final UserService userService;
+    final UserStructMapper userStructMapper;
 
     /**
      * 编辑状态内部类
@@ -75,7 +75,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
         pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.INFO.getValue());
         String message = String.format("%s加入编辑", user.getUserName());
         pictureEditResponseMessage.setMessage(message);
-        pictureEditResponseMessage.setUser(userService.getUserVO(user));
+        pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
         // 广播给同一张图片的用户
         broadcastToPicture(pictureId, pictureEditResponseMessage);
 
@@ -152,7 +152,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
         pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.INFO.getValue());
         String message = String.format("%s离开编辑", user.getUserName());
         pictureEditResponseMessage.setMessage(message);
-        pictureEditResponseMessage.setUser(userService.getUserVO(user));
+        pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
         broadcastToPicture(pictureId, pictureEditResponseMessage);
     }
 
@@ -173,7 +173,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
             pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.ENTER_EDIT.getValue());
             String message = String.format("%s开始编辑图片", user.getUserName());
             pictureEditResponseMessage.setMessage(message);
-            pictureEditResponseMessage.setUser(userService.getUserVO(user));
+            pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
             broadcastToPicture(pictureId, pictureEditResponseMessage);
         }
     }
@@ -203,7 +203,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
             String message = String.format("%s执行%s", user.getUserName(), actionEnum.getText());
             pictureEditResponseMessage.setMessage(message);
             pictureEditResponseMessage.setEditAction(editAction);
-            pictureEditResponseMessage.setUser(userService.getUserVO(user));
+            pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
             // 广播给除了当前客户端之外的其他用户，否则会造成重复编辑
             broadcastToPicture(pictureId, pictureEditResponseMessage, session);
         }
@@ -248,7 +248,7 @@ public class PictureEditHandler extends TextWebSocketHandler {
             pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.EXIT_EDIT.getValue());
             String message = String.format("%s退出编辑图片", user.getUserName());
             pictureEditResponseMessage.setMessage(message);
-            pictureEditResponseMessage.setUser(userService.getUserVO(user));
+            pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
             broadcastToPicture(pictureId, pictureEditResponseMessage);
         }
     }

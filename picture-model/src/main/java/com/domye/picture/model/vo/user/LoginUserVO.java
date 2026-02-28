@@ -46,10 +46,6 @@ public class LoginUserVO {
      */
     private String userRole;
 
-    /**
-     * 编辑时间
-     */
-    private Date editTime;
 
     /**
      * 创建时间

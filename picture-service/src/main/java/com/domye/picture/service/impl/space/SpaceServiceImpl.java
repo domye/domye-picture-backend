@@ -18,6 +18,7 @@ import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.UserVO;
@@ -53,6 +54,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     final TransactionTemplate transactionTemplate;
     final LockService lockService;
     final SpaceUserMapper spaceUserMapper;
+    final UserStructMapper userStructMapper;
 
     /**
      * 新增空间
@@ -208,7 +210,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Long userId = space.getUserId();
         if (userId != null && userId > 0) {
             User user = userService.getById(userId);
-            UserVO userVO = userService.getUserVO(user);
+            UserVO userVO = userStructMapper.toUserVo(user);
             spaceVO.setUser(userVO);
         }
         return spaceVO;
@@ -243,7 +245,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            spaceVO.setUser(userService.getUserVO(user));
+            spaceVO.setUser(userStructMapper.toUserVo(user));
         });
         spaceVOPage.setRecords(spaceVOList);
         return spaceVOPage;

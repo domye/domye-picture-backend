@@ -25,6 +25,7 @@ import com.domye.picture.model.mapper.PictureStructMapper;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.helper.upload.CosManager;
@@ -74,6 +75,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     final RedisCache redisCache;
     final Cache<String, String> pictureListLocalCache;
     final PictureStructMapper pictureStructMapper;
+    final UserStructMapper userStructMapper;
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
@@ -258,7 +260,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long userId = picture.getUserId();
         if (userId != null && userId > 0) {
             User user = userService.getById(userId);
-            UserVO userVO = userService.getUserVO(user);
+            UserVO userVO = userStructMapper.toUserVo(user);
             pictureVO.setUser(userVO);
         }
         return pictureVO;
@@ -283,7 +285,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         pictureVOList.forEach(pictureVO -> {
             Long userId = pictureVO.getUserId();
             User user = userIdUserListMap.containsKey(userId) ? userIdUserListMap.get(userId).get(0) : null;
-            pictureVO.setUser(userService.getUserVO(user));
+            pictureVO.setUser(userStructMapper.toUserVo(user));
         });
         pictureVOPage.setRecords(pictureVOList);
         return pictureVOPage;

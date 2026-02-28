@@ -10,6 +10,7 @@ import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.enums.RankTimeEnum;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.service.mapper.PictureMapper;
 import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.user.UserService;
@@ -32,6 +33,7 @@ public class RankServiceImpl implements RankService {
     final UserService userService;
     final RedisCache redisCache;
     final PictureMapper pictureMapper;
+    final UserStructMapper userStructMapper;
 
 
     /**
@@ -149,7 +151,7 @@ public class RankServiceImpl implements RankService {
 
             if (user != null) {
                 UserActiveRankItemVO item = new UserActiveRankItemVO();
-                item.setUser(userService.getUserVO(user));
+                item.setUser(userStructMapper.toUserVo(user));
                 item.setScore(tuple.getScore());
                 item.setRank(rank++);
                 rankItemList.add(item);

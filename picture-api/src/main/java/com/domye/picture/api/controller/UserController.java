@@ -13,7 +13,7 @@ import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.dto.user.UserRegisterRequest;
 import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.vo.user.LoginUserVO;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +31,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserController implements Serializable {
     final UserService userService;
+    final UserStructMapper userStructMapper;
 
     /**
      * 用户注册
@@ -58,12 +59,12 @@ public class UserController implements Serializable {
      */
     @Operation(summary = "用户登录")
     @PostMapping("/login")
-    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<UserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         Throw.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
-        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
-        return Result.success(loginUserVO);
+        UserVO userVO = userService.userLogin(userAccount, userPassword, request);
+        return Result.success(userVO);
     }
 
     /**
@@ -74,9 +75,9 @@ public class UserController implements Serializable {
      */
     @Operation(summary = "获取当前登录用户信息")
     @GetMapping("/get/login")
-    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
+    public BaseResponse<UserVO> getLoginUser(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        return Result.success(userService.getLoginUserVO(loginUser));
+        return Result.success(userStructMapper.toUserVo(loginUser));
     }
 
     /**
@@ -121,7 +122,7 @@ public class UserController implements Serializable {
     public BaseResponse<UserVO> getUserVOById(long id) {
         BaseResponse<User> response = getUserById(id);
         User user = response.getData();
-        return Result.success(userService.getUserVO(user));
+        return Result.success(userStructMapper.toUserVo(user));
     }
 
     /**
@@ -181,7 +182,9 @@ public class UserController implements Serializable {
         Page<User> userPage = userService.page(new Page<>(current, pageSize),
                 userService.getQueryWrapper(userQueryRequest));
         Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
-        List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
+        List<UserVO> userVOList = userPage.getRecords().stream()
+                .map(userStructMapper::toUserVo)
+                .collect(java.util.stream.Collectors.toList());
         userVOPage.setRecords(userVOList);
         return Result.success(userVOPage);
     }

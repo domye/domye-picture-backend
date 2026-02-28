@@ -2,6 +2,7 @@ package com.domye.picture.service.helper.websocket.disruptor;
 
 import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.service.helper.websocket.PictureEditHandler;
 import com.domye.picture.service.helper.websocket.model.PictureEditMessageTypeEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
@@ -27,6 +28,7 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
     private PictureEditHandler pictureEditHandler;
 
     final UserService userService;
+    final UserStructMapper userStructMapper;
 
     @Override
     public void onEvent(PictureEditEvent event) throws Exception {
@@ -52,7 +54,7 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
                 PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();
                 pictureEditResponseMessage.setType(PictureEditMessageTypeEnum.ERROR.getValue());
                 pictureEditResponseMessage.setMessage("消息类型错误");
-                pictureEditResponseMessage.setUser(userService.getUserVO(user));
+                pictureEditResponseMessage.setUser(userStructMapper.toUserVo(user));
                 session.sendMessage(new TextMessage(JSONUtil.toJsonStr(pictureEditResponseMessage)));
         }
     }

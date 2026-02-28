@@ -4,11 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.vo.user.LoginUserVO;
 import com.domye.picture.model.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.List;
 
 /**
  * @author Domye
@@ -25,28 +22,17 @@ public interface UserService extends IService<User> {
      * @param request
      * @return 脱敏后的用户信息
      */
-    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
-
-    /**
-     * 获取脱敏后的用户信息
-     * @param user
-     * @return
-     */
-    LoginUserVO getLoginUserVO(User user);
+    UserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
     User getLoginUser(HttpServletRequest request);
 
     boolean userLogout(HttpServletRequest request);
 
-    public UserVO getUserVO(User user);
+    QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
-    public List<UserVO> getUserVOList(List<User> userList);
+    String getEncryptPassword(String defaultPassword);
 
-    public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
-
-    public String getEncryptPassword(String defaultPassword);
-
-    public boolean isAdmin(User user);
+    boolean isAdmin(User user);
 
 
     void validateAccountAndPassword(String userAccount, String password);
