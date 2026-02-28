@@ -231,4 +231,25 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
         contactVOPage.setRecords(contactVOList);
         return contactVOPage;
     }
+
+    @Override
+    public List<Map<String, Object>> getFriendsForMention(Long userId) {
+        ContactQueryRequest queryRequest = new ContactQueryRequest();
+        queryRequest.setCurrent(1);
+        queryRequest.setPageSize(1000);
+        queryRequest.setStatus(1); // 仅返回已通过的好友
+        Page<ContactVO> contactPage = this.getMyContacts(queryRequest, userId);
+        
+        return contactPage.getRecords().stream()
+                .map(contact -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", contact.getContactUserId());
+                    if (contact.getContactUser() != null) {
+                        map.put("userName", contact.getContactUser().getUserName());
+                        map.put("userAvatar", contact.getContactUser().getUserAvatar());
+                    }
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
 }

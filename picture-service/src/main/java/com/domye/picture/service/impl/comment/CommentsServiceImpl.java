@@ -86,7 +86,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         Long rootId = resolveRootId(parentId);
 
         // 4. 保存评论记录
-        Comments comment =Comments.builder()
+        Comments comment = Comments.builder()
                 .pictureid(pictureId)
                 .userid(userId)
                 .parentid(parentId)
@@ -124,8 +124,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
      *
      * @param commentId 评论ID
      * @param pictureId 图片ID
-     * @param content 评论内容
-     * @param userId 评论用户ID
+     * @param content   评论内容
+     * @param userId    评论用户ID
      */
     private void triggerAIReplyIfNeeded(Long commentId, Long pictureId, String content, Long userId) {
         // 检测条件：1. 包含@AI助手 2. 不是AI用户发的评论（防止循环）
@@ -179,12 +179,13 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return processCommentPage(commentsPage, comments, repliesMap);
     }
 
-   /**
+    /**
      * 提取ID列表
+     *
      * @param items
      * @param mapper
-     * @return
      * @param <T>
+     * @return
      */
     @Override
     public <T> List<Long> extractIds(List<T> items, Function<T, Long> mapper) {
@@ -193,6 +194,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 批量获取并分组楼中楼
+     *
      * @param rootIds
      * @param limit
      * @return
@@ -208,6 +210,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 收集所有需要的ID
+     *
      * @param firstLevelComments
      * @param repliesMap
      * @return
@@ -238,6 +241,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 批量查询并构建映射
+     *
      * @param idCollection
      * @return
      */
@@ -262,21 +266,16 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                 batchQueryMentions(idCollection.getCommentIds());
 
 
-
         return new DataMaps(userMap, contentMap, mentionsMap);
 
     }
 
 
-
     /**
-
      * 批量查询@提及记录并按评论ID分组
-
+     *
      * @param commentIds 评论ID集合
-
-     * @return Map<评论ID, @提及列表>
-
+     * @return Map<评论ID, @ 提及列表>
      */
 
     private Map<Long, List<CommentMentionVO>> batchQueryMentions(Set<Long> commentIds) {
@@ -288,13 +287,11 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         List<CommentMention> mentions = commentMentionMapper.selectList(mentionWrapper);
 
 
-
         if (CollUtil.isEmpty(mentions)) {
 
             return Collections.emptyMap();
 
         }
-
 
 
         // 收集所有被提及用户ID
@@ -306,7 +303,6 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                 .collect(Collectors.toSet());
 
 
-
         // 批量查询用户信息
 
         Map<Long, User> mentionedUserMap = mentionedUserIds.isEmpty() ? Collections.emptyMap() :
@@ -314,7 +310,6 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
                 userService.listByIds(mentionedUserIds).stream()
 
                         .collect(Collectors.toMap(User::getId, u -> u));
-
 
 
         // 转换为VO并按评论ID分组
@@ -359,6 +354,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 构建评论VO列表
+     *
      * @param firstLevelComments
      * @param repliesMap
      * @param dataMaps
@@ -385,6 +381,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 构建评论VO
+     *
      * @param comment
      * @param dataMaps
      * @return
@@ -424,6 +421,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 构建楼中楼VO列表
+     *
      * @param replies
      * @param dataMaps
      * @return
@@ -473,6 +471,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 验证评论请求
+     *
      * @param request
      * @param userId
      */
@@ -489,6 +488,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 获取根评论ID
+     *
      * @param parentId
      * @return
      */
@@ -506,6 +506,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 获取楼中楼评论列表
+     *
      * @param request
      * @return
      */
@@ -541,6 +542,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 处理评论分页
+     *
      * @param commentsPage
      * @param comments
      * @param repliesMap
@@ -564,8 +566,9 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 处理评论中的@提及
-     * @param commentId 评论ID
-     * @param content 评论内容
+     *
+     * @param commentId     评论ID
+     * @param content       评论内容
      * @param currentUserId 当前用户ID
      */
     private void processMentions(Long commentId, String content, Long currentUserId) {
@@ -614,7 +617,8 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
 
     /**
      * 过滤有效好友(已通过的好友关系)
-     * @param currentUserId 当前用户ID
+     *
+     * @param currentUserId    当前用户ID
      * @param candidateUserIds 候选用户ID列表
      * @return 有效好友ID列表
      */

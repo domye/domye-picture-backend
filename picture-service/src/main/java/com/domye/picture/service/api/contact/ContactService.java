@@ -1,13 +1,16 @@
 package com.domye.picture.service.api.contact;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.contact.ContactAddRequest;
 import com.domye.picture.model.dto.contact.ContactHandleRequest;
 import com.domye.picture.model.dto.contact.ContactQueryRequest;
 import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.vo.contact.ContactVO;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Domye
@@ -62,4 +65,11 @@ public interface ContactService extends IService<Contact> {
      * @return QueryWrapper查询条件
      */
     QueryWrapper<Contact> getQueryWrapper(ContactQueryRequest request);
+
+    /**
+     * 获取好友列表（用于@选择器）
+     * @param userId 当前用户ID
+     * @return 好友列表
+     */
+    List<Map<String, Object>> getFriendsForMention(Long userId);
 }
