@@ -8,23 +8,22 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.result.BaseResponse;
 import com.domye.picture.common.result.Result;
 import com.domye.picture.model.dto.vote.*;
-import com.domye.picture.service.api.vote.VoteActivityService;
-import com.domye.picture.service.api.vote.VoteRecordService;
 import com.domye.picture.model.entity.vote.VoteActivity;
 import com.domye.picture.model.vo.vote.VoteActivityDetailVO;
 import com.domye.picture.model.vo.vote.VoteActivityVO;
+import com.domye.picture.service.api.vote.VoteActivityService;
+import com.domye.picture.service.api.vote.VoteRecordService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/vote/activity")
 @RequiredArgsConstructor
 public class VoteController {
 
-    final  VoteActivityService activitiesService;
+    final VoteActivityService activitiesService;
     final VoteRecordService voteRecordService;
 
     @PostMapping("/create")
@@ -84,7 +83,9 @@ public class VoteController {
         return Result.success(voteActivitiesPage);
     }
 
-    /** 分页获取脱敏后的信息 **/
+    /**
+     * 分页获取脱敏后的信息
+     **/
     @PostMapping("/list/page/vo")
     @Operation(summary = "分页获取脱敏后的信息")
     public BaseResponse<Page<VoteActivityVO>> listVoteActivitiesVOByPage(@RequestBody VoteActivityQueryRequest voteActivityQueryRequest) {

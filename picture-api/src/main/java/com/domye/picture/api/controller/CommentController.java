@@ -17,10 +17,9 @@ import com.domye.picture.service.api.comment.CommentsService;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +37,7 @@ public class CommentController {
 
     /**
      * 添加评论
+     *
      * @param commentAddRequest
      * @param request
      * @return
@@ -61,6 +61,7 @@ public class CommentController {
     public BaseResponse<Page<CommentListVO>> listReplyComments(CommentReplyQueryRequest request) {
         return Result.success(commentService.listReplyComments(request));
     }
+
     @GetMapping("/friends")
     @Operation(summary = "获取好友列表 (用于@选择器)")
     public BaseResponse<List<Map<String, Object>>> getFriends(HttpServletRequest request) {
@@ -72,17 +73,17 @@ public class CommentController {
         queryRequest.setStatus(1); // 仅返回已通过的好友
         Page<ContactVO> contactPage = contactService.getMyContacts(queryRequest, loginUser.getId());
         List<Map<String, Object>> friends = contactPage.getRecords().stream()
-            .map(contact -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", contact.getContactUserId());
-                if (contact.getContactUser() != null) {
-                    map.put("userName", contact.getContactUser().getUserName());
-                    map.put("userAvatar", contact.getContactUser().getUserAvatar());
-                }
-                return map;
-            })
-            .collect(Collectors.toList());
-        
+                .map(contact -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", contact.getContactUserId());
+                    if (contact.getContactUser() != null) {
+                        map.put("userName", contact.getContactUser().getUserName());
+                        map.put("userAvatar", contact.getContactUser().getUserAvatar());
+                    }
+                    return map;
+                })
+                .collect(Collectors.toList());
+
         return Result.success(friends);
     }
 }

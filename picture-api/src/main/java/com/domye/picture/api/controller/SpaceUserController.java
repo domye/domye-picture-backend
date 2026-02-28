@@ -21,6 +21,7 @@ import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -29,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -41,11 +41,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpaceUserController {
 
-   final SpaceUserService spaceUserService;
+    final SpaceUserService spaceUserService;
 
-   final UserService userService;
+    final UserService userService;
 
-   final ContactService contactService;
+    final ContactService contactService;
 
     /**
      * 添加成员到空间

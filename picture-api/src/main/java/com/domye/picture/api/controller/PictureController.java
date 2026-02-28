@@ -49,6 +49,7 @@ public class PictureController {
 
     /**
      * 上传图片
+     *
      * @param multipartFile        文件
      * @param pictureUploadRequest 上传请求
      * @param request              http请求
@@ -69,6 +70,7 @@ public class PictureController {
 
     /**
      * 删除图片
+     *
      * @param deleteRequest 删除请求
      * @param request       http请求
      * @return 删除是否成功
@@ -89,6 +91,7 @@ public class PictureController {
 
     /**
      * 编辑图片
+     *
      * @param pictureEditRequest 更新请求
      * @param request            http请求
      * @return 更新是否成功
@@ -108,6 +111,7 @@ public class PictureController {
 
     /**
      * 更新图片
+     *
      * @param pictureUpdateRequest 更新请求
      * @param request              请求
      * @return 更新是否成功
@@ -137,6 +141,7 @@ public class PictureController {
 
     /**
      * 根据id获取图片
+     *
      * @param id 图片id
      * @return 图片信息
      */
@@ -154,6 +159,7 @@ public class PictureController {
 
     /**
      * 根据id获取图片（封装类）
+     *
      * @param id      图片id
      * @param request http请求
      * @return 脱敏后的图片信息
@@ -187,6 +193,7 @@ public class PictureController {
 
     /**
      * 分页获取图片列表（仅管理员可用）
+     *
      * @param pictureQueryRequest 查询请求
      * @return 图片列表
      */
@@ -204,6 +211,7 @@ public class PictureController {
 
     /**
      * 分页获取脱敏后的图片列表
+     *
      * @param pictureQueryRequest 查询请求
      * @param request             http请求
      * @return 脱敏后的图片列表
@@ -226,6 +234,7 @@ public class PictureController {
 
     /**
      * 获取图片标签分类
+     *
      * @return
      */
     @GetMapping("/tag_category")
@@ -239,6 +248,7 @@ public class PictureController {
 
     /**
      * 图片审核
+     *
      * @param pictureReviewRequest 审核请求
      * @param request              http请求
      * @return 审核结果
@@ -256,6 +266,7 @@ public class PictureController {
 
     /**
      * 根据颜色搜索图片
+     *
      * @param searchPictureByColorRequest 搜索请求
      * @param request                     http请求
      * @return 搜索结果

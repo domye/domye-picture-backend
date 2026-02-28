@@ -14,14 +14,13 @@ import com.domye.picture.model.vo.contact.ContactVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 联系人管理
@@ -44,7 +43,7 @@ public class ContactController {
         // 获取当前登录用户ID
 
         User loginUser = userService.getLoginUser(httpServletRequest);
-        Long userId=loginUser.getId();
+        Long userId = loginUser.getId();
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
         // 参数校验
         Throw.throwIf(request == null || request.getContactUserId() == null, ErrorCode.PARAMS_ERROR);
@@ -61,7 +60,7 @@ public class ContactController {
     public BaseResponse<Boolean> handleContactRequest(@RequestBody ContactHandleRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
-        Long userId=loginUser.getId();
+        Long userId = loginUser.getId();
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
         // 参数校验
         Throw.throwIf(request == null || request.getId() == null, ErrorCode.PARAMS_ERROR);
@@ -79,7 +78,7 @@ public class ContactController {
     public BaseResponse<Page<ContactVO>> listContacts(@RequestBody ContactQueryRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
-        Long userId=loginUser.getId();
+        Long userId = loginUser.getId();
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
         // 参数校验
         Throw.throwIf(request == null, ErrorCode.PARAMS_ERROR);
@@ -96,7 +95,7 @@ public class ContactController {
     public BaseResponse<Page<ContactVO>> listPendingRequests(@RequestBody ContactQueryRequest request, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
-        Long userId=loginUser.getId();
+        Long userId = loginUser.getId();
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
         // 参数校验
         Throw.throwIf(request == null, ErrorCode.PARAMS_ERROR);
@@ -113,7 +112,7 @@ public class ContactController {
     public BaseResponse<Boolean> deleteContact(@RequestBody DeleteRequest deleteRequest, HttpServletRequest httpServletRequest) {
         // 获取当前登录用户ID
         User loginUser = userService.getLoginUser(httpServletRequest);
-        Long userId=loginUser.getId();
+        Long userId = loginUser.getId();
         Throw.throwIf(userId == null, ErrorCode.NOT_LOGIN_ERROR);
         // 参数校验
         Throw.throwIf(deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);

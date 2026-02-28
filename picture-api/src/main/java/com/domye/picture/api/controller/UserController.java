@@ -34,6 +34,7 @@ public class UserController implements Serializable {
 
     /**
      * 用户注册
+     *
      * @param userRegisterRequest 用户注册请求
      * @return 用户id
      */
@@ -50,6 +51,7 @@ public class UserController implements Serializable {
 
     /**
      * 用户登录
+     *
      * @param userLoginRequest 用户登录请求
      * @param request          http请求
      * @return 脱敏后的登录用户信息
@@ -66,6 +68,7 @@ public class UserController implements Serializable {
 
     /**
      * 获取当前登录用户信息
+     *
      * @param request http请求
      * @return 脱敏后的登录用户信息
      */
@@ -78,6 +81,7 @@ public class UserController implements Serializable {
 
     /**
      * 用户注销
+     *
      * @param request http请求
      * @return 是否退出成功
      */
@@ -92,6 +96,7 @@ public class UserController implements Serializable {
 
     /**
      * 根据 id 获取用户
+     *
      * @param id 用户id
      * @return 用户信息
      */
@@ -107,6 +112,7 @@ public class UserController implements Serializable {
 
     /**
      * 根据 id 获取用户封装信息
+     *
      * @param id 用户id
      * @return 脱敏后的用户信息
      */
@@ -120,6 +126,7 @@ public class UserController implements Serializable {
 
     /**
      * 删除用户
+     *
      * @param deleteRequest 删除请求
      * @return 用户列表
      */
@@ -134,6 +141,7 @@ public class UserController implements Serializable {
 
     /**
      * 更新用户信息
+     *
      * @param userUpdateRequest 用户更新请求
      * @param request           http请求
      * @return 是否更新成功
@@ -159,6 +167,7 @@ public class UserController implements Serializable {
 
     /**
      * 分页获取用户封装列表
+     *
      * @param userQueryRequest 用户查询请求
      * @return 用户封装列表
      */
@@ -176,6 +185,4 @@ public class UserController implements Serializable {
         userVOPage.setRecords(userVOList);
         return Result.success(userVOPage);
     }
-
-
 }
