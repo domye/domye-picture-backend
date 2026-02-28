@@ -1,6 +1,6 @@
 package com.domye.picture.service.impl.picture;
 
-import cn.hutool.core.bean.BeanUtil;
+
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -19,7 +19,9 @@ import com.domye.picture.model.dto.picture.PictureQueryRequest;
 import com.domye.picture.model.dto.picture.PictureReviewRequest;
 import com.domye.picture.model.dto.picture.PictureUploadRequest;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+
 import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.mapper.PictureStructMapper;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
@@ -38,7 +40,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StopWatch;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -71,7 +73,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     final FilterlistService filterlistService;
     final RedisCache redisCache;
     final Cache<String, String> pictureListLocalCache;
-
+    final PictureStructMapper pictureStructMapper;
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
@@ -322,7 +324,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         Throw.throwIf(oldPicture.getReviewStatus().equals(reviewStatus), ErrorCode.PARAMS_ERROR, "请勿重复审核");
         Picture updatePicture = new Picture();
-        BeanUtil.copyProperties(oldPicture, updatePicture);
+        pictureStructMapper.copyPicture(updatePicture, oldPicture);
         updatePicture.setReviewerId(loginUser.getId());
         updatePicture.setReviewTime(new Date());
         updatePicture.setReviewStatus(reviewStatus);
@@ -414,9 +416,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     @Override
     public void editPicture(PictureEditRequest pictureEditRequest, User loginUser) {
-        Picture picture = new Picture();
-        BeanUtils.copyProperties(pictureEditRequest, picture);
-        picture.setTags(JSONUtil.toJsonStr(pictureEditRequest.getTags()));
+        Picture picture = pictureStructMapper.toEntity(pictureEditRequest);
         picture.setEditTime(new Date());
         this.validPicture(picture);
         long id = pictureEditRequest.getId();

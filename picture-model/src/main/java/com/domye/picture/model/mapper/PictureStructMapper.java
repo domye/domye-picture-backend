@@ -8,6 +8,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import cn.hutool.json.JSONUtil;
+
 import java.util.List;
 
 
@@ -25,4 +26,6 @@ public interface PictureStructMapper {
         }
         return JSONUtil.toJsonStr(tags);
     }
+    
+    void copyPicture(@MappingTarget Picture target, Picture source);
 }
