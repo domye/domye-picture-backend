@@ -18,7 +18,7 @@ import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.mapper.PictureStructMapper;
+import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.service.api.picture.PictureService;

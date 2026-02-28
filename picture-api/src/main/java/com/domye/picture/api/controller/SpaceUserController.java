@@ -16,6 +16,7 @@ import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.ContactStatusEnum;
+import com.domye.picture.model.mapper.space.SpaceUserStructMapper;
 import com.domye.picture.model.vo.space.SpaceUserVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.space.SpaceUserService;
@@ -24,7 +25,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +46,8 @@ public class SpaceUserController {
     final UserService userService;
 
     final ContactService contactService;
+
+    final SpaceUserStructMapper spaceUserStructMapper;
 
     /**
      * 添加成员到空间
@@ -154,8 +156,7 @@ public class SpaceUserController {
         Throw.throwIf(spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
 
         // 将实体类和 DTO 进行转换
-        SpaceUser spaceUser = new SpaceUser();
-        BeanUtils.copyProperties(spaceUserEditRequest, spaceUser);
+        SpaceUser spaceUser = spaceUserStructMapper.toEntity(spaceUserEditRequest);
         // 数据校验
         spaceUserService.validSpaceUser(spaceUser, false);
         // 判断是否存在

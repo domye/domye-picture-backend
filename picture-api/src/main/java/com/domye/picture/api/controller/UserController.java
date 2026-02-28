@@ -19,12 +19,9 @@ import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -136,8 +133,7 @@ public class UserController implements Serializable {
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
         Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
-        boolean b = userService.removeById(deleteRequest.getId());
-        return Result.success(b);
+        return Result.success(userService.removeById(deleteRequest.getId()));
     }
 
     /**
@@ -150,20 +146,8 @@ public class UserController implements Serializable {
     @Operation(summary = "更新用户信息")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
-        Throw.throwIf(userUpdateRequest == null || userUpdateRequest.getId() == null, ErrorCode.PARAMS_ERROR);
-
-        User loginUser = userService.getLoginUser(request);
-        User oldUser = userService.getById(userUpdateRequest.getId());
-        Throw.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
-        Throw.throwIf(!Objects.equals(user.getId(), loginUser.getId()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
-        Throw.throwIf(!oldUser.getUserRole().equals(user.getUserRole()) && !userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
-
-
-        boolean result = userService.updateById(user);
-        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return Result.success(true);
+        boolean result = userService.updateUser(userUpdateRequest, request);
+        return Result.success(result);
     }
 
     /**
@@ -176,16 +160,7 @@ public class UserController implements Serializable {
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {
-        Throw.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR);
-        long current = userQueryRequest.getCurrent();
-        long pageSize = userQueryRequest.getPageSize();
-        Page<User> userPage = userService.page(new Page<>(current, pageSize),
-                userService.getQueryWrapper(userQueryRequest));
-        Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
-        List<UserVO> userVOList = userPage.getRecords().stream()
-                .map(userStructMapper::toUserVo)
-                .collect(java.util.stream.Collectors.toList());
-        userVOPage.setRecords(userVOList);
+        Page<UserVO> userVOPage = userService.listUserVOByPage(userQueryRequest);
         return Result.success(userVOPage);
     }
 }

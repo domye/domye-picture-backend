@@ -1,15 +1,15 @@
-/*******************    💫 Codegeex Inline Diff    *******************/
 package com.domye.picture.service.impl.user;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.auth.StpKit;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.user.UserQueryRequest;
+import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
 import com.domye.picture.model.mapper.user.UserStructMapper;
@@ -22,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.domye.picture.common.constant.UserConstant.*;
@@ -40,6 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
 
     private final UserStructMapper userStructMapper;
+
     /**
      * 用户注册
      *
@@ -141,20 +142,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     /**
-     * 获取视图层用户信息列表
-     *
-     * @param userList 用户列表
-     * @return List<UserVO> 用户视图对象列表
-     */
-    @Override
-    public List<UserVO> getUserVOList(List<User> userList) {
-        if (CollUtil.isEmpty(userList)) {
-            return new ArrayList<>();
-        }
-        return userList.stream().map(userStructMapper::toUserVo).collect(Collectors.toList());
-    }
-
-    /**
      * 构造查询条件
      *
      * @param userQueryRequest 用户查询请求
@@ -232,7 +219,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         StpKit.SPACE.getSession().set(USER_LOGIN_STATE, user);
     }
 
+    /**
+     * 更新用户信息
+     *
+     * @param userUpdateRequest 用户更新请求
+     * @param request           http请求
+     * @return 是否更新成功
+     */
+    @Override
+    public boolean updateUser(UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
+        Throw.throwIf(userUpdateRequest == null || userUpdateRequest.getId() == null, ErrorCode.PARAMS_ERROR);
 
+        User loginUser = getLoginUser(request);
+        User oldUser = getById(userUpdateRequest.getId());
+        Throw.throwIf(oldUser == null, ErrorCode.NOT_FOUND_ERROR);
+
+        User user = userStructMapper.toUser(userUpdateRequest);
+        Throw.throwIf(!Objects.equals(user.getId(), loginUser.getId()) && !isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+        Throw.throwIf(!oldUser.getUserRole().equals(user.getUserRole()) && !isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR);
+
+        boolean result = updateById(user);
+        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return true;
+    }
+
+    /**
+     * 分页获取用户封装列表
+     *
+     * @param userQueryRequest 用户查询请求
+     * @return 用户封装列表
+     */
+    @Override
+    public Page<UserVO> listUserVOByPage(UserQueryRequest userQueryRequest) {
+        Throw.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        long current = userQueryRequest.getCurrent();
+        long pageSize = userQueryRequest.getPageSize();
+        Page<User> userPage = page(new Page<>(current, pageSize), getQueryWrapper(userQueryRequest));
+        Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
+        List<UserVO> userVOList = userPage.getRecords().stream()
+                .map(userStructMapper::toUserVo)
+                .collect(Collectors.toList());
+        userVOPage.setRecords(userVOList);
+        return userVOPage;
+    }
 }
 
 

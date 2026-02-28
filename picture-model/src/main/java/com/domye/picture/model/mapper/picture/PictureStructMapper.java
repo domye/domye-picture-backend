@@ -1,4 +1,4 @@
-package com.domye.picture.model.mapper;
+package com.domye.picture.model.mapper.picture;
 
 import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.dto.picture.PictureEditRequest;

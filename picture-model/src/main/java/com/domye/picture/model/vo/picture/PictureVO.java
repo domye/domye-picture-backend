@@ -96,19 +96,6 @@ public class PictureVO implements Serializable {
      */
     private List<String> permissionList = new ArrayList<>();
 
-    /**
-     * 封装类转对象
-     */
-    public static Picture voToObj(PictureVO pictureVO) {
-        if (pictureVO == null) {
-            return null;
-        }
-        Picture picture = new Picture();
-        BeanUtils.copyProperties(pictureVO, picture);
-        // 类型不同，需要转换
-        picture.setTags(JSONUtil.toJsonStr(pictureVO.getTags()));
-        return picture;
-    }
 
     /**
      * 对象转封装类
