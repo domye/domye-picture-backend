@@ -15,14 +15,13 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
 import com.domye.picture.model.vo.user.LoginUserVO;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.mapper.UserMapper;
 import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.mapper.UserMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,11 +48,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Long UserRegister(String userAccount, String password, String checkPassword) {
         //1. 检验参数是否合法
-        Throw.throwIf(StrUtil.hasBlank(userAccount, password, checkPassword), ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
-                ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
-        Throw.throwIf(password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH, 
-                ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
+        validateAccountAndPassword(userAccount, password);
         Throw.throwIf(!password.equals(checkPassword), ErrorCode.PARAMS_ERROR, "两次输入密码不一致");
 
         //2.数据库检测账号是否存在
@@ -91,11 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //校验
-        Throw.throwIf(StrUtil.hasBlank(userAccount, userPassword), ErrorCode.PARAMS_ERROR, "参数不能为空");
-        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
-                ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
-        Throw.throwIf(userPassword.length() < PASSWORD_MIN_LENGTH || userPassword.length() > PASSWORD_MAX_LENGTH, 
-                ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
+        validateAccountAndPassword(userAccount, userPassword);
 
         //用户传递密码加密
         String encryptPassword = getEncryptPassword(userPassword);
@@ -104,7 +95,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("userAccount", userAccount).eq("userPassword", encryptPassword);
         User user = this.baseMapper.selectOne(queryWrapper);
         Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
-        //正确���返回用户信息
+        //正确返回用户信息
         setLoginState(user, request);
         return this.getLoginUserVO(user);
     }
@@ -120,21 +111,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         LoginUserVO loginUserVO = new LoginUserVO();
         BeanUtil.copyProperties(user, loginUserVO);
         return loginUserVO;
-    }
-
-    /**
-     * 根据openId查找用户
-     * @param openId 微信openId
-     * @return 用户对象
-     */
-    @Override
-    public User findByOpenId(String openId) {
-        if (StrUtil.isEmpty(openId)) {
-            return null;
-        }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("wxOpenId", openId);
-        return this.baseMapper.selectOne(queryWrapper);
     }
 
     /**
@@ -171,28 +147,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
-    /**
-     * 创建微信用户
-     * @param openId 微信openId
-     * @return 用户对象
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public User createWxUser(String openId) {
-        Throw.throwIf(StrUtil.isEmpty(openId), ErrorCode.PARAMS_ERROR, "openId不能为空");
-
-        // 创建新用户
-        User user = new User();
-        user.setUserAccount("wx_" + openId.substring(0, Math.min(10, openId.length()))); // 使用wx_前缀 + openId的一部分作为账号
-        user.setUserName("微信用户");
-        user.setUserRole(UserRoleEnum.USER.getValue());
-        user.setWxOpenId(openId); // 保存openId
-
-        // 保存用户
-        boolean saveResult = this.save(user);
-        Throw.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "创建用户失败");
-        return user;
-    }
 
     /**
      * 获取视图层用户信息
@@ -259,38 +213,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
     }
 
-    /**
-     * 微信登录
-     * @param user    用户对象
-     * @param request HTTP请求
-     */
-    @Override
-    public void wxLogin(User user, HttpServletRequest request) {
-        Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不能为空");
-        // 设置登录状态
-        setLoginState(user, request);
-
-        log.info("微信登录成功: userId={}, openId={}", user.getId(), user.getWxOpenId());
-    }
-
-    @Override
-    public void loginByWx(String fromUserName, HttpServletRequest request) {
-        User user = findByOpenId(fromUserName);
-        //不存在抛出异常
-        Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
-        //设置登录状态
-        setLoginState(user, request);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void bindWx(String fromUserName, Long userId) {
-        User user = getById(userId);
-        Throw.throwIf(user == null, ErrorCode.NOT_LOGIN_ERROR, "用户不存在或密码错误");
-        user.setWxOpenId(fromUserName);
-        updateById(user);
-
-    }
 
     /**
      * 判断当前用户是否为管理员
@@ -300,6 +222,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(User user) {
         return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
+
+    /**
+     * 校验用户账号和密码参数
+     * @param userAccount 用户账号
+     * @param password    用户密码
+     */
+    @Override
+    public void validateAccountAndPassword(String userAccount, String password) {
+        Throw.throwIf(StrUtil.hasBlank(userAccount, password), ErrorCode.PARAMS_ERROR, "参数不能为空");
+        Throw.throwIf(userAccount.length() < ACCOUNT_MIN_LENGTH || userAccount.length() > ACCOUNT_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "账号长度必须在" + ACCOUNT_MIN_LENGTH + "-" + ACCOUNT_MAX_LENGTH + "位之间");
+        Throw.throwIf(password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH, 
+                ErrorCode.PARAMS_ERROR, "密码长度必须在" + PASSWORD_MIN_LENGTH + "-" + PASSWORD_MAX_LENGTH + "位之间");
     }
 
     /**

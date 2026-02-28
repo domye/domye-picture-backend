@@ -20,9 +20,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
 
         <rocketmq.version>2.3.1</rocketmq.version>
-        <sentinel.version>1.8.9</sentinel.version>
         <sa-token.version>1.39.0</sa-token.version>
-        <elasticsearch.version>7.17.29</elasticsearch.version>
         <redisson.version>3.51.0</redisson.version>
         <caffeine.version>3.2.2</caffeine.version>
         <knife4j.version>4.5.0</knife4j.version>
@@ -75,28 +73,6 @@
                 <version>${rocketmq.version}</version>
             </dependency>
 
-            <!-- ==================== 服务治理相关依赖 ==================== -->
-            <!-- Sentinel 核心模块 -->
-            <dependency>
-                <groupId>com.alibaba.csp</groupId>
-                <artifactId>sentinel-core</artifactId>
-                <version>${sentinel.version}</version>
-            </dependency>
-
-            <!-- Sentinel 参数流控 -->
-            <dependency>
-                <groupId>com.alibaba.csp</groupId>
-                <artifactId>sentinel-parameter-flow-control</artifactId>
-                <version>${sentinel.version}</version>
-            </dependency>
-
-            <!-- Sentinel 传输模块 -->
-            <dependency>
-                <groupId>com.alibaba.csp</groupId>
-                <artifactId>sentinel-transport-simple-http</artifactId>
-                <version>${sentinel.version}</version>
-            </dependency>
-
             <!-- ==================== 认证授权相关依赖 ==================== -->
             <!-- Sa-Token 认证授权 -->
             <dependency>
@@ -110,26 +86,6 @@
                 <groupId>cn.dev33</groupId>
                 <artifactId>sa-token-core</artifactId>
                 <version>${sa-token.version}</version>
-            </dependency>
-
-            <!-- ==================== 搜索引擎相关依赖 ==================== -->
-            <!-- Elasticsearch 高级客户端 -->
-            <dependency>
-                <groupId>org.elasticsearch</groupId>
-                <artifactId>elasticsearch</artifactId>
-                <version>${elasticsearch.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.elasticsearch.client</groupId>
-                <artifactId>elasticsearch-rest-client</artifactId>
-                <version>${elasticsearch.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.elasticsearch.client</groupId>
-                <artifactId>elasticsearch-rest-high-level-client</artifactId>
-                <version>${elasticsearch.version}</version>
             </dependency>
 
             <!-- ==================== 缓存相关依赖 ==================== -->

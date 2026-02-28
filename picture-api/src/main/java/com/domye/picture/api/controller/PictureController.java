@@ -1,9 +1,6 @@
 package com.domye.picture.api.controller;
 
 import cn.hutool.json.JSONUtil;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
-import com.alibaba.csp.sentinel.slots.block.BlockException;
-import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.auth.SpaceUserAuthManager;
 import com.domye.picture.auth.annotation.AuthCheck;
@@ -22,19 +19,18 @@ import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
@@ -166,7 +162,6 @@ public class PictureController {
      */
     @GetMapping("/get/vo")
     @Operation(summary = "根据id获取脱敏后的图片信息")
-    @SentinelResource(value = "getPictureVOById", blockHandler = "handleGetPictureBlock", fallback = "handleGetPictureFallback")
     public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         Picture picture = pictureService.getById(id);
@@ -190,24 +185,6 @@ public class PictureController {
         }
         return Result.success(pictureVO);
     }
-
-    /**
-     * getPictureVOById 限流处理
-     */
-    public BaseResponse<PictureVO> handleGetPictureBlock(long id, HttpServletRequest request, BlockException ex) {
-        if (ex instanceof DegradeException) {
-            return Result.success(null);
-        }
-        return Result.error(ErrorCode.SYSTEM_ERROR, "访问过于频繁，请稍后再试");
-    }
-
-    /**
-     * getPictureVOById 降级处理
-     */
-    public BaseResponse<PictureVO> handleGetPictureFallback(long id, HttpServletRequest request, Throwable ex) {
-        return Result.success(null);
-    }
-
 
 
     /**
@@ -235,7 +212,6 @@ public class PictureController {
      */
     @PostMapping("/list/page/vo")
     @Operation(summary = "分页获取脱敏后的图片列表")
-    @SentinelResource(value = "listPictureVOByPage", blockHandler = "handleBlockException", fallback = "handleFallback")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                              HttpServletRequest request) {
         // 空间权限校验
@@ -249,25 +225,6 @@ public class PictureController {
         return Result.success(pictureVOPage);
     }
 
-    /**
-     * 限流
-     * @param pictureQueryRequest
-     * @param request
-     * @param ex
-     * @return
-     */
-    public BaseResponse<Page<PictureVO>> handleBlockException(@RequestBody PictureQueryRequest pictureQueryRequest,
-                                                              HttpServletRequest request, BlockException ex) {
-        if (ex instanceof DegradeException) {
-            return handleFallback(pictureQueryRequest, request, ex);
-        }
-        return Result.error(ErrorCode.SYSTEM_ERROR.getCode(), "系统繁忙，请稍后再试");
-    }
-
-    //降级操作
-    public BaseResponse<Page<PictureVO>> handleFallback(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request, Throwable ex) {
-        return Result.success(null);
-    }
 
     /**
      * 获取图片标签分类
