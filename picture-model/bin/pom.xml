@@ -11,18 +11,6 @@
 
     <artifactId>picture-model</artifactId>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.domye</groupId>
-                <artifactId>picture-bom</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- MyBatis Plus -->
         <dependency>
@@ -37,16 +25,16 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 内部模块依赖 -->
-        <dependency>
-            <groupId>com.domye</groupId>
-            <artifactId>picture-common</artifactId>
-        </dependency>
-
         <!-- MapStruct 对象映射 -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+        </dependency>
+
+        <!-- 内部模块依赖 -->
+        <dependency>
+            <groupId>com.domye</groupId>
+            <artifactId>picture-common</artifactId>
         </dependency>
     </dependencies>
 </project>
