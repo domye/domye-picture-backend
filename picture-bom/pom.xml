@@ -30,6 +30,7 @@
         <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
         <lombok.version>1.18.36</lombok.version>
         <langchain4j.version>0.36.2</langchain4j.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
 
     <dependencyManagement>
@@ -51,7 +52,7 @@
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-            <!-- MyBatis Plus SQL解析器 -->
+            <!-- MyBatis Plus SQL 解析器 -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-jsqlparser-4.9</artifactId>
@@ -110,7 +111,7 @@
             </dependency>
 
             <!-- ==================== Web 相关依赖 ==================== -->
-            <!-- Knife4j API文档 -->
+            <!-- Knife4j API 文档 -->
             <dependency>
                 <groupId>com.github.xiaoymin</groupId>
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
@@ -163,7 +164,7 @@
                 <version>${jetbrains-annotations.version}</version>
             </dependency>
             <!-- ==================== 云服务相关依赖 ==================== -->
-            <!-- 腾讯云COS对象存储 -->
+            <!-- 腾讯云 COS 对象存储 -->
             <dependency>
                 <groupId>com.qcloud</groupId>
                 <artifactId>cos_api</artifactId>
@@ -254,6 +255,14 @@
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>2.10.10</version>
+            </dependency>
+
+            <!-- ==================== MapStruct 依赖 ==================== -->
+            <!-- MapStruct 对象映射 -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
