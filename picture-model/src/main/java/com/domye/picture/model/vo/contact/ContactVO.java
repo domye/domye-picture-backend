@@ -1,9 +1,9 @@
 package com.domye.picture.model.vo.contact;
 
 import com.domye.picture.model.entity.contact.Contact;
+import com.domye.picture.model.mapper.ContactStructMapper;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
-import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -52,8 +52,6 @@ public class ContactVO implements Serializable {
         if (contact == null) {
             return null;
         }
-        ContactVO contactVO = new ContactVO();
-        BeanUtils.copyProperties(contact, contactVO);
-        return contactVO;
+        return ContactStructMapper.INSTANCE.toVo(contact);
     }
 }

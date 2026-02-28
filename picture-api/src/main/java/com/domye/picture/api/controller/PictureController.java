@@ -1,6 +1,5 @@
 package com.domye.picture.api.controller;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.auth.SpaceUserAuthManager;
 import com.domye.picture.auth.annotation.AuthCheck;
@@ -19,6 +18,7 @@ import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.mapper.PictureStructMapper;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.service.api.picture.PictureService;
@@ -27,7 +27,6 @@ import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,6 +44,8 @@ public class PictureController {
     final UserService userService;
     final SpaceService spaceService;
     final SpaceUserAuthManager spaceUserAuthManager;
+    final PictureStructMapper pictureStructMapper;
+
 
     /**
      * 上传图片
@@ -118,10 +119,7 @@ public class PictureController {
         Throw.throwIf(pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
 
         // 将实体类和 DTO 进行转换
-        Picture picture = new Picture();
-        BeanUtils.copyProperties(pictureUpdateRequest, picture);
-        // 注意将 list 转为 string
-        picture.setTags(JSONUtil.toJsonStr(pictureUpdateRequest.getTags()));
+        Picture picture = pictureStructMapper.toEntity(pictureUpdateRequest);
         // 数据校验
         pictureService.validPicture(picture);
         // 判断是否存在

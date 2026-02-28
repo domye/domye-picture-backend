@@ -12,7 +12,8 @@ import cn.hutool.json.JSONUtil;
 import java.util.List;
 
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        imports = {cn.hutool.json.JSONUtil.class})
 public interface PictureStructMapper {
     PictureStructMapper INSTANCE = Mappers.getMapper(PictureStructMapper.class);
     
@@ -25,6 +26,20 @@ public interface PictureStructMapper {
             return null;
         }
         return JSONUtil.toJsonStr(tags);
+    }
+    
+    default Picture toEntity(PictureUpdateRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Picture picture = new Picture();
+        picture.setId(request.getId());
+        picture.setName(request.getName());
+        picture.setIntroduction(request.getIntroduction());
+        picture.setCategory(request.getCategory());
+        picture.setTags(mapTagsToJson(request.getTags()));
+        picture.setSpaceId(request.getSpaceId());
+        return picture;
     }
     
     void copyPicture(@MappingTarget Picture target, Picture source);
