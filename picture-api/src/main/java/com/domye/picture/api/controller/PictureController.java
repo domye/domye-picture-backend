@@ -122,19 +122,8 @@ public class PictureController {
     public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
         Throw.throwIf(pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
 
-        // 将实体类和 DTO 进行转换
-        Picture picture = pictureStructMapper.toEntity(pictureUpdateRequest);
-        // 数据校验
-        pictureService.validPicture(picture);
-        // 判断是否存在
-        long id = pictureUpdateRequest.getId();
-        Picture oldPicture = pictureService.getById(id);
-        Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         User loginUser = userService.getLoginUser(request);
-        pictureService.fillReviewParams(picture, loginUser);
-        // 操作数据库
-        boolean result = pictureService.updateById(picture);
-        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        pictureService.updatePicture(pictureUpdateRequest, loginUser);
         return Result.success(true);
     }
 

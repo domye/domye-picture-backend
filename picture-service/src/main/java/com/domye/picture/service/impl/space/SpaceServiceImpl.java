@@ -6,31 +6,31 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.domye.picture.common.constant.SpaceConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.LockService;
-import com.domye.picture.common.constant.SpaceConstant;
 import com.domye.picture.model.dto.space.SpaceAddRequest;
 import com.domye.picture.model.dto.space.SpaceQueryRequest;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.SpaceLevelEnum;
 import com.domye.picture.model.enums.SpaceRoleEnum;
 import com.domye.picture.model.enums.SpaceTypeEnum;
 import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceVO;
-import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.mapper.SpaceMapper;
-import com.domye.picture.service.mapper.SpaceUserMapper;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.mapper.SpaceMapper;
+import com.domye.picture.service.mapper.SpaceUserMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -87,29 +87,27 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         String lockKey = SpaceConstant.SPACE_CREATE_LOCK_PREFIX + userId;
 
         // 执行事务操作
-        Long newSpaceId = lockService.executeWithLock(lockKey, (int) SpaceConstant.LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> {
-            return transactionTemplate.execute(status -> {
-                boolean exists = this.lambdaQuery()
-                        .eq(Space::getUserId, userId)
-                        .eq(Space::getSpaceType, spaceAddRequest.getSpaceType())
-                        .exists();
-                Throw.throwIf(exists, ErrorCode.OPERATION_ERROR, SpaceConstant.SPACE_ALREADY_EXISTS);
+        Long newSpaceId = lockService.executeWithLock(lockKey, (int) SpaceConstant.LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> transactionTemplate.execute(status -> {
+            boolean exists = this.lambdaQuery()
+                    .eq(Space::getUserId, userId)
+                    .eq(Space::getSpaceType, spaceAddRequest.getSpaceType())
+                    .exists();
+            Throw.throwIf(exists, ErrorCode.OPERATION_ERROR, SpaceConstant.SPACE_ALREADY_EXISTS);
 
-                // 写入数据库
-                boolean result = this.save(space);
-                Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
-                if (SpaceTypeEnum.TEAM.getValue() == spaceAddRequest.getSpaceType()) {
-                    SpaceUser spaceUser = new SpaceUser();
-                    spaceUser.setSpaceId(space.getId());
-                    spaceUser.setUserId(userId);
-                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
-                    result = spaceUserMapper.insert(spaceUser) > 0;
-                    Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
-                }
-                // 返回新写入的数据 id
-                return space.getId();
-            });
-        });
+            // 写入数据库
+            boolean result = this.save(space);
+            Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+            if (SpaceTypeEnum.TEAM.getValue() == spaceAddRequest.getSpaceType()) {
+                SpaceUser spaceUser = new SpaceUser();
+                spaceUser.setSpaceId(space.getId());
+                spaceUser.setUserId(userId);
+                spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                result = spaceUserMapper.insert(spaceUser) > 0;
+                Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
+            }
+            // 返回新写入的数据 id
+            return space.getId();
+        }));
 
         return Optional.ofNullable(newSpaceId).orElse(-1L);
     }

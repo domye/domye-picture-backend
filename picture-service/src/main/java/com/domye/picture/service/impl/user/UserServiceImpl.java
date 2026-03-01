@@ -151,19 +151,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
         Throw.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = userQueryRequest.getId();
+
         String userAccount = userQueryRequest.getUserAccount();
         String userName = userQueryRequest.getUserName();
         String userProfile = userQueryRequest.getUserProfile();
         String userRole = userQueryRequest.getUserRole();
         String sortField = userQueryRequest.getSortField();
         String sortOrder = userQueryRequest.getSortOrder();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(ObjUtil.isNotNull(id), "id", id);
-        queryWrapper.eq(StrUtil.isNotBlank(userRole), "userRole", userRole);
-        queryWrapper.like(StrUtil.isNotBlank(userAccount), "userAccount", userAccount);
-        queryWrapper.like(StrUtil.isNotBlank(userName), "userName", userName);
-        queryWrapper.like(StrUtil.isNotBlank(userProfile), "userProfile", userProfile);
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>()
+                .eq(ObjUtil.isNotNull(id), "id", id)
+                .eq(StrUtil.isNotBlank(userRole), "userRole", userRole)
+                .like(StrUtil.isNotBlank(userAccount), "userAccount", userAccount)
+                .like(StrUtil.isNotBlank(userName), "userName", userName)
+                .like(StrUtil.isNotBlank(userProfile), "userProfile", userProfile)
+                .orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
         return queryWrapper;
     }
 

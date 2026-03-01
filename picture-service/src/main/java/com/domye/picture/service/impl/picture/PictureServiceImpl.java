@@ -14,10 +14,7 @@ import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.ColorSimilarUtils;
 import com.domye.picture.common.helper.impl.RedisCache;
-import com.domye.picture.model.dto.picture.PictureEditRequest;
-import com.domye.picture.model.dto.picture.PictureQueryRequest;
-import com.domye.picture.model.dto.picture.PictureReviewRequest;
-import com.domye.picture.model.dto.picture.PictureUploadRequest;
+import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
@@ -45,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
-import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.*;
@@ -74,6 +70,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     final Cache<String, String> pictureListLocalCache;
     final PictureStructMapper pictureStructMapper;
     final UserStructMapper userStructMapper;
+
+    /**
+     * 上传图片
+     *
+     * @param multipartFile
+     * @param pictureUploadRequest
+     * @param loginUser
+     * @return
+     */
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
@@ -92,6 +97,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return pictureStructMapper.toVo(picture);
     }
 
+    /**
+     * 解析和校验空间id
+     *
+     * @param pictureUploadRequest
+     * @param oldPicture
+     * @return
+     */
     private Long resolveAndValidateSpaceId(PictureUploadRequest pictureUploadRequest, Picture oldPicture) {
         Long spaceId = pictureUploadRequest.getSpaceId();
         if (oldPicture != null) {
@@ -110,6 +122,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return spaceId;
     }
 
+    /**
+     * 构建上传路径前缀
+     *
+     * @param spaceId
+     * @param userId
+     * @return
+     */
     private String buildUploadPathPrefix(Long spaceId, Long userId) {
         if (spaceId == null) {
             return String.format(PictureConstant.PUBLIC_PATH_PREFIX, userId);
@@ -117,19 +136,30 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return String.format(PictureConstant.SPACE_PATH_PREFIX, spaceId);
     }
 
+    /**
+     * 构建图片实体
+     *
+     * @param uploadPictureResult
+     * @param loginUser
+     * @param pictureId
+     * @param spaceId
+     * @return
+     */
     private Picture buildPictureEntity(UploadPictureResult uploadPictureResult, User loginUser, Long pictureId, Long spaceId) {
-        Picture picture = new Picture();
-        picture.setUrl(uploadPictureResult.getUrl());
-        picture.setName(uploadPictureResult.getPicName());
-        picture.setThumbnailUrl(uploadPictureResult.getThumbnailUrl());
-        picture.setPicSize(uploadPictureResult.getPicSize());
-        picture.setPicWidth(uploadPictureResult.getPicWidth());
-        picture.setPicHeight(uploadPictureResult.getPicHeight());
-        picture.setPicColor(uploadPictureResult.getPicColor());
-        picture.setPicScale(uploadPictureResult.getPicScale());
-        picture.setPicFormat(uploadPictureResult.getPicFormat());
-        picture.setSpaceId(spaceId);
-        picture.setUserId(loginUser.getId());
+        Picture picture = Picture.builder()
+                .url(uploadPictureResult.getUrl())
+                .name(uploadPictureResult.getPicName())
+                .thumbnailUrl(uploadPictureResult.getThumbnailUrl())
+                .picSize(uploadPictureResult.getPicSize())
+                .picWidth(uploadPictureResult.getPicWidth())
+                .picHeight(uploadPictureResult.getPicHeight())
+                .picColor(uploadPictureResult.getPicColor())
+                .picScale(uploadPictureResult.getPicScale())
+                .picFormat(uploadPictureResult.getPicFormat())
+                .spaceId(spaceId)
+                .userId(loginUser.getId())
+                .build();
+
         fillReviewParams(picture, loginUser);
         if (pictureId != null) {
             picture.setId(pictureId);
@@ -140,26 +170,18 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 持久化图片数据
-     * 
-     * 事务配置说明：
-     * - rollbackFor = Exception.class: 所有异常都触发回滚，确保数据一致性
-     * - propagation = Propagation.REQUIRED: 如果当前存在事务则加入，否则新建事务
-     * 
-     * 事务边界优化：
-     * - 事务内：仅包含数据库写操作（saveOrUpdate + space额度更新）
-     * - 事务外：rankService.addActivityScore 在事务外执行，避免长事务阻塞
-     * 
-     * 优化原因：
-     * 1. 缩小事务范围，减少锁持有时间
-     * 2. 积分更新为非关键业务，失败不影响主流程
-     * 3. 避免外部服务调用阻塞事务提交
+     *
+     * @param picture
+     * @param pictureId
+     * @param loginUser
+     * @param spaceId
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     protected void persistPictureData(Picture picture, Long pictureId, User loginUser, Long spaceId) {
         // 1. 保存或更新图片信息（事务内 - 必须成功）
         boolean result = this.saveOrUpdate(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
-        
+
         // 2. 更新空间额度（事务内 - 与图片保存保持原子性）
         if (spaceId != null) {
             // 使用乐观锁思想，基于当前值更新，避免并发问题
@@ -172,15 +194,17 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     .update();
             Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
         }
-        
+
         // 3. 更新用户活跃积分（事务外执行，避免阻塞）
         // 注意：此操作在事务外执行，即使失败也不影响图片上传
         addUserActivityScore(loginUser, pictureId);
     }
-    
+
     /**
-     * 更新用户活跃积分 - 非事务操作
-     * 单独抽出避免影响主事务，积分更新失败不应阻塞图片上传
+     * 更新用户活跃积分
+     *
+     * @param loginUser
+     * @param pictureId
      */
     private void addUserActivityScore(User loginUser, Long pictureId) {
         try {
@@ -195,9 +219,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     /**
-     * 构建图片查询条件 - 纯查询操作，不需要事务
-     * 
-     * 注意：此方法仅构建查询条件，不涉及数据库状态变更，无需事务支持
+     * 构建图片查询条件
+     *
+     * @param pictureQueryRequest
+     * @return
      */
     @Override
     public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest) {
@@ -248,9 +273,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     /**
-     * 获取图片VO - 纯查询操作，不需要事务
-     * 
-     * 注意：此方法为只读查询，仅组装视图对象，无需事务支持
+     * 获取图片VO
+     *
+     * @param picture
+     * @param request
+     * @return
      */
     @Override
     public PictureVO getPictureVO(Picture picture, HttpServletRequest request) {
@@ -265,9 +292,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     /**
-     * 分页获取图片VO列表 - 纯查询操作，不需要事务
-     * 
-     * 注意：此方法为只读查询，仅组装视图对象列表，无需事务支持
+     * 分页获取图片VO列表
+     *
+     * @param picturePage
+     * @param request
+     * @return
      */
     @Override
     public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request) {
@@ -305,13 +334,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     /**
-     * 执行图片审核 - 需要事务保证审核状态一致性
-     * 
-     * 事务配置说明：
-     * - rollbackFor = Exception.class: 所有异常都触发回滚
-     * - propagation = Propagation.REQUIRED: 加入现有事务或新建事务
-     * 
-     * 注意：审核操作涉及状态变更，需要事务保证原子性
+     * 执行图片审核
+     *
+     * @param pictureReviewRequest
+     * @param loginUser
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     @Override
@@ -332,6 +358,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
+    /**
+     * 填充审核字段
+     *
+     * @param picture
+     * @param loginUser
+     */
     @Override
     public void fillReviewParams(Picture picture, User loginUser) {
         if (userService.isAdmin(loginUser)) {
@@ -361,19 +393,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     /**
      * 删除图片
-     * 
-     * 事务配置说明：
-     * - rollbackFor = Exception.class: 所有异常都触发回滚，确保数据一致性
-     * - propagation = Propagation.REQUIRED: 如果当前存在事务则加入，否则新建事务
-     * 
-     * 事务边界优化：
-     * - 事务内：仅包含数据库写操作（removeById + space额度回退）
-     * - 事务外：clearPictureFile 在事务外执行，避免长事务
-     * 
-     * 优化原因：
-     * 1. 文件删除操作耗时较长，不应在事务内执行
-     * 2. 缩小事务范围，减少锁持有时间
-     * 3. 文件删除失败可通过补偿机制处理，不影响数据一致性
+     *
+     * @param id
+     * @param loginUser
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     @Override
@@ -382,11 +404,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Picture oldPicture = this.getById(id);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
-        
+
         // 1. 删除图片记录（事务内）
         boolean result = this.removeById(id);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        
+
         // 2. 回退空间额度（事务内 - 与图片删除保持原子性）
         if (oldPicture.getSpaceId() != null) {
             Space space = spaceService.getById(oldPicture.getSpaceId());
@@ -398,40 +420,64 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     .update();
             Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
         }
-        
+
         // 3. 清理文件（事务外执行，异步操作不影响主事务）
         // 注意：文件删除在事务外执行，即使失败也不影响数据库一致性
         this.clearPictureFile(oldPicture);
     }
 
+
     /**
-     * 编辑图片信息 - 需要事务保证数据一致性
-     * 
-     * 事务配置说明：
-     * - rollbackFor = Exception.class: 所有异常都触发回滚
-     * - propagation = Propagation.REQUIRED: 加入现有事务或新建事务
-     * 
-     * 注意：编辑操作涉及状态变更，需要事务保证原子性
+     * 编辑图片信息
+     *
+     * @param pictureEditRequest
+     * @param loginUser
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     @Override
     public void editPicture(PictureEditRequest pictureEditRequest, User loginUser) {
         Picture picture = pictureStructMapper.toEntity(pictureEditRequest);
         picture.setEditTime(new Date());
-        this.validPicture(picture);
+        validPicture(picture);
         long id = pictureEditRequest.getId();
-        Picture oldPicture = this.getById(id);
+        Picture oldPicture = getById(id);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
-        this.fillReviewParams(picture, loginUser);
+        fillReviewParams(picture, loginUser);
         boolean result = this.updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
     /**
-     * 根据颜色搜索图片 - 纯查询操作，不需要事务
-     * 
-     * 注意：此方法为只读查询，不需要事务支持
-     * 查询逻辑：先按空间过滤，再计算颜色相似度排序
+     * 更新图片（管理员操作）
+     *
+     * @param pictureUpdateRequest
+     * @param loginUser
+     */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
+    @Override
+    public void updatePicture(PictureUpdateRequest pictureUpdateRequest, User loginUser) {
+        // 将实体类和 DTO 进行转换
+        Picture picture = pictureStructMapper.toEntity(pictureUpdateRequest);
+        // 数据校验
+        validPicture(picture);
+        // 判断是否存在
+        long id = pictureUpdateRequest.getId();
+        Picture oldPicture = getById(id);
+        Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        fillReviewParams(picture, loginUser);
+        // 操作数据库
+        boolean result = this.updateById(picture);
+        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+
+
+    /**
+     * 根据颜色搜索图片
+     *
+     * @param spaceId
+     * @param picColor
+     * @param loginUser
+     * @return
      */
     @Override
     public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser) {
@@ -460,16 +506,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
     /**
-     * 带缓存的分页查询 - 纯查询操作，不需要事务
-     * 
-     * 注意：此方法为只读查询，使用多级缓存提升性能，不需要事务支持
-     * 缓存策略：本地缓存 -> Redis缓存 -> 数据库
+     * 带缓存的分页查询
+     *
+     * @param pictureQueryRequest
+     * @param request
+     * @return
      */
     @Override
     public Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
-        // 性能监控：记录整个查询过程的耗时
-        StopWatch stopWatch = new StopWatch("listPictureVOByPageWithCache");
-        stopWatch.start("参数校验与缓存Key构建");
+
         long current = pictureQueryRequest.getCurrent();
         long size = pictureQueryRequest.getPageSize();
         Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
@@ -480,51 +525,31 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
         String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
-        stopWatch.stop();
-        stopWatch.start("本地缓存查询");
+
         String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
         if (cachedValue != null) {
-            stopWatch.stop();
-            log.debug("[标签查询优化] 本地缓存命中, 标签条件: {}, 总耗时: {}ms", 
-                    pictureQueryRequest.getTags(), stopWatch.getTotalTimeMillis());
             return JSONUtil.toBean(cachedValue, Page.class);
         }
-        
-        stopWatch.stop();
-        stopWatch.start("Redis缓存查询");
+
         cachedValue = (String) redisCache.get(cacheKey);
         if (cachedValue != null) {
-            stopWatch.stop();
             pictureListLocalCache.put(cacheKey, cachedValue);
-            log.debug("[标签查询优化] Redis缓存命中, 标签条件: {}, 总耗时: {}ms", 
-                    pictureQueryRequest.getTags(), stopWatch.getTotalTimeMillis());
             return JSONUtil.toBean(cachedValue, Page.class);
         }
-        
-        stopWatch.stop();
-        stopWatch.start("数据库查询");
-        
+
         // 【性能关键】标签查询使用 JSON_OVERLAPS 优化，避免循环 JSON_CONTAINS
         // 详见 getQueryWrapper 方法中的实现
         Page<Picture> picturePage = this.page(new Page<>(current, size), this.getQueryWrapper(pictureQueryRequest));
-        stopWatch.stop();
-        stopWatch.start("VO转换");
+
         Page<PictureVO> pictureVOPage = this.getPictureVOPage(picturePage, request);
         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
         Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
-        stopWatch.stop();
-        stopWatch.start("缓存写入");
         redisCache.put(cacheKey, cacheValue, cacheExpireTime);
         pictureListLocalCache.put(cacheKey, cacheValue);
-        stopWatch.stop();
-        
-        // 记录性能日志，当标签查询或总耗时较长时输出警告
-        long totalTime = stopWatch.getTotalTimeMillis();
+
         List<String> tags = pictureQueryRequest.getTags();
-        if (CollUtil.isNotEmpty(tags) || totalTime > 100) {
-            log.info("[标签查询优化] 标签条件: {}, 总耗时: {}ms, 详细: {}", 
-                    tags, totalTime, stopWatch.prettyPrint());
-        }
+
         return pictureVOPage;
     }
+
 }

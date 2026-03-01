@@ -100,6 +100,4 @@ public class VoteController {
     }
 
 
-    //TODO获取投票结果
-
 }

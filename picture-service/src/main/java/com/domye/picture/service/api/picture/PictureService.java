@@ -3,16 +3,13 @@ package com.domye.picture.service.api.picture;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.domye.picture.model.dto.picture.PictureEditRequest;
-import com.domye.picture.model.dto.picture.PictureQueryRequest;
-import com.domye.picture.model.dto.picture.PictureReviewRequest;
-import com.domye.picture.model.dto.picture.PictureUploadRequest;
+import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
-import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.picture.PictureVO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -25,34 +22,28 @@ public interface PictureService extends IService<Picture> {
                             PictureUploadRequest pictureUploadRequest,
                             User loginUser);
 
-    public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
+    QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
 
-    public PictureVO getPictureVO(Picture picture, HttpServletRequest request);
+    PictureVO getPictureVO(Picture picture, HttpServletRequest request);
 
-    public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
+    Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
 
-    public void validPicture(Picture picture);
+    void validPicture(Picture picture);
 
-    public void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
 
     void fillReviewParams(Picture picture, User loginUser);
 
-    public void clearPictureFile(Picture oldPicture);
+    void clearPictureFile(Picture oldPicture);
 
 
     void deletePicture(Long id, User loginUser);
 
     void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 
-    public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+    void updatePicture(PictureUpdateRequest pictureUpdateRequest, User loginUser);
 
-    /**
-     * 分页查询图片（带缓存）
-     * 将缓存逻辑下沉到 Service 层，避免 Controller 层承担业务逻辑
-     *
-     * @param pictureQueryRequest 查询请求
-     * @param request             HTTP请求
-     * @return 分页结果
-     */
+    List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
     Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request);
 }

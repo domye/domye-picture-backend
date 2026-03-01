@@ -3,17 +3,24 @@ package com.domye.picture.model.entity.picture;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
  * 图片
+ *
  * @TableName picture
  */
 @TableName(value = "picture")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Picture implements Serializable {
     /**
      * id
@@ -61,7 +68,9 @@ public class Picture implements Serializable {
      */
     private Integer picHeight;
 
-    /** 图片主色调 **/
+    /**
+     * 图片主色调
+     **/
     private String picColor;
     /**
      * 图片宽高比例
