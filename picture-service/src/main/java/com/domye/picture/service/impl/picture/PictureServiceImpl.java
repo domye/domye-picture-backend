@@ -84,11 +84,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
         Long pictureId = pictureUploadRequest.getId();
-        Picture oldPicture = null;
-        if (pictureId != null) {
-            oldPicture = pictureMapper.selectById(pictureId);
-            Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
-        }
+        Picture oldPicture = getById(pictureId);
+        Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         Long spaceId = resolveAndValidateSpaceId(pictureUploadRequest, oldPicture);
         String uploadPathPrefix = buildUploadPathPrefix(spaceId, loginUser.getId());
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
@@ -179,7 +176,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     protected void persistPictureData(Picture picture, Long pictureId, User loginUser, Long spaceId) {
         // 1. 保存或更新图片信息（事务内 - 必须成功）
-        boolean result = this.saveOrUpdate(picture);
+        boolean result = saveOrUpdate(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
 
         // 2. 更新空间额度（事务内 - 与图片保存保持原子性）
@@ -346,7 +343,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Integer reviewStatus = pictureReviewRequest.getReviewStatus();
         PictureReviewStatusEnum reviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
         Throw.throwIf(pictureId == null || reviewStatusEnum == null || PictureReviewStatusEnum.REVIEWING.equals(reviewStatusEnum), ErrorCode.NO_AUTH_ERROR);
-        Picture oldPicture = this.getById(pictureId);
+        Picture oldPicture = getById(pictureId);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         Throw.throwIf(oldPicture.getReviewStatus().equals(reviewStatus), ErrorCode.PARAMS_ERROR, "请勿重复审核");
         Picture updatePicture = new Picture();
@@ -354,7 +351,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         updatePicture.setReviewerId(loginUser.getId());
         updatePicture.setReviewTime(new Date());
         updatePicture.setReviewStatus(reviewStatus);
-        boolean result = this.updateById(updatePicture);
+        boolean result = updateById(updatePicture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
@@ -380,7 +377,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Override
     public void clearPictureFile(Picture oldPicture) {
         String pictureUrl = oldPicture.getUrl();
-        long count = this.lambdaQuery().eq(Picture::getUrl, pictureUrl).count();
+        long count = lambdaQuery().eq(Picture::getUrl, pictureUrl).count();
         if (count > 1) {
             return;
         }
@@ -402,11 +399,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     public void deletePicture(Long id, User loginUser) {
         Throw.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
-        Picture oldPicture = this.getById(id);
+        Picture oldPicture = getById(id);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
 
         // 1. 删除图片记录（事务内）
-        boolean result = this.removeById(id);
+        boolean result = removeById(id);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
 
         // 2. 回退空间额度（事务内 - 与图片删除保持原子性）
@@ -423,7 +420,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 3. 清理文件（事务外执行，异步操作不影响主事务）
         // 注意：文件删除在事务外执行，即使失败也不影响数据库一致性
-        this.clearPictureFile(oldPicture);
+        clearPictureFile(oldPicture);
     }
 
 
@@ -443,7 +440,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Picture oldPicture = getById(id);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         fillReviewParams(picture, loginUser);
-        boolean result = this.updateById(picture);
+        boolean result = updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
@@ -466,7 +463,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
         fillReviewParams(picture, loginUser);
         // 操作数据库
-        boolean result = this.updateById(picture);
+        boolean result = updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
@@ -486,7 +483,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Space space = spaceService.getById(spaceId);
         Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         Throw.throwIf(!space.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
-        List<Picture> pictureList = this.lambdaQuery()
+        List<Picture> pictureList = lambdaQuery()
                 .eq(Picture::getSpaceId, spaceId)
                 .isNotNull(Picture::getPicColor)
                 .list();
@@ -539,15 +536,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 【性能关键】标签查询使用 JSON_OVERLAPS 优化，避免循环 JSON_CONTAINS
         // 详见 getQueryWrapper 方法中的实现
-        Page<Picture> picturePage = this.page(new Page<>(current, size), this.getQueryWrapper(pictureQueryRequest));
+        Page<Picture> picturePage = page(new Page<>(current, size), getQueryWrapper(pictureQueryRequest));
 
-        Page<PictureVO> pictureVOPage = this.getPictureVOPage(picturePage, request);
+        Page<PictureVO> pictureVOPage = getPictureVOPage(picturePage, request);
         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
         Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
         redisCache.put(cacheKey, cacheValue, cacheExpireTime);
         pictureListLocalCache.put(cacheKey, cacheValue);
-
-        List<String> tags = pictureQueryRequest.getTags();
 
         return pictureVOPage;
     }

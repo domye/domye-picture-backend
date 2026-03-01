@@ -75,9 +75,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
             space.setSpaceType(SpaceTypeEnum.PRIVATE.getValue());
         }
         // 填充数据
-        this.fillSpace(space);
+        fillSpace(space);
         // 数据校验
-        this.validSpace(space, true);
+        validSpace(space, true);
 
         // 权限校验
         Long userId = loginUser.getId();
@@ -88,14 +88,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
         // 执行事务操作
         Long newSpaceId = lockService.executeWithLock(lockKey, (int) SpaceConstant.LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> transactionTemplate.execute(status -> {
-            boolean exists = this.lambdaQuery()
+            boolean exists = lambdaQuery()
                     .eq(Space::getUserId, userId)
                     .eq(Space::getSpaceType, spaceAddRequest.getSpaceType())
                     .exists();
             Throw.throwIf(exists, ErrorCode.OPERATION_ERROR, SpaceConstant.SPACE_ALREADY_EXISTS);
 
             // 写入数据库
-            boolean result = this.save(space);
+            boolean result = save(space);
             Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
             if (SpaceTypeEnum.TEAM.getValue() == spaceAddRequest.getSpaceType()) {
                 SpaceUser spaceUser = new SpaceUser();
@@ -183,12 +183,12 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
      */
     @Override
     public void deleteSpace(long id, User loginUser) {
-        Space oldSpace = this.getById(id);
+        Space oldSpace = getById(id);
         Throw.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或者管理员可删除
-        this.checkSpaceAuth(loginUser, oldSpace);
+        checkSpaceAuth(loginUser, oldSpace);
         // 操作数据库
-        boolean result = this.removeById(id);
+        boolean result = removeById(id);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 
