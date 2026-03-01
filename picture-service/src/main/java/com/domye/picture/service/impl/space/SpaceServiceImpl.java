@@ -58,6 +58,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 新增空间
+     *
      * @param spaceAddRequest 新增空间请求
      * @param loginUser       登录用户
      * @return 空间id
@@ -114,6 +115,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 填充空间容量
+     *
      * @param space 空间
      */
     @Override
@@ -133,6 +135,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 检验空间信息
+     *
      * @param space 空间
      * @param add   增加&修改
      */
@@ -160,6 +163,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 用户空间鉴权
+     *
      * @param loginUser 登录用户
      * @param space     当前空间
      */
@@ -178,6 +182,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 删除空间
+     *
      * @param id        空间id
      * @param loginUser 登录用户
      */
@@ -194,6 +199,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 获取空间封装类
+     *
      * @param space   空间
      * @param request http请求
      * @return 脱敏后的spaceVO
@@ -214,6 +220,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 获取空间分页封装类
+     *
      * @param spacePage 空间分页
      * @param request   http请求
      * @return 封装后的spaceVO分页
@@ -249,6 +256,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     /**
      * 构造空间查询条件
+     *
      * @param spaceQueryRequest 查询请求
      * @return 查询条件
      */
@@ -258,6 +266,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         if (spaceQueryRequest == null) {
             return queryWrapper;
         }
+
         // 从对象中取值
         Long id = spaceQueryRequest.getId();
         Long userId = spaceQueryRequest.getUserId();
@@ -269,13 +278,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
 
         // 拼接查询条件
-        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
-        queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
-        queryWrapper.eq(ObjUtil.isNotEmpty(spaceType), "spaceType", spaceType);
-        queryWrapper.like(StrUtil.isNotBlank(spaceName), "spaceName", spaceName);
-        queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "spaceLevel", spaceLevel);
-        // 排序
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id)
+                .eq(ObjUtil.isNotEmpty(userId), "userId", userId)
+                .eq(ObjUtil.isNotEmpty(spaceType), "spaceType", spaceType)
+                .like(StrUtil.isNotBlank(spaceName), "spaceName", spaceName)
+                .eq(ObjUtil.isNotEmpty(spaceLevel), "spaceLevel", spaceLevel)
+                .orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+
         return queryWrapper;
     }
 }

@@ -83,9 +83,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
+
         Long pictureId = pictureUploadRequest.getId();
         Picture oldPicture = getById(pictureId);
         Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+
         Long spaceId = resolveAndValidateSpaceId(pictureUploadRequest, oldPicture);
         String uploadPathPrefix = buildUploadPathPrefix(spaceId, loginUser.getId());
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
@@ -103,19 +105,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     private Long resolveAndValidateSpaceId(PictureUploadRequest pictureUploadRequest, Picture oldPicture) {
         Long spaceId = pictureUploadRequest.getSpaceId();
-        if (oldPicture != null) {
-            if (spaceId == null) {
-                spaceId = oldPicture.getSpaceId();
-            } else {
-                Throw.throwIf(ObjUtil.notEqual(spaceId, oldPicture.getSpaceId()), ErrorCode.PARAMS_ERROR, "空间 id 不一致");
-            }
+        if (spaceId == null) {
+            spaceId = oldPicture.getSpaceId();
         }
-        if (spaceId != null) {
-            Space space = spaceService.getById(spaceId);
-            Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            Throw.throwIf(space.getTotalCount() >= space.getMaxCount(), ErrorCode.OPERATION_ERROR, "空间条数不足");
-            Throw.throwIf(space.getTotalSize() >= space.getMaxSize(), ErrorCode.OPERATION_ERROR, "空间大小不足");
-        }
+        Throw.throwIf(ObjUtil.notEqual(spaceId, oldPicture.getSpaceId()), ErrorCode.PARAMS_ERROR, "空间 id 不一致");
+
+        Space space = spaceService.getById(spaceId);
+        Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        Throw.throwIf(space.getTotalCount() >= space.getMaxCount(), ErrorCode.OPERATION_ERROR, "空间条数不足");
+        Throw.throwIf(space.getTotalSize() >= space.getMaxSize(), ErrorCode.OPERATION_ERROR, "空间大小不足");
+
         return spaceId;
     }
 
@@ -204,15 +203,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * @param pictureId
      */
     private void addUserActivityScore(User loginUser, Long pictureId) {
-        try {
-            UserActivityScoreAddRequest userActivityScoreAddRequest = new UserActivityScoreAddRequest();
-            userActivityScoreAddRequest.setPictureId(pictureId);
-            userActivityScoreAddRequest.setUploadPicture(true);
-            rankService.addActivityScore(loginUser, userActivityScoreAddRequest);
-        } catch (Exception e) {
-            // 积分更新失败不影响主业务流程，仅记录日志
-            log.warn("更新用户活跃积分失败, userId: {}, pictureId: {}", loginUser.getId(), pictureId, e);
-        }
+        UserActivityScoreAddRequest userActivityScoreAddRequest = new UserActivityScoreAddRequest();
+        userActivityScoreAddRequest.setPictureId(pictureId);
+        userActivityScoreAddRequest.setUploadPicture(true);
+        rankService.addActivityScore(loginUser, userActivityScoreAddRequest);
     }
 
     /**
@@ -233,6 +227,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         Long id = pictureQueryRequest.getId();
         Long userId = pictureQueryRequest.getUserId();
+
+        String sortField = pictureQueryRequest.getSortField();
+        String sortOrder = pictureQueryRequest.getSortOrder();
+
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id)
                 .eq(ObjUtil.isNotEmpty(userId), "userId", userId)
                 .like(StrUtil.isNotBlank(pictureQueryRequest.getName()), PictureConstant.FIELD_NAME, pictureQueryRequest.getName())
@@ -247,7 +245,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 .eq(ObjUtil.isNotEmpty(pictureQueryRequest.getReviewStatus()), PictureConstant.FIELD_REVIEW_STATUS, pictureQueryRequest.getReviewStatus())
                 .eq(ObjUtil.isNotEmpty(pictureQueryRequest.getReviewerId()), PictureConstant.FIELD_REVIEWER_ID, pictureQueryRequest.getReviewerId())
                 .ge(ObjUtil.isNotEmpty(pictureQueryRequest.getStartEditTime()), PictureConstant.FIELD_EDIT_TIME, pictureQueryRequest.getStartEditTime())
-                .lt(ObjUtil.isNotEmpty(pictureQueryRequest.getEndEditTime()), PictureConstant.FIELD_EDIT_TIME, pictureQueryRequest.getEndEditTime());
+                .lt(ObjUtil.isNotEmpty(pictureQueryRequest.getEndEditTime()), PictureConstant.FIELD_EDIT_TIME, pictureQueryRequest.getEndEditTime())
+                .orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+
         Long spaceId = pictureQueryRequest.getSpaceId();
         if (spaceId != null) {
             queryWrapper.eq(PictureConstant.FIELD_SPACE_ID, spaceId);
@@ -263,9 +263,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             String tagsJsonArray = JSONUtil.toJsonStr(tags);
             queryWrapper.apply("JSON_OVERLAPS(tags, {0})", tagsJsonArray);
         }
-        String sortField = pictureQueryRequest.getSortField();
-        String sortOrder = pictureQueryRequest.getSortOrder();
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
         return queryWrapper;
     }
 
