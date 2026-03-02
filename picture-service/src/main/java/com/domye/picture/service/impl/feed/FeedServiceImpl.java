@@ -6,26 +6,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.feed.FeedQueryRequest;
-import com.domye.picture.model.entity.comment.Comments;
-import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.enums.ContactStatusEnum;
 import com.domye.picture.model.enums.FeedTypeEnum;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.mapper.picture.PictureStructMapper;
-import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.feed.FeedVO;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.vo.user.UserVO;
-import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.feed.FeedService;
 import com.domye.picture.service.api.picture.PictureService;
-import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.space.SpaceUserService;
-import com.domye.picture.service.api.user.UserService;
-import com.domye.picture.service.mapper.CommentsMapper;
+import com.domye.picture.service.cache.FeedCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,13 +35,9 @@ import java.util.stream.Collectors;
 public class FeedServiceImpl implements FeedService {
 
     private final PictureService pictureService;
-    private final ContactService contactService;
-    private final SpaceService spaceService;
     private final SpaceUserService spaceUserService;
-    private final UserService userService;
-    private final CommentsMapper commentsMapper;
+    private final FeedCacheService feedCacheService;
     private final PictureStructMapper pictureStructMapper;
-    private final UserStructMapper userStructMapper;
 
     /**
      * 默认每页数量
@@ -75,26 +64,26 @@ public class FeedServiceImpl implements FeedService {
         }
         size = Math.min(size, MAX_PAGE_SIZE);
 
-        // 解析游标
-        CursorInfo cursorInfo = parseCursor(feedQueryRequest.getCursor());
-
         // 根据类型获取不同的信息流
         List<Picture> pictureList;
         switch (typeEnum) {
             case FOLLOW:
-                pictureList = getFollowFeed(loginUser, cursorInfo, size + 1);
+                CursorInfo followCursor = parseCursor(feedQueryRequest.getCursor());
+                pictureList = getFollowFeed(loginUser, followCursor, size + 1);
                 break;
             case RECOMMEND:
-                pictureList = getRecommendFeed(cursorInfo, size + 1);
+                RecommendCursorInfo recommendCursor = parseRecommendCursor(feedQueryRequest.getCursor());
+                pictureList = getRecommendFeed(recommendCursor, size + 1);
                 break;
             case LATEST:
             default:
-                pictureList = getLatestFeed(cursorInfo, size + 1);
+                CursorInfo latestCursor = parseCursor(feedQueryRequest.getCursor());
+                pictureList = getLatestFeed(latestCursor, size + 1);
                 break;
         }
 
         // 构建响应
-        return buildFeedVO(pictureList, size, loginUser);
+        return buildFeedVO(pictureList, size, loginUser, typeEnum);
     }
 
     /**
@@ -106,19 +95,12 @@ public class FeedServiceImpl implements FeedService {
             return Collections.emptyList();
         }
 
-        // 获取用户关注的人的ID列表
-        List<Contact> contacts = contactService.lambdaQuery()
-                .eq(Contact::getUserId, loginUser.getId())
-                .eq(Contact::getStatus, ContactStatusEnum.ACCEPTED.getValue())
-                .list();
+        // 使用缓存获取用户关注列表
+        List<Long> followUserIds = feedCacheService.getUserFollows(loginUser.getId());
 
-        if (CollUtil.isEmpty(contacts)) {
+        if (CollUtil.isEmpty(followUserIds)) {
             return Collections.emptyList();
         }
-
-        List<Long> followUserIds = contacts.stream()
-                .map(Contact::getContactUserId)
-                .collect(Collectors.toList());
 
         // 构建查询条件
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
@@ -137,43 +119,29 @@ public class FeedServiceImpl implements FeedService {
 
     /**
      * 获取推荐流
-     * 基于热度排序（点赞数 * 3 + 评论数 * 5）
+     * 基于热度排序，直接使用数据库索引优化查询
+     * 热度分数由定时任务预先计算
      */
-    private List<Picture> getRecommendFeed(CursorInfo cursorInfo, int limit) {
-        // 获取所有审核通过的图片
+    private List<Picture> getRecommendFeed(RecommendCursorInfo cursorInfo, int limit) {
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("reviewStatus", PictureReviewStatusEnum.PASS.getValue())
                 .isNull("spaceId"); // 只推荐公开图片
 
-        // 游标条件
-        applyCursorCondition(queryWrapper, cursorInfo);
-
-        // 先获取图片列表
-        List<Picture> pictures = pictureService.list(queryWrapper);
-
-        if (CollUtil.isEmpty(pictures)) {
-            return Collections.emptyList();
+        // 应用热度游标条件
+        if (cursorInfo != null && cursorInfo.getHotScore() != null && cursorInfo.getId() != null) {
+            queryWrapper.and(qw -> qw
+                    .lt("hotScore", cursorInfo.getHotScore())
+                    .or()
+                    .eq("hotScore", cursorInfo.getHotScore())
+                    .lt("id", cursorInfo.getId())
+            );
         }
 
-        // 获取图片ID列表
-        List<Long> pictureIds = pictures.stream()
-                .map(Picture::getId)
-                .collect(Collectors.toList());
+        // 按热度倒序排列，热度相同则按ID倒序
+        queryWrapper.orderByDesc("hotScore", "id")
+                .last("LIMIT " + limit);
 
-        // 获取评论数统计
-        Map<Long, Integer> commentCountMap = getCommentCountMap(pictureIds);
-
-        // 计算热度并排序
-        List<Picture> sortedPictures = pictures.stream()
-                .sorted((p1, p2) -> {
-                    int score1 = calculateHotScore(p1, commentCountMap.getOrDefault(p1.getId(), 0));
-                    int score2 = calculateHotScore(p2, commentCountMap.getOrDefault(p2.getId(), 0));
-                    return Integer.compare(score2, score1); // 热度降序
-                })
-                .limit(limit)
-                .collect(Collectors.toList());
-
-        return sortedPictures;
+        return pictureService.list(queryWrapper);
     }
 
     /**
@@ -209,40 +177,6 @@ public class FeedServiceImpl implements FeedService {
     }
 
     /**
-     * 获取图片评论数统计
-     */
-    private Map<Long, Integer> getCommentCountMap(List<Long> pictureIds) {
-        if (CollUtil.isEmpty(pictureIds)) {
-            return Collections.emptyMap();
-        }
-
-        // 查询每个图片的评论数
-        QueryWrapper<Comments> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("pictureid", pictureIds)
-                .isNull("parentid") // 只统计根评论
-                .select("pictureid", "COUNT(*) as count")
-                .groupBy("pictureid");
-
-        List<Comments> comments = commentsMapper.selectList(queryWrapper);
-
-        return comments.stream()
-                .collect(Collectors.toMap(
-                        Comments::getPictureid,
-                        c -> c.getReplycount() != null ? c.getReplycount() : 0,
-                        (v1, v2) -> v1
-                ));
-    }
-
-    /**
-     * 计算热度分数
-     * 热度 = 评论数 * 5
-     * 后续可扩展：点赞数 * 3 + 浏览量
-     */
-    private int calculateHotScore(Picture picture, int commentCount) {
-        return commentCount * 5;
-    }
-
-    /**
      * 解析游标
      * 格式: editTime_id
      */
@@ -266,9 +200,32 @@ public class FeedServiceImpl implements FeedService {
     }
 
     /**
+     * 解析推荐流游标
+     * 格式: hotScore_id
+     */
+    private RecommendCursorInfo parseRecommendCursor(String cursor) {
+        if (StrUtil.isBlank(cursor)) {
+            return null;
+        }
+
+        try {
+            String[] parts = cursor.split("_");
+            if (parts.length != 2) {
+                return null;
+            }
+            Integer hotScore = Integer.parseInt(parts[0]);
+            Long id = Long.parseLong(parts[1]);
+            return new RecommendCursorInfo(hotScore, id);
+        } catch (Exception e) {
+            log.warn("解析推荐流游标失败: {}", cursor, e);
+            return null;
+        }
+    }
+
+    /**
      * 构建信息流响应
      */
-    private FeedVO buildFeedVO(List<Picture> pictureList, int size, User loginUser) {
+    private FeedVO buildFeedVO(List<Picture> pictureList, int size, User loginUser, FeedTypeEnum typeEnum) {
         FeedVO feedVO = new FeedVO();
 
         if (CollUtil.isEmpty(pictureList)) {
@@ -297,10 +254,17 @@ public class FeedServiceImpl implements FeedService {
         feedVO.setRecords(pictureVOList);
         feedVO.setHasMore(hasMore);
 
-        // 设置下一页游标
-        if (hasMore && !pictureList.isEmpty()) {
-            Picture lastPicture = pictureList.get(pictureList.size() - 1);
-            String nextCursor = lastPicture.getEditTime().getTime() + "_" + lastPicture.getId();
+        // 根据信息流类型设置下一页游标
+        if (hasMore && !filteredPictures.isEmpty()) {
+            Picture lastPicture = filteredPictures.get(filteredPictures.size() - 1);
+            String nextCursor;
+            if (typeEnum == FeedTypeEnum.RECOMMEND) {
+                // 推荐流使用热度游标
+                nextCursor = lastPicture.getHotScore() + "_" + lastPicture.getId();
+            } else {
+                // 关注流和最新流使用时间游标
+                nextCursor = lastPicture.getEditTime().getTime() + "_" + lastPicture.getId();
+            }
             feedVO.setNextCursor(nextCursor);
         } else {
             feedVO.setNextCursor(null);
@@ -352,7 +316,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     /**
-     * 填充用户信息
+     * 填充用户信息（使用缓存）
      */
     private void fillUserInfo(List<PictureVO> pictureVOList, List<Picture> pictureList) {
         if (CollUtil.isEmpty(pictureList)) {
@@ -369,17 +333,8 @@ public class FeedServiceImpl implements FeedService {
             return;
         }
 
-        // 批量查询用户
-        List<User> users = userService.listByIds(userIds);
-        if (CollUtil.isEmpty(users)) {
-            return;
-        }
-
-        Map<Long, UserVO> userVOMap = users.stream()
-                .collect(Collectors.toMap(
-                        User::getId,
-                        userStructMapper::toUserVo
-                ));
+        // 使用缓存批量获取用户信息
+        Map<Long, UserVO> userVOMap = feedCacheService.batchGetUserInfo(userIds);
 
         // 设置用户信息
         for (int i = 0; i < pictureVOList.size(); i++) {
@@ -405,6 +360,27 @@ public class FeedServiceImpl implements FeedService {
 
         public Date getEditTime() {
             return editTime;
+        }
+
+        public Long getId() {
+            return id;
+        }
+    }
+
+    /**
+     * 推荐流游标信息
+     */
+    private static class RecommendCursorInfo {
+        private final Integer hotScore;
+        private final Long id;
+
+        public RecommendCursorInfo(Integer hotScore, Long id) {
+            this.hotScore = hotScore;
+            this.id = id;
+        }
+
+        public Integer getHotScore() {
+            return hotScore;
         }
 
         public Long getId() {

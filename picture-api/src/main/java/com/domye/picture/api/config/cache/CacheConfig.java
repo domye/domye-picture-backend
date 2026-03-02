@@ -26,4 +26,30 @@ public class CacheConfig {
                 .expireAfterWrite(5L, TimeUnit.MINUTES)
                 .build();
     }
+
+    /**
+     * 用户信息本地缓存
+     * 用于缓存用户基础信息
+     */
+    @Bean
+    public Cache<String, String> userInfoLocalCache() {
+        return Caffeine.newBuilder()
+                .initialCapacity(512)
+                .maximumSize(5000L)
+                .expireAfterWrite(10L, TimeUnit.MINUTES)
+                .build();
+    }
+
+    /**
+     * 用户关注列表本地缓存
+     * 用于缓存用户关注的人 ID 列表
+     */
+    @Bean
+    public Cache<String, String> userFollowsLocalCache() {
+        return Caffeine.newBuilder()
+                .initialCapacity(256)
+                .maximumSize(2000L)
+                .expireAfterWrite(5L, TimeUnit.MINUTES)
+                .build();
+    }
 }

@@ -132,4 +132,10 @@ public class Picture implements Serializable {
      * 空间 id（为空表示公共空间）
      */
     private Long spaceId;
+
+    /**
+     * 热度分数
+     * 计算公式：评论数 * 5 + 点赞数 * 3
+     */
+    private Integer hotScore;
 }

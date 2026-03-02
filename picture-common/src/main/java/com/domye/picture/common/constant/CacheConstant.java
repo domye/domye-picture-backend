@@ -54,4 +54,14 @@ public interface CacheConstant {
      * 用户活跃度缓存 key 前缀
      */
     String USER_ACTIVITY_CACHE_KEY = CACHE_PREFIX + "user:activity:";
+
+    /**
+     * 用户信息缓存 key 前缀
+     */
+    String USER_INFO_CACHE_KEY = CACHE_PREFIX + "user:info:";
+
+    /**
+     * 用户关注列表缓存 key 前缀
+     */
+    String USER_FOLLOWS_CACHE_KEY = CACHE_PREFIX + "user:follows:";
 }
