@@ -64,4 +64,14 @@ public interface CacheConstant {
      * 用户关注列表缓存 key 前缀
      */
     String USER_FOLLOWS_CACHE_KEY = CACHE_PREFIX + "user:follows:";
+
+    /**
+     * 活跃度排行榜缓存 key 前缀
+     */
+    String ACTIVITY_RANK_CACHE_KEY = CACHE_PREFIX + "activity:rank:";
+
+    /**
+     * 用户排名缓存 key 前缀
+     */
+    String USER_RANK_CACHE_KEY = CACHE_PREFIX + "user:rank:";
 }

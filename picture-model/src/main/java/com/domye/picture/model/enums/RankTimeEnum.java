@@ -2,14 +2,34 @@ package com.domye.picture.model.enums;
 
 import lombok.Getter;
 
+/**
+ * 排行榜时间维度枚举
+ */
 @Getter
 public enum RankTimeEnum {
+    /**
+     * 日榜
+     */
     DAY("day", 1),
-    MONTH("month", 2),
+
+    /**
+     * 周榜
+     */
+    WEEK("week", 2),
+
+    /**
+     * 月榜
+     */
+    MONTH("month", 3),
+
+    /**
+     * 总榜
+     */
+    TOTAL("total", 4),
     ;
 
-    private String name;
-    private int value;
+    private final String name;
+    private final int value;
 
     RankTimeEnum(String name, int value) {
         this.name = name;
@@ -19,10 +39,6 @@ public enum RankTimeEnum {
     /**
      * 根据 value 获取枚举
      */
-    public static boolean isDay(int value) {
-        return RankTimeEnum.DAY.getValue() == value;
-    }
-
     public static RankTimeEnum getEnumByValue(int value) {
         for (RankTimeEnum rankTimeEnum : RankTimeEnum.values()) {
             if (rankTimeEnum.getValue() == value) {
@@ -30,5 +46,12 @@ public enum RankTimeEnum {
             }
         }
         return null;
+    }
+
+    /**
+     * 判断是否为日榜
+     */
+    public static boolean isDay(int value) {
+        return RankTimeEnum.DAY.getValue() == value;
     }
 }

@@ -9,6 +9,7 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.comment.CommentAddRequest;
 import com.domye.picture.model.dto.comment.CommentQueryRequest;
 import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
+import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.comment.CommentMention;
 import com.domye.picture.model.entity.comment.Comments;
 import com.domye.picture.model.entity.comment.CommentsContent;
@@ -23,6 +24,7 @@ import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.picture.PictureService;
+import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.helper.comment.DataMaps;
 import com.domye.picture.service.helper.comment.IdCollection;
@@ -68,6 +70,7 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
     final UserMapper userMapper;
     final CommentMentionMapper commentMentionMapper;
     final CommentAIReplyProducer commentAIReplyProducer;
+    final RankService rankService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -115,6 +118,11 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         // 8. 检测是否触发AI回复
         triggerAIReplyIfNeeded(comment.getCommentid(), pictureId, request.getContent(), userId);
         // ==============================
+
+        // ==== 新增: 活跃度更新 ====
+        // 9. 更新用户活跃度（评论图片）
+        updateActivityScore(userId, pictureId);
+        // ============================
 
         return comment.getCommentid();
     }
@@ -635,5 +643,25 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         return contacts.stream()
                 .map(com.domye.picture.model.entity.contact.Contact::getContactUserId)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 更新用户活跃度（评论图片）
+     *
+     * @param userId    用户ID
+     * @param pictureId 图片ID
+     */
+    private void updateActivityScore(Long userId, Long pictureId) {
+        try {
+            User user = new User();
+            user.setId(userId);
+            UserActivityScoreAddRequest addRequest = new UserActivityScoreAddRequest();
+            addRequest.setPictureId(pictureId);
+            addRequest.setCommentPicture(true);
+            rankService.addActivityScore(user, addRequest);
+            log.debug("评论活跃度更新成功: userId={}, pictureId={}", userId, pictureId);
+        } catch (Exception e) {
+            log.error("更新评论活跃度失败: userId={}, pictureId={}", userId, pictureId, e);
+        }
     }
 }

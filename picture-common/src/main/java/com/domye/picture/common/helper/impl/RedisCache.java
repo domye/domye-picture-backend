@@ -440,6 +440,28 @@ public class RedisCache implements Cache {
     }
 
     /**
+     * 获取Sorted Set中指定成员的排名（按分数降序）
+     * 对应Redis的ZREVRANK命令，排名从0开始
+     * @param key   Sorted Set的键名
+     * @param value 成员的值
+     * @return 成员的排名，不存在返回null
+     */
+    public Long reverseRank(String key, String value) {
+        return redisTemplate.opsForZSet().reverseRank(key, value);
+    }
+
+    /**
+     * 获取Sorted Set中指定成员的分数
+     * 对应Redis的ZSCORE命令
+     * @param key   Sorted Set的键名
+     * @param value 成员的值
+     * @return 成员的分数，不存在返回null
+     */
+    public Double score(String key, String value) {
+        return redisTemplate.opsForZSet().score(key, value);
+    }
+
+    /**
      * 获取分布式锁
      * 使用SETNX命令实现分布式锁，如果获取失败会进行重试
      * @param key         锁的键名

@@ -1,107 +1,112 @@
 package com.domye.picture.service.impl.rank;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.RedisCache;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+import com.domye.picture.model.enums.ActivityScoreType;
 import com.domye.picture.model.enums.RankTimeEnum;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
+import com.domye.picture.model.vo.rank.UserRankVO;
 import com.domye.picture.model.entity.user.User;
-import com.domye.picture.model.mapper.user.UserStructMapper;
+import com.domye.picture.service.cache.RankCacheService;
 import com.domye.picture.service.mapper.PictureMapper;
 import com.domye.picture.service.api.rank.RankService;
-import com.domye.picture.service.api.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
+/**
+ * 活跃度排行榜服务实现
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RankServiceImpl implements RankService {
+
+    private final RedisCache redisCache;
+    private final RankCacheService rankCacheService;
+    private final PictureMapper pictureMapper;
+
     private static final String ACTIVITY_SCORE_KEY = "activity_rank_";
-    Date today = new Date();
-    final UserService userService;
-    final RedisCache redisCache;
-    final PictureMapper pictureMapper;
-    final UserStructMapper userStructMapper;
-
-
-    /**
-     * 当天活跃度排行榜
-     *
-     * @return 当天排行榜key
-     */
-    private String todayRankKey() {
-        return ACTIVITY_SCORE_KEY + DateUtil.format(today, "yyyyMMdd");
-    }
-
-    /*
-      本月排行榜
-      @return 月度排行榜key
-     */
-    private String monthRankKey() {
-        return ACTIVITY_SCORE_KEY + DateUtil.format(today, "yyyyMM");
-    }
 
     @Override
     public Boolean addActivityScore(User user, UserActivityScoreAddRequest userActivityScoreAddRequest) {
-        //检查参数
+        // 参数校验
         Throw.throwIf(user == null, ErrorCode.PARAMS_ERROR);
         long userId = user.getId();
         Throw.throwIf(userId <= 0, ErrorCode.PARAMS_ERROR);
+
         String field;
         int score = 0;
+
+        // 根据请求类型确定分数
         if (userActivityScoreAddRequest.getPath() != null) {
+            // 查看图片
             Picture picture = pictureMapper.selectById(userActivityScoreAddRequest.getPath());
-            if (picture == null)
+            if (picture == null) {
                 return true;
+            }
             field = "path_" + userActivityScoreAddRequest.getPath();
-            score = 1;
+            score = ActivityScoreType.VIEW_PICTURE.getScore();
         } else if (userActivityScoreAddRequest.getPictureId() != null) {
-            field = userActivityScoreAddRequest.getPictureId() + "_";
+            Long pictureId = userActivityScoreAddRequest.getPictureId();
+            field = pictureId + "_";
+
             if (BooleanUtils.isTrue(userActivityScoreAddRequest.getUploadPicture())) {
-                // 发布文章
+                // 发布图片
                 field += "publish";
-                score += 10;
+                score = ActivityScoreType.PUBLISH_PICTURE.getScore();
+            } else if (BooleanUtils.isTrue(userActivityScoreAddRequest.getCommentPicture())) {
+                // 评论图片
+                field += "comment";
+                score = ActivityScoreType.COMMENT_PICTURE.getScore();
+            } else if (BooleanUtils.isTrue(userActivityScoreAddRequest.getLikePicture())) {
+                // 点赞图片
+                field += "like";
+                score = ActivityScoreType.LIKE_PICTURE.getScore();
+            } else if (BooleanUtils.isTrue(userActivityScoreAddRequest.getFavoritePicture())) {
+                // 收藏图片
+                field += "favorite";
+                score = ActivityScoreType.FAVORITE_PICTURE.getScore();
+            } else if (BooleanUtils.isTrue(userActivityScoreAddRequest.getSharePicture())) {
+                // 分享图片
+                field += "share";
+                score = ActivityScoreType.SHARE_PICTURE.getScore();
+            } else {
+                // 其他行为（可扩展）
+                return true;
             }
         } else {
             return true;
         }
-        final String todayRankKey = todayRankKey();
-        final String monthRankKey = monthRankKey();
-        final String userActionKey = ACTIVITY_SCORE_KEY + user.getId() + DateUtil.format(new Date(), "yyyyMMdd");
+
+        // 用户行为去重 Key（每天重置）
+        String userActionKey = rankCacheService.getUserActionKey(userId);
         Object ansObj = redisCache.getHash(userActionKey, field);
         Integer ans = ansObj != null ? Integer.parseInt(String.valueOf(ansObj)) : null;
-        //如果不存在，执行加分
+
+        // 如果该行为当天未记录，执行加分
         if (ans == null) {
+            // 记录用户行为（防止重复加分）
             redisCache.putHash(userActionKey, field, score);
             redisCache.expireKey(userActionKey, 31, TimeUnit.DAYS);
-            Double newAns = redisCache.incrementScore(todayRankKey, String.valueOf(userId), score);
-            redisCache.incrementScore(monthRankKey, String.valueOf(userId), score);
+
+            // 更新所有榜单分数
+            boolean success = rankCacheService.addActivityScore(userId, score);
+
             if (log.isDebugEnabled()) {
-                log.info("活跃度更新加分! key#field = {}#{}, add = {}, newScore = {}", todayRankKey, userId, score, newAns);
-            }
-            if (newAns <= score) {
-                Long ttl = redisCache.getExpire(todayRankKey);
-                if (ttl == -1) {
-                    redisCache.expireKey(todayRankKey, 31, TimeUnit.DAYS);
-                }
-                ttl = redisCache.getExpire(monthRankKey);
-                if (ttl == -1) {
-                    redisCache.expireKey(monthRankKey, 31, TimeUnit.DAYS);
-                }
+                log.info("活跃度更新加分! userId = {}, field = {}, score = {}, success = {}",
+                        userId, field, score, success);
             }
         }
+
         return true;
     }
 
@@ -117,49 +122,36 @@ public class RankServiceImpl implements RankService {
             return Collections.emptyList();
         }
 
-        String rankKey = rankTimeEnum == RankTimeEnum.DAY ? todayRankKey() : monthRankKey();
-
-        // 1. 获取topN的活跃用户及其分数
-        Set<ZSetOperations.TypedTuple<Object>> userTuples = redisCache
-                .reverseRangeWithScores(rankKey, 0, size - 1);
-
-        if (CollUtil.isEmpty(userTuples)) {
-            return Collections.emptyList();
-        }
-
-        // 2. 提取用户ID并查询用户信息
-        List<Long> userIds = userTuples.stream()
-                .map(tuple -> Long.valueOf((String) tuple.getValue()))
-                .collect(Collectors.toList());
-
-        List<User> userList = userService.listByIds(userIds);
-        if (CollUtil.isEmpty(userList)) {
-            return Collections.emptyList();
-        }
-
-        // 创建用户ID到用户的映射
-        Map<Long, User> userMap = userList.stream()
-                .collect(Collectors.toMap(User::getId, user -> user));
-
-        // 3. 构建排行榜项
-        List<UserActiveRankItemVO> rankItemList = new ArrayList<>();
-        int rank = 1;
-
-        for (ZSetOperations.TypedTuple<Object> tuple : userTuples) {
-            Long userId = Long.valueOf((String) tuple.getValue());
-            User user = userMap.get(userId);
-
-            if (user != null) {
-                UserActiveRankItemVO item = new UserActiveRankItemVO();
-                item.setUser(userStructMapper.toUserVo(user));
-                item.setScore(tuple.getScore());
-                item.setRank(rank++);
-                rankItemList.add(item);
-            }
-        }
-
-        return rankItemList;
+        return rankCacheService.queryRankList(rankTimeEnum, size);
     }
 
+    /**
+     * 获取用户在各榜单的排名
+     *
+     * @param userId 用户ID
+     * @return 用户排名信息
+     */
+    public UserRankVO getUserRank(Long userId) {
+        if (userId == null || userId <= 0) {
+            return null;
+        }
 
+        UserRankVO userRankVO = new UserRankVO();
+        userRankVO.setUserId(userId);
+
+        // 获取各榜单排名和分数
+        Map<String, Object> rankMap = new HashMap<>();
+        for (RankTimeEnum rankTime : RankTimeEnum.values()) {
+            long rank = rankCacheService.getUserRank(userId, rankTime);
+            double score = rankCacheService.getUserScore(userId, rankTime);
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("rank", rank);
+            item.put("score", score);
+            rankMap.put(rankTime.getName(), item);
+        }
+        userRankVO.setRanks(rankMap);
+
+        return userRankVO;
+    }
 }

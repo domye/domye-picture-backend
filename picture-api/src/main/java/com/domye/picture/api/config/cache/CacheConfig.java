@@ -52,4 +52,17 @@ public class CacheConfig {
                 .expireAfterWrite(5L, TimeUnit.MINUTES)
                 .build();
     }
+
+    /**
+     * 活跃度排行榜本地缓存
+     * 用于缓存排行榜数据，减少 Redis 访问
+     */
+    @Bean
+    public Cache<String, String> activityRankLocalCache() {
+        return Caffeine.newBuilder()
+                .initialCapacity(64)
+                .maximumSize(500L)
+                .expireAfterWrite(30L, TimeUnit.SECONDS)
+                .build();
+    }
 }
