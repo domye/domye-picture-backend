@@ -1,32 +1,89 @@
-# 思维指南索引
+# Thinking Guides
 
-本目录包含开发决策和思维方式的指南。
-
-## 指南文件
-
-| 文件 | 说明 |
-|------|------|
-| `decision-making.md` | 技术决策方法论 |
-| `problem-solving.md` | 问题解决思路 |
-| `code-review.md` | 代码审查要点 |
-
-## 核心原则
-
-### 1. 先读后写
-- 实现前先阅读相关代码
-- 参考现有模式保持一致性
-- 不确定时先搜索
-
-### 2. 最小变更
-- 只修改必要的代码
-- 不做无关的"改进"
-- 保持改动范围最小
-
-### 3. 防御性编程
-- 验证所有输入
-- 处理所有错误
-- 考虑边界情况
+> **Purpose**: Expand your thinking to catch things you might not have considered.
 
 ---
 
-*详细指南请查看各具体文件*
+## Why Thinking Guides?
+
+**Most bugs and tech debt come from "didn't think of that"**, not from lack of skill:
+
+- Didn't think about what happens at layer boundaries → cross-layer bugs
+- Didn't think about code patterns repeating → duplicated code everywhere
+- Didn't think about edge cases → runtime errors
+- Didn't think about future maintainers → unreadable code
+
+These guides help you **ask the right questions before coding**.
+
+---
+
+## Available Guides
+
+| Guide | Purpose | When to Use |
+|-------|---------|-------------|
+| [Research Tools Guide](./research-tools-guide.md) | Choose right MCP tool for research | Before searching for documentation or web content |
+| [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
+| [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
+
+---
+
+## Quick Reference: Thinking Triggers
+
+### When to Think About Research Tool Selection
+
+- [ ] Need library/framework documentation
+- [ ] Need current information from the web
+- [ ] Looking for code examples or patterns
+- [ ] Researching configuration options
+
+→ Read [Research Tools Guide](./research-tools-guide.md)
+
+### When to Think About Cross-Layer Issues
+
+- [ ] Feature touches 3+ layers (API, Service, Component, Database)
+- [ ] Data format changes between layers
+- [ ] Multiple consumers need the same data
+- [ ] You're not sure where to put some logic
+
+→ Read [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md)
+
+### When to Think About Code Reuse
+
+- [ ] You're writing similar code to something that exists
+- [ ] You see the same pattern repeated 3+ times
+- [ ] You're adding a new field to multiple places
+- [ ] **You're modifying any constant or config**
+- [ ] **You're creating a new utility/helper function** ← Search first!
+
+→ Read [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md)
+
+---
+
+## Pre-Modification Rule (CRITICAL)
+
+> **Before changing ANY value, ALWAYS search first!**
+
+```bash
+# Search for the value you're about to change
+grep -r "value_to_change" .
+```
+
+This single habit prevents most "forgot to update X" bugs.
+
+---
+
+## How to Use This Directory
+
+1. **Before coding**: Skim the relevant thinking guide
+2. **During coding**: If something feels repetitive or complex, check the guides
+3. **After bugs**: Add new insights to the relevant guide (learn from mistakes)
+
+---
+
+## Contributing
+
+Found a new "didn't think of that" moment? Add it to the relevant guide.
+
+---
+
+**Core Principle**: 30 minutes of thinking saves 3 hours of debugging.
