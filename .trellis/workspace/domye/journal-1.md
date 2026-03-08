@@ -37,3 +37,65 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: 优化活跃度排行榜功能
+
+**Date**: 2026-03-08
+**Task**: 优化活跃度排行榜功能
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 功能增强
+
+| 功能 | 说明 |
+|------|------|
+| 排行榜类型 | 新增周榜、总榜（原有日榜、月榜） |
+| 活跃度维度 | 扩展评论(+5)、点赞(+2)、收藏(+3)、分享(+4) |
+| 我的排名 | 新增 `/rank/myRank` 接口 |
+| 评论活跃度 | 评论时自动更新用户活跃度 |
+
+## 性能优化
+
+- 用户信息多级缓存（本地缓存 + Redis）
+- 排行榜本地缓存（30秒 TTL）
+- 修复日期计算 bug（`Date today` 实例变量问题）
+
+## 新增文件
+
+- `ActivityScoreType.java` - 活跃行为类型枚举
+- `UserRankVO.java` - 用户排名 VO
+- `RankCacheService.java` - 排行榜缓存服务
+
+## API 变更
+
+```
+GET /rank/UserActivityScore?value=1&size=10
+  - value: 1=日榜, 2=周榜, 3=月榜, 4=总榜
+
+GET /rank/myRank (需登录)
+  - 返回当前用户在各榜单的排名和分数
+```
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5212de8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
