@@ -22,6 +22,7 @@ These guides help you **ask the right questions before coding**.
 | Guide | Purpose | When to Use |
 |-------|---------|-------------|
 | [Research Tools Guide](./research-tools-guide.md) | Choose right MCP tool for research | Before searching for documentation or web content |
+| [JS-Reverse Guide](./js-reverse-guide.md) | JavaScript reverse engineering with browser debugging | Analyzing JS encryption, WebSocket, obfuscated code |
 | [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
 | [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
 
