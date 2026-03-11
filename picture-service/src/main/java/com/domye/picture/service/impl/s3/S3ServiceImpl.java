@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,19 +45,19 @@ public class S3ServiceImpl implements S3Service {
         File tempFile = null;
         try {
             // 创建临时文件
-            tempFile = File.createTempFile("s3_upload_", "_" + file.getOriginalFilename());
+            tempFile = File.createTempFile("temp_upload_", "_" + file.getOriginalFilename());
             file.transferTo(tempFile);
 
             // 上传到S3
-            PutObjectResponse response = s3Manager.putObject(objectKey, tempFile);
+            s3Manager.putObject(objectKey, tempFile);
 
             // 构建返回结果
-            S3UploadResultVO result = new S3UploadResultVO();
-            result.setUrl(s3Manager.getObjectUrl(objectKey));
-            result.setFileName(file.getOriginalFilename());
-            result.setFileSize(file.getSize());
-            result.setContentType(file.getContentType());
-            result.setObjectKey(objectKey);
+            S3UploadResultVO result = S3UploadResultVO.builder()
+                    .url(s3Manager.getObjectUrl(objectKey))
+                    .fileName(file.getOriginalFilename())
+                    .fileSize(file.getSize())
+                    .contentType(file.getContentType())
+                    .objectKey(objectKey).build();
 
             return result;
         } catch (IOException e) {

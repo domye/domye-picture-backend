@@ -1,10 +1,16 @@
 package com.domye.picture.model.vo.s3;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class S3UploadResultVO implements Serializable {
     /**
      * 文件访问URL
