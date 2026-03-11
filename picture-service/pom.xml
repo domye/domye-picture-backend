@@ -37,6 +37,12 @@
             <artifactId>cos_api</artifactId>
         </dependency>
 
+        <!-- AWS S3 SDK (支持S3协议兼容存储如MinIO、RustFS) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+        </dependency>
+
         <!-- RocketMQ -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>

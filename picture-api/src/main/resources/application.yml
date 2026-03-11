@@ -71,6 +71,17 @@ knife4j:
 #    region:
 #    bucket:
 
+# S3兼容存储配置 (RustFS/MinIO等)
+#s3:
+#  client:
+#    endpoint: http://localhost:9000
+#    accessKey: your-access-key
+#    secretKey: your-secret-key
+#    region: us-east-1
+#    bucket: your-bucket-name
+#    host: http://localhost:9000/your-bucket-name
+#    pathStyleAccess: true
+
 # AI 配置 (LangChain4j)
 ai:
   # OpenAI API Key（必填，支持环境变量）
