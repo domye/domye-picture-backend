@@ -9,7 +9,6 @@ import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.s3.S3UploadRequest;
 import com.domye.picture.model.vo.s3.S3UploadResultVO;
 import com.domye.picture.service.api.s3.S3Service;
-import com.domye.picture.service.helper.upload.S3ClientConfig;
 import com.domye.picture.service.helper.upload.S3Manager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class S3ServiceImpl implements S3Service {
-    final S3ClientConfig s3ClientConfig;
     final S3Manager s3Manager;
 
     private static final Long MAX_FILE_SIZE = 10 * 1024 * 1024L; // 10MB

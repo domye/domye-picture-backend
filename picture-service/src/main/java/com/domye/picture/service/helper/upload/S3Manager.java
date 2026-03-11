@@ -53,22 +53,6 @@ public class S3Manager {
         return s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
     }
 
-    /**
-     * 上传字节数组
-     *
-     * @param key      对象键
-     * @param bytes    字节数组
-     * @param contentType 内容类型
-     * @return PutObjectResponse 上传结果
-     */
-    public PutObjectResponse putObject(String key, byte[] bytes, String contentType) {
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3ClientConfig.getBucket())
-                .key(key)
-                .contentType(contentType)
-                .build();
-        return s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
-    }
 
     /**
      * 删除对象
