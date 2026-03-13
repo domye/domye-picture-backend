@@ -131,3 +131,48 @@ GET /rank/myRank (需登录)
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: 修复图片缓存未更新问题
+
+**Date**: 2026-03-13
+**Task**: 修复图片缓存未更新问题
+
+### Summary
+
+修复图片上传/编辑后列表缓存未刷新的问题
+
+**问题**: 图片数据变更后，分页列表缓存未清除，导致前端显示旧数据
+
+**解决方案**:
+- 使用 TransactionSynchronizationManager 在事务提交后清除缓存
+- 避免事务内清除缓存导致的读写竞争问题
+- 同时清除 Redis 和 Caffeine 双级缓存
+
+**修改方法**:
+- persistPictureData() - 上传图片后清除缓存
+- editPicture() - 编辑图片信息后清除缓存
+- updatePicture() - 管理员更新图片后清除缓存
+- deletePicture() - 删除图片后清除缓存
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `092d8d6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
