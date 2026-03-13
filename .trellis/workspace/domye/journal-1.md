@@ -99,3 +99,35 @@ GET /rank/myRank (需登录)
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 用S3兼容存储替代腾讯云COS
+
+**Date**: 2026-03-13
+**Task**: 用S3兼容存储替代腾讯云COS
+
+### Summary
+
+腾讯云COS迁移到S3兼容存储(RustFS)，使用Thumbnailator处理图片压缩和缩略图
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e2bd131` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
