@@ -42,6 +42,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,8 +51,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Domye
@@ -83,7 +83,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      */
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
-        Throw.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
 
         Long pictureId = pictureUploadRequest.getId();
@@ -100,7 +99,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         Long spaceId = resolveAndValidateSpaceId(pictureUploadRequest, oldPicture);
         String uploadPathPrefix = buildUploadPathPrefix(spaceId, loginUser.getId());
+
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+
         Picture picture = buildPictureEntity(uploadPictureResult, loginUser, pictureId, spaceId);
         persistPictureData(picture, pictureId, loginUser, spaceId, oldPictureSize);
         return pictureStructMapper.toVo(picture);
@@ -243,9 +244,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * @param pictureId
      */
     private void addUserActivityScore(User loginUser, Long pictureId) {
-        UserActivityScoreAddRequest userActivityScoreAddRequest = new UserActivityScoreAddRequest();
-        userActivityScoreAddRequest.setPictureId(pictureId);
-        userActivityScoreAddRequest.setUploadPicture(true);
+        UserActivityScoreAddRequest userActivityScoreAddRequest = UserActivityScoreAddRequest
+                .builder()
+                .pictureId(pictureId)
+                .uploadPicture(true)
+                .build();
         rankService.addActivityScore(loginUser, userActivityScoreAddRequest);
     }
 
@@ -390,6 +393,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         updatePicture.setReviewStatus(reviewStatus);
         boolean result = updateById(updatePicture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
         // 清除分页缓存
         clearPictureListCache();
     }

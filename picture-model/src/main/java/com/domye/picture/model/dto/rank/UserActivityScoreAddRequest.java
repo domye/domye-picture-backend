@@ -1,8 +1,14 @@
 package com.domye.picture.model.dto.rank;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class UserActivityScoreAddRequest {
     /**
      * 访问页面增加活跃度
