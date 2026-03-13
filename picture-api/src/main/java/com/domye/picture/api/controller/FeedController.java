@@ -11,7 +11,6 @@ import com.domye.picture.model.vo.feed.FeedVO;
 import com.domye.picture.service.api.feed.FeedService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/feed")
 @MdcDot(bizCode = "#feed")
 @RequiredArgsConstructor
-@Tag(name = "信息流接口", description = "信息流相关接口")
 public class FeedController {
 
     private final FeedService feedService;

@@ -44,8 +44,6 @@ public class FileManager {
         String fileSuffix = FileUtil.getSuffix(originFilename);
         // 格式化生成新的上传文件名：日期_UUID.后缀
         String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid, fileSuffix);
-        // 拼接完整上传路径：/路径前缀/文件名
-        String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFilename);
 
         File tempFile = null;
         File compressedFile = null;
@@ -86,18 +84,17 @@ public class FileManager {
             s3Manager.putObject(thumbnailPath, thumbnailFile);
 
             // 构建返回结果
-            UploadPictureResult result = new UploadPictureResult();
-            result.setPicName(FileUtil.mainName(originFilename));
-            result.setPicWidth(picWidth);
-            result.setPicHeight(picHeight);
-            result.setPicScale(picScale);
-            result.setPicFormat(picFormat);
-            result.setPicSize(compressedFile.length());
-            result.setUrl(s3ClientConfig.getHost() + compressedPath);
-            result.setThumbnailUrl(s3ClientConfig.getHost() + thumbnailPath);
-
-            // 提取主色调（简化实现：使用固定值或后续扩展）
-            result.setPicColor(extractDominantColor(originalImage));
+            UploadPictureResult result = UploadPictureResult.builder()
+                    .picName(FileUtil.mainName(originFilename))
+                    .picWidth(picWidth)
+                    .picHeight(picHeight)
+                    .picScale(picScale)
+                    .picFormat(picFormat)
+                    .picSize(compressedFile.length())
+                    .url(s3ClientConfig.getHost() + compressedPath)
+                    .thumbnailUrl(s3ClientConfig.getHost() + thumbnailPath)
+                    .picColor(extractDominantColor(originalImage))
+                    .build();
 
             return result;
         } catch (Exception e) {
@@ -112,42 +109,43 @@ public class FileManager {
     }
 
     /**
-     * 提取图片主色调（简化实现）
+     * 高性能主色提取（9点采样）
      */
     private String extractDominantColor(BufferedImage image) {
-        // 采样中心区域的颜色
         int width = image.getWidth();
         int height = image.getHeight();
-        int centerX = width / 2;
-        int centerY = height / 2;
 
-        // 采样 5x5 区域
-        long totalRed = 0, totalGreen = 0, totalBlue = 0;
-        int sampleSize = 5;
-        int halfSample = sampleSize / 2;
-        int count = 0;
+        int cx = width >> 1;
+        int cy = height >> 1;
 
-        for (int x = centerX - halfSample; x <= centerX + halfSample; x++) {
-            for (int y = centerY - halfSample; y <= centerY + halfSample; y++) {
-                if (x >= 0 && x < width && y >= 0 && y < height) {
-                    int rgb = image.getRGB(x, y);
-                    totalRed += (rgb >> 16) & 0xFF;
-                    totalGreen += (rgb >> 8) & 0xFF;
-                    totalBlue += rgb & 0xFF;
-                    count++;
-                }
+        int stepX = Math.max(1, width / 8);
+        int stepY = Math.max(1, height / 8);
+
+        int[] xs = {cx, cx - stepX, cx + stepX};
+        int[] ys = {cy, cy - stepY, cy + stepY};
+
+        int r = 0, g = 0, b = 0, count = 0;
+
+        for (int x : xs) {
+            if (x < 0 || x >= width) continue;
+            for (int y : ys) {
+                if (y < 0 || y >= height) continue;
+
+                int rgb = image.getRGB(x, y);
+                r += (rgb >> 16) & 0xFF;
+                g += (rgb >> 8) & 0xFF;
+                b += rgb & 0xFF;
+                count++;
             }
         }
 
-        if (count == 0) {
-            return "#000000";
-        }
+        if (count == 0) return "#000000";
 
-        int avgRed = (int) (totalRed / count);
-        int avgGreen = (int) (totalGreen / count);
-        int avgBlue = (int) (totalBlue / count);
+        r /= count;
+        g /= count;
+        b /= count;
 
-        return String.format("#%02X%02X%02X", avgRed, avgGreen, avgBlue);
+        return String.format("#%02X%02X%02X", r, g, b);
     }
 
     private void validPicture(MultipartFile file) {
