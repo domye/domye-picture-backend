@@ -3,29 +3,31 @@ package com.domye.picture.service.impl.space;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.exception.BusinessException;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.model.dto.space.SpaceUserAddRequest;
+import com.domye.picture.model.dto.space.SpaceUserEditRequest;
 import com.domye.picture.model.dto.space.SpaceUserQueryRequest;
+import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.space.SpaceUser;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.ContactStatusEnum;
 import com.domye.picture.model.enums.SpaceRoleEnum;
+import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import com.domye.picture.model.mapper.space.SpaceUserStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.space.SpaceUserVO;
-import com.domye.picture.model.vo.space.SpaceVO;
-import com.domye.picture.model.vo.user.UserVO;
+import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.mapper.SpaceUserMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import com.domye.picture.model.mapper.space.SpaceStructMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -45,14 +47,37 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         implements SpaceUserService {
     final SpaceService spaceService;
     final UserService userService;
+    final ContactService contactService;
     final UserStructMapper userStructMapper;
     final SpaceUserStructMapper spaceUserStructMapper;
     final SpaceStructMapper spaceStructMapper;
 
     @Override
-    public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
-        //校验参数
+    public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest, Long loginUserId) {
+        // 参数校验
         Throw.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
+
+        Long spaceId = spaceUserAddRequest.getSpaceId();
+        Long targetUserId = spaceUserAddRequest.getUserId();
+
+        // 检查当前用户是否是该空间的管理员
+        SpaceUserQueryRequest queryRequest = new SpaceUserQueryRequest();
+        queryRequest.setSpaceId(spaceId);
+        queryRequest.setUserId(loginUserId);
+        SpaceUser currentUserSpaceRole = this.getOne(this.getQueryWrapper(queryRequest));
+
+        // 如果不是管理员，需要检查是否在联系人列表中
+        if (currentUserSpaceRole == null || !SpaceRoleEnum.ADMIN.getValue().equals(currentUserSpaceRole.getSpaceRole())) {
+            // 查询联系人表，检查是否存在已通过的联系关系
+            LambdaQueryWrapper<Contact> contactQuery = new LambdaQueryWrapper<>();
+            contactQuery.eq(Contact::getUserId, loginUserId)
+                    .eq(Contact::getContactUserId, targetUserId)
+                    .eq(Contact::getStatus, ContactStatusEnum.ACCEPTED.getValue());
+            Contact contact = contactService.getOne(contactQuery);
+            Throw.throwIf(contact == null, ErrorCode.NO_AUTH_ERROR, "非管理员只能从联系人中添加成员");
+        }
+
+        // 实体转换和校验
         SpaceUser spaceUser = spaceUserStructMapper.toEntity(spaceUserAddRequest);
         validSpaceUser(spaceUser, true);
 
@@ -60,6 +85,66 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         boolean result = this.save(spaceUser);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return spaceUser.getId();
+    }
+
+    @Override
+    public void deleteSpaceUser(long id, Long loginUserId) {
+        // 判断是否存在
+        SpaceUser oldSpaceUser = this.getById(id);
+        Throw.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        // 不能删除自己
+        Throw.throwIf(oldSpaceUser.getUserId().equals(loginUserId), ErrorCode.NO_AUTH_ERROR, "无权限编辑自己");
+        // 操作数据库
+        boolean result = this.removeById(id);
+        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+
+    @Override
+    public SpaceUser getSpaceUser(SpaceUserQueryRequest spaceUserQueryRequest) {
+        // 参数校验
+        Throw.throwIf(spaceUserQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        Long spaceId = spaceUserQueryRequest.getSpaceId();
+        Long userId = spaceUserQueryRequest.getUserId();
+        Throw.throwIf(ObjectUtil.hasEmpty(spaceId, userId), ErrorCode.PARAMS_ERROR);
+        // 查询数据库
+        SpaceUser spaceUser = this.getOne(this.getQueryWrapper(spaceUserQueryRequest));
+        Throw.throwIf(spaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        return spaceUser;
+    }
+
+    @Override
+    public List<SpaceUserVO> listSpaceUser(SpaceUserQueryRequest spaceUserQueryRequest) {
+        Throw.throwIf(spaceUserQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        List<SpaceUser> spaceUserList = this.list(this.getQueryWrapper(spaceUserQueryRequest));
+        return this.getSpaceUserVOList(spaceUserList);
+    }
+
+    @Override
+    public void editSpaceUser(SpaceUserEditRequest spaceUserEditRequest, Long loginUserId) {
+        // 参数校验
+        Throw.throwIf(spaceUserEditRequest == null || spaceUserEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
+
+        // 将实体类和 DTO 进行转换
+        SpaceUser spaceUser = spaceUserStructMapper.toEntity(spaceUserEditRequest);
+        // 数据校验
+        validSpaceUser(spaceUser, false);
+        // 判断是否存在
+        long id = spaceUserEditRequest.getId();
+        SpaceUser oldSpaceUser = this.getById(id);
+        Throw.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        // 不能编辑自己
+        Throw.throwIf(oldSpaceUser.getUserId().equals(loginUserId), ErrorCode.NO_AUTH_ERROR, "无权限编辑自己");
+        // 操作数据库
+        boolean result = this.updateById(spaceUser);
+        Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+
+    @Override
+    public List<SpaceUserVO> listMyTeamSpace(Long userId) {
+        SpaceUserQueryRequest spaceUserQueryRequest = new SpaceUserQueryRequest();
+        spaceUserQueryRequest.setUserId(userId);
+        List<SpaceUser> spaceUserList = this.list(this.getQueryWrapper(spaceUserQueryRequest));
+        return this.getSpaceUserVOList(spaceUserList);
     }
 
     @Override
@@ -74,40 +159,12 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         Long spaceId = spaceUserQueryRequest.getSpaceId();
         String spaceRole = spaceUserQueryRequest.getSpaceRole();
 
-
         // 拼接查询条件
-        queryWrapper.eq(ObjUtil.isNotEmpty(spaceId), "spaceId", spaceId);
-        queryWrapper.eq(ObjUtil.isNotEmpty(spaceRole), "spaceRole", spaceRole);
-
-        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
-        queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
+        queryWrapper.eq(ObjUtil.isNotEmpty(spaceId), "spaceId", spaceId)
+                .eq(ObjUtil.isNotEmpty(spaceRole), "spaceRole", spaceRole)
+                .eq(ObjUtil.isNotEmpty(id), "id", id)
+                .eq(ObjUtil.isNotEmpty(userId), "userId", userId);
         return queryWrapper;
-    }
-
-    /**
-     * 获取成���封装类（单条）
-     * @deprecated 存在 N+1 查询风险，请使用 {@link #getSpaceUserVOList(List)} 批量方法
-     */
-    @Override
-    @Deprecated
-    public SpaceUserVO getSpaceUserVO(SpaceUser spaceUser, HttpServletRequest request) {
-        // 对象转封装类
-        SpaceUserVO spaceUserVO = spaceUserStructMapper.toSpaceUserVo(spaceUser);
-        // 关联查询用户信息
-        Long userId = spaceUser.getUserId();
-        if (userId != null && userId > 0) {
-            User user = userService.getById(userId);
-            UserVO userVO = userStructMapper.toUserVo(user);
-            spaceUserVO.setUser(userVO);
-        }
-        // 关联查询空间信息
-        Long spaceId = spaceUser.getSpaceId();
-        if (spaceId != null && spaceId > 0) {
-            Space space = spaceService.getById(spaceId);
-            SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
-            spaceUserVO.setSpace(spaceVO);
-        }
-        return spaceUserVO;
     }
 
     //查询封装类
