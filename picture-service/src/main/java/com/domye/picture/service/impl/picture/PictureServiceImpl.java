@@ -29,8 +29,8 @@ import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.FilterlistService;
 import com.domye.picture.service.api.user.UserService;
-import com.domye.picture.service.helper.upload.CosManager;
 import com.domye.picture.service.helper.upload.FileManager;
+import com.domye.picture.service.helper.upload.S3Manager;
 import com.domye.picture.service.helper.upload.UploadPictureResult;
 import com.domye.picture.service.mapper.PictureMapper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -59,9 +59,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         implements PictureService {
-    final PictureMapper pictureMapper;
     final FileManager fileManager;
-    final CosManager cosManager;
+    final S3Manager s3Manager;
     final UserService userService;
     final SpaceService spaceService;
     final RankService rankService;
@@ -85,14 +84,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(filterlistService.isInFilterList(loginUser.getId(), 0L, 0L), ErrorCode.NO_AUTH_ERROR, "用户已被禁止该操作");
 
         Long pictureId = pictureUploadRequest.getId();
-        Picture oldPicture = getById(pictureId);
-        Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        boolean isUpdate = pictureId != null;
+        Picture oldPicture = null;
+        long oldPictureSize = 0L;
+
+        // 如果是更新操作，获取原图片信息
+        if (isUpdate) {
+            oldPicture = getById(pictureId);
+            Throw.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+            oldPictureSize = oldPicture.getPicSize() != null ? oldPicture.getPicSize() : 0L;
+        }
 
         Long spaceId = resolveAndValidateSpaceId(pictureUploadRequest, oldPicture);
         String uploadPathPrefix = buildUploadPathPrefix(spaceId, loginUser.getId());
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
         Picture picture = buildPictureEntity(uploadPictureResult, loginUser, pictureId, spaceId);
-        persistPictureData(picture, pictureId, loginUser, spaceId);
+        persistPictureData(picture, pictureId, loginUser, spaceId, oldPictureSize);
         return pictureStructMapper.toVo(picture);
     }
 
@@ -100,15 +107,26 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * 解析和校验空间id
      *
      * @param pictureUploadRequest
-     * @param oldPicture
+     * @param oldPicture           原图片信息，新建时为 null
      * @return
      */
     private Long resolveAndValidateSpaceId(PictureUploadRequest pictureUploadRequest, Picture oldPicture) {
         Long spaceId = pictureUploadRequest.getSpaceId();
-        if (spaceId == null) {
+
+        // 如果请求中没有 spaceId，尝试从原图片获取（更新场景）
+        if (spaceId == null && oldPicture != null) {
             spaceId = oldPicture.getSpaceId();
         }
-        Throw.throwIf(ObjUtil.notEqual(spaceId, oldPicture.getSpaceId()), ErrorCode.PARAMS_ERROR, "空间 id 不一致");
+
+        // 更新场景：校验 spaceId 是否一致
+        if (oldPicture != null && ObjUtil.notEqual(spaceId, oldPicture.getSpaceId())) {
+            Throw.throwIf(true, ErrorCode.PARAMS_ERROR, "空间 id 不一致");
+        }
+
+        // 如果 spaceId 仍为空，说明是公共图库上传
+        if (spaceId == null) {
+            return null;
+        }
 
         Space space = spaceService.getById(spaceId);
         Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
@@ -171,9 +189,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * @param pictureId
      * @param loginUser
      * @param spaceId
+     * @param oldPictureSize 原图片大小，新建时为 0
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
-    protected void persistPictureData(Picture picture, Long pictureId, User loginUser, Long spaceId) {
+    protected void persistPictureData(Picture picture, Long pictureId, User loginUser, Long spaceId, long oldPictureSize) {
         // 1. 保存或更新图片信息（事务内 - 必须成功）
         boolean result = saveOrUpdate(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
@@ -183,11 +202,28 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             // 使用乐观锁思想，基于当前值更新，避免并发问题
             Space space = spaceService.getById(spaceId);
             Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            boolean update = spaceService.lambdaUpdate()
-                    .eq(Space::getId, spaceId)
-                    .set(Space::getTotalSize, space.getTotalSize() + picture.getPicSize())
-                    .set(Space::getTotalCount, space.getTotalCount() + 1)
-                    .update();
+
+            // 计算大小变化：新图片大小 - 旧图片大小
+            long sizeDiff = picture.getPicSize() - oldPictureSize;
+
+            // 更新场景：只更新大小，不增加条数
+            // 新建场景：增加大小和条数
+            boolean update;
+            if (pictureId != null) {
+                // 更新：只更新大小
+                update = spaceService.lambdaUpdate()
+                        .eq(Space::getId, spaceId)
+                        .set(Space::getTotalSize, space.getTotalSize() + sizeDiff)
+                        .update();
+            } else {
+                // 新建：更新大小和条数
+                update = spaceService.lambdaUpdate()
+                        .eq(Space::getId, spaceId)
+                        .set(Space::getTotalSize, space.getTotalSize() + picture.getPicSize())
+                        .set(Space::getTotalCount, space.getTotalCount() + 1)
+                        .update();
+            }
+            Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
             Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
         }
 
@@ -378,10 +414,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (count > 1) {
             return;
         }
-        cosManager.deleteObject(oldPicture.getUrl());
+        s3Manager.deleteObject(oldPicture.getUrl());
         String thumbnailUrl = oldPicture.getThumbnailUrl();
         if (StrUtil.isNotBlank(thumbnailUrl)) {
-            cosManager.deleteObject(thumbnailUrl);
+            s3Manager.deleteObject(thumbnailUrl);
         }
     }
 

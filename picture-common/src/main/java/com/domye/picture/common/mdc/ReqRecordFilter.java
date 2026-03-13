@@ -45,8 +45,13 @@ public class ReqRecordFilter implements Filter {
             }
 
             stopWatch.start("请求参数构建");
-            // 包装请求以便重复读取
-            request = new ContentCachingRequestWrapper(request);
+
+            // 判断是否为 multipart 请求，multipart 请求不包装
+            boolean isMultipart = isMultipartRequest(request);
+            if (!isMultipart) {
+                // 包装请求以便重复读取
+                request = new ContentCachingRequestWrapper(request);
+            }
 
             // 添加traceId到MDC
             MdcUtil.addTraceId();
@@ -97,6 +102,14 @@ public class ReqRecordFilter implements Filter {
         return uri.endsWith("css") || uri.endsWith("js") || uri.endsWith("png")
                 || uri.endsWith("ico") || uri.endsWith("gif") || uri.endsWith("svg")
                 || uri.endsWith("min.js.map") || uri.endsWith("min.css.map");
+    }
+
+    /**
+     * 判断是否为 multipart 请求
+     */
+    private boolean isMultipartRequest(HttpServletRequest request) {
+        String contentType = request.getContentType();
+        return contentType != null && contentType.toLowerCase().startsWith("multipart/");
     }
 
     private void logRequestInfo(HttpServletRequest request, String traceId) {

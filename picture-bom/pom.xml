@@ -25,8 +25,8 @@
         <caffeine.version>3.2.2</caffeine.version>
         <knife4j.version>4.5.0</knife4j.version>
         <hutool.version>5.8.26</hutool.version>
-        <cos.version>5.6.227</cos.version>
         <aws-s3.version>2.25.0</aws-s3.version>
+        <thumbnailator.version>0.4.20</thumbnailator.version>
         <disruptor.version>3.4.2</disruptor.version>
         <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
         <lombok.version>1.18.36</lombok.version>
@@ -165,18 +165,18 @@
                 <version>${jetbrains-annotations.version}</version>
             </dependency>
             <!-- ==================== 云服务相关依赖 ==================== -->
-            <!-- 腾讯云 COS 对象存储 -->
-            <dependency>
-                <groupId>com.qcloud</groupId>
-                <artifactId>cos_api</artifactId>
-                <version>${cos.version}</version>
-            </dependency>
-
             <!-- AWS S3 SDK (支持S3协议兼容存储如MinIO、RustFS) -->
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>s3</artifactId>
                 <version>${aws-s3.version}</version>
+            </dependency>
+
+            <!-- Thumbnailator 图片处理库 -->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
             </dependency>
 
             <!-- ==================== 性能优化相关依赖 ==================== -->

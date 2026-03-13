@@ -62,15 +62,6 @@ knife4j:
         api-rule-resources:
           - com.domye.picture.controller
 
-# 腾讯云COS配置
-#cos:
-#  client:
-#    host:
-#    secretId:
-#    secretKey:
-#    region:
-#    bucket:
-
 # S3兼容存储配置 (RustFS/MinIO等)
 #s3:
 #  client:
