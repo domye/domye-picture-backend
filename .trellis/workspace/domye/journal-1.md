@@ -176,3 +176,35 @@ GET /rank/myRank (需登录)
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: 缓存优化：序列化统一、Key前缀规范、配置外部化
+
+**Date**: 2026-03-13
+**Task**: 缓存优化：序列化统一、Key前缀规范、配置外部化
+
+### Summary
+
+修复缓存模块的三个问题：1.序列化统一使用JSON 2.Key前缀使用常量 3.Redisson配置外部化
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `456294e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
