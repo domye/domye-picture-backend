@@ -25,6 +25,25 @@ from .paths import (
 # YAML Simple Parser (no dependencies)
 # =============================================================================
 
+
+def _unquote(s: str) -> str:
+    """Remove exactly one layer of matching surrounding quotes.
+
+    Unlike str.strip('"'), this only removes the outermost pair,
+    preserving any nested quotes inside the value.
+
+    Examples:
+        _unquote('"hello"')        -> 'hello'
+        _unquote("'hello'")        -> 'hello'
+        _unquote('"echo \\'hi\\'"')  -> "echo 'hi'"
+        _unquote('hello')          -> 'hello'
+        _unquote('"hello\\'')       -> '"hello\\''  (mismatched, unchanged)
+    """
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+        return s[1:-1]
+    return s
+
+
 def parse_simple_yaml(content: str) -> dict:
     """Parse simple YAML with nested dict support (no dependencies).
 
@@ -77,12 +96,12 @@ def _parse_yaml_block(
 
         if stripped.startswith("- "):
             if current_list is not None:
-                current_list.append(stripped[2:].strip().strip('"').strip("'"))
+                current_list.append(_unquote(stripped[2:].strip()))
             i += 1
         elif ":" in stripped:
             key, _, value = stripped.partition(":")
             key = key.strip()
-            value = value.strip().strip('"').strip("'")
+            value = _unquote(value.strip())
             current_list = None
 
             if value:
