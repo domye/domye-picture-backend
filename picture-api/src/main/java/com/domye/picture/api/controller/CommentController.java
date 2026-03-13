@@ -10,7 +10,6 @@ import com.domye.picture.model.dto.comment.CommentQueryRequest;
 import com.domye.picture.model.dto.comment.CommentReplyQueryRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.comment.CommentListVO;
-import com.domye.picture.service.api.comment.CommentsContentService;
 import com.domye.picture.service.api.comment.CommentsService;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
@@ -27,7 +26,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CommentController {
     final CommentsService commentService;
-    final CommentsContentService commentContentService;
     final UserService userService;
     final ContactService contactService;
 

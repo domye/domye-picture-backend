@@ -159,14 +159,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String sortField = userQueryRequest.getSortField();
         String sortOrder = userQueryRequest.getSortOrder();
 
-        QueryWrapper<User> queryWrapper = new QueryWrapper<User>()
+        return new QueryWrapper<User>()
                 .eq(ObjUtil.isNotNull(id), "id", id)
                 .eq(StrUtil.isNotBlank(userRole), "userRole", userRole)
                 .like(StrUtil.isNotBlank(userAccount), "userAccount", userAccount)
                 .like(StrUtil.isNotBlank(userName), "userName", userName)
                 .like(StrUtil.isNotBlank(userProfile), "userProfile", userProfile)
                 .orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
-        return queryWrapper;
     }
 
     /**

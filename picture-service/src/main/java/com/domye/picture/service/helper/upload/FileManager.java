@@ -84,7 +84,8 @@ public class FileManager {
             s3Manager.putObject(thumbnailPath, thumbnailFile);
 
             // 构建返回结果
-            UploadPictureResult result = UploadPictureResult.builder()
+
+            return UploadPictureResult.builder()
                     .picName(FileUtil.mainName(originFilename))
                     .picWidth(picWidth)
                     .picHeight(picHeight)
@@ -95,8 +96,6 @@ public class FileManager {
                     .thumbnailUrl(s3ClientConfig.getHost() + thumbnailPath)
                     .picColor(extractDominantColor(originalImage))
                     .build();
-
-            return result;
         } catch (Exception e) {
             log.error("图片上传到对象存储失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
@@ -150,8 +149,8 @@ public class FileManager {
 
     private void validPicture(MultipartFile file) {
         Throw.throwIf(file == null, ErrorCode.PARAMS_ERROR, "图片不能为空");
-        Long fileSize = file.getSize();
-        final Long ONE_MB = 1024 * 1024L;
+        long fileSize = file.getSize();
+        final long ONE_MB = 1024 * 1024L;
         Throw.throwIf(fileSize > 2 * ONE_MB, ErrorCode.PARAMS_ERROR, "图片大小不能超过2M");
         String fileSuffix = FileUtil.getSuffix(file.getOriginalFilename());
         final List<String> ALLOW_FORMAT_LIST = Arrays.asList("jpeg", "jpg", "png", "webp");

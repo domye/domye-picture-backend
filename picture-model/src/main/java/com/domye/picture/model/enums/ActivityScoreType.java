@@ -47,18 +47,4 @@ public enum ActivityScoreType {
         this.score = score;
     }
 
-    /**
-     * 根据 text 获取枚举
-     */
-    public static ActivityScoreType getEnumByText(String text) {
-        if (text == null || text.isEmpty()) {
-            return null;
-        }
-        for (ActivityScoreType type : ActivityScoreType.values()) {
-            if (type.getText().equals(text)) {
-                return type;
-            }
-        }
-        return null;
-    }
 }

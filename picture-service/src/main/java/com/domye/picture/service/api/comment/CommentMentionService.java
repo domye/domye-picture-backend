@@ -2,7 +2,6 @@ package com.domye.picture.service.api.comment;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.entity.comment.CommentMention;
-import com.domye.picture.model.vo.comment.CommentMentionVO;
 
 import java.util.List;
 
@@ -20,10 +19,4 @@ public interface CommentMentionService extends IService<CommentMention> {
      */
     void batchSaveMentions(Long commentId, List<Long> userIds);
 
-    /**
-     * 根据评论ID获取@提及列表
-     * @param commentId 评论ID
-     * @return @提及VO列表
-     */
-    List<CommentMentionVO> getMentionsByCommentId(Long commentId);
 }

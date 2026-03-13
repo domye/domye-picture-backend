@@ -1,25 +1,27 @@
 package com.domye.picture.service.impl.rank;
 
-import cn.hutool.core.date.DateUtil;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
 import com.domye.picture.common.helper.impl.RedisCache;
-import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
+import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.ActivityScoreType;
 import com.domye.picture.model.enums.RankTimeEnum;
 import com.domye.picture.model.vo.rank.UserActiveRankItemVO;
 import com.domye.picture.model.vo.rank.UserRankVO;
-import com.domye.picture.model.entity.user.User;
+import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.cache.RankCacheService;
 import com.domye.picture.service.mapper.PictureMapper;
-import com.domye.picture.service.api.rank.RankService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,8 +35,6 @@ public class RankServiceImpl implements RankService {
     private final RedisCache redisCache;
     private final RankCacheService rankCacheService;
     private final PictureMapper pictureMapper;
-
-    private static final String ACTIVITY_SCORE_KEY = "activity_rank_";
 
     @Override
     public Boolean addActivityScore(User user, UserActivityScoreAddRequest userActivityScoreAddRequest) {

@@ -6,13 +6,12 @@ import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 @Slf4j
@@ -28,7 +27,7 @@ public class ActivityInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request,
                                 HttpServletResponse response,
                                 Object handler,
-                                Exception ex) throws Exception {
+                                Exception ex) {
         try {
             // 只处理 /api/picture/get/vo 接口的访问
             String uri = request.getRequestURI();

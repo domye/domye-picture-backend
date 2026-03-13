@@ -23,16 +23,12 @@ public class AIReplyPromptTemplate {
      * @return 完整的提示词
      */
     public String buildPrompt(Picture picture, String userComment) {
-        StringBuilder prompt = new StringBuilder(SYSTEM_PROMPT);
-        
-        // 添加图片信息
-        prompt.append("图片标题：").append(getSafeValue(picture.getName())).append("\n");
-        prompt.append("图片描述：").append(getSafeValue(picture.getIntroduction())).append("\n\n");
-        
-        // 添加用户评论
-        prompt.append("用户评论：").append(userComment);
-        
-        return prompt.toString();
+
+        return SYSTEM_PROMPT + "图片标题：" + getSafeValue(picture.getName()) + "\n" +
+                "图片描述：" + getSafeValue(picture.getIntroduction()) + "\n\n" +
+
+                // 添加用户评论
+                "用户评论：" + userComment;
     }
 
     /**

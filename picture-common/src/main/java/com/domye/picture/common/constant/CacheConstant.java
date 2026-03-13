@@ -19,12 +19,7 @@ public interface CacheConstant {
      * 缓存空值标记（防止缓存穿透）
      */
     String NULL_MARKER = "NULL";
-    
-    /**
-     * 默认缓存过期时间（秒）
-     */
-    long DEFAULT_EXPIRE_TIME = 300L;
-    
+
     /**
      * 默认缓存随机过期时间范围（防止缓存雪崩）
      */
@@ -34,26 +29,11 @@ public interface CacheConstant {
      * 分布式锁默认等待时间（秒）
      */
     int DEFAULT_LOCK_WAIT_TIME = 5;
-    
-    /**
-     * 分布式锁默认持有时间（秒）
-     */
-    int DEFAULT_LOCK_LEASE_TIME = 10;
-    
+
     /**
      * 图片列表缓存 key 前缀
      */
     String PICTURE_LIST_CACHE_KEY = CACHE_PREFIX + "picture:list:";
-    
-    /**
-     * 投票活动缓存 key 前缀
-     */
-    String VOTE_ACTIVITY_CACHE_KEY = CACHE_PREFIX + "vote:activity:";
-    
-    /**
-     * 用户活跃度缓存 key 前缀
-     */
-    String USER_ACTIVITY_CACHE_KEY = CACHE_PREFIX + "user:activity:";
 
     /**
      * 用户信息缓存 key 前缀
@@ -65,13 +45,4 @@ public interface CacheConstant {
      */
     String USER_FOLLOWS_CACHE_KEY = CACHE_PREFIX + "user:follows:";
 
-    /**
-     * 活跃度排行榜缓存 key 前缀
-     */
-    String ACTIVITY_RANK_CACHE_KEY = CACHE_PREFIX + "activity:rank:";
-
-    /**
-     * 用户排名缓存 key 前缀
-     */
-    String USER_RANK_CACHE_KEY = CACHE_PREFIX + "user:rank:";
 }

@@ -13,11 +13,11 @@ import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.space.analyze.*;
-import com.domye.picture.service.mapper.PictureMapper;
-import com.domye.picture.service.mapper.SpaceMapper;
 import com.domye.picture.service.api.space.SpaceAnalyzeService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
+import com.domye.picture.service.mapper.PictureMapper;
+import com.domye.picture.service.mapper.SpaceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +76,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         Throw.throwIf(spaceUsageAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
 //查询全部或者公共图库
         if (spaceUsageAnalyzeRequest.isQueryAll() || spaceUsageAnalyzeRequest.isQueryPublic()) {
-            Boolean isadmin = userService.isAdmin(user);
+            boolean isadmin = userService.isAdmin(user);
             Throw.throwIf(!isadmin, ErrorCode.NO_AUTH_ERROR, "无权访问公共图库");
             QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
             queryWrapper.select("picSize");
@@ -148,7 +148,7 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 .stream()
                 .filter(ObjUtil::isNotNull)
                 .map(Object::toString)
-                .collect(Collectors.toList());
+                .toList();
         // 合并所有标签并统计使用次数
         Map<String, Long> tagCountMap = tagsJsonList.stream()
                 .flatMap(tagsJson -> JSONUtil.toList(tagsJson, String.class).stream())
@@ -158,14 +158,6 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .map(entry -> new SpaceTagAnalyzeResponse(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public void checkSpaceAuth(User loginUser, Space space) {
-        // 仅本人或管理员可访问
-        if (!space.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
     }
 
     @Override
@@ -184,14 +176,14 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
         List<Long> picSizes = pictureMapper.selectObjs(queryWrapper)
                 .stream()
                 .map(size -> ((Number) size).longValue())
-                .collect(Collectors.toList());
+                .toList();
 
         // 定义分段范围，注意使用有序 Map
         Map<String, Long> sizeRanges = new LinkedHashMap<>();
         sizeRanges.put("<100KB", picSizes.stream().filter(size -> size < 100 * 1024).count());
         sizeRanges.put("100KB-500KB", picSizes.stream().filter(size -> size >= 100 * 1024 && size < 500 * 1024).count());
-        sizeRanges.put("500KB-1MB", picSizes.stream().filter(size -> size >= 500 * 1024 && size < 1 * 1024 * 1024).count());
-        sizeRanges.put(">1MB", picSizes.stream().filter(size -> size >= 1 * 1024 * 1024).count());
+        sizeRanges.put("500KB-1MB", picSizes.stream().filter(size -> size >= 500 * 1024 && size < 1024 * 1024).count());
+        sizeRanges.put(">1MB", picSizes.stream().filter(size -> size >= 1024 * 1024).count());
 
         // 转换为响应对象
         return sizeRanges.entrySet().stream()

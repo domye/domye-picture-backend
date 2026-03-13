@@ -24,8 +24,8 @@ import java.lang.reflect.Method;
 @Aspect
 @Component
 public class MdcAspect implements ApplicationContextAware {
-    private ExpressionParser parser = new SpelExpressionParser();
-    private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
+    private final ExpressionParser parser = new SpelExpressionParser();
+    private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
     private ApplicationContext applicationContext;
 
     @Pointcut("@annotation(MdcDot) || @within(MdcDot)")
@@ -37,8 +37,7 @@ public class MdcAspect implements ApplicationContextAware {
         long start = System.currentTimeMillis();
         boolean hasTag = addMdcCode(joinPoint);
         try {
-            Object ans = joinPoint.proceed();
-            return ans;
+            return joinPoint.proceed();
         } finally {
             log.info("执行耗时: {}#{} = {}ms",
                     joinPoint.getSignature().getDeclaringType().getSimpleName(),

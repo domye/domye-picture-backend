@@ -83,21 +83,19 @@ public class Comments implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", commentid=").append(commentid);
-        sb.append(", pictureid=").append(pictureid);
-        sb.append(", parentid=").append(parentid);
-        sb.append(", userid=").append(userid);
-        sb.append(", rootid=").append(rootid);
-        sb.append(", replycount=").append(replycount);
-        sb.append(", likecount=").append(likecount);
-        sb.append(", createdtime=").append(createdtime);
-        sb.append(", updatedtime=").append(updatedtime);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return getClass().getSimpleName() +
+                " [" +
+                "Hash = " + hashCode() +
+                ", commentid=" + commentid +
+                ", pictureid=" + pictureid +
+                ", parentid=" + parentid +
+                ", userid=" + userid +
+                ", rootid=" + rootid +
+                ", replycount=" + replycount +
+                ", likecount=" + likecount +
+                ", createdtime=" + createdtime +
+                ", updatedtime=" + updatedtime +
+                ", serialVersionUID=" + serialVersionUID +
+                "]";
     }
 }

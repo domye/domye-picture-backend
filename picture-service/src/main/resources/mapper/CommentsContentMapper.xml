@@ -5,9 +5,9 @@
 <mapper namespace="com.domye.picture.service.mapper.CommentsContentMapper">
 
     <resultMap id="BaseResultMap" type="com.domye.picture.model.entity.comment.CommentsContent">
-            <id property="commentid" column="commentId" />
-            <result property="commenttext" column="commentText" />
-            <result property="commenttime" column="commentTime" />
+            <id property="commentId" column="commentId" />
+            <result property="commentText" column="commentText" />
+            <result property="commentTime" column="commentTime" />
     </resultMap>
 
     <sql id="Base_Column_List">

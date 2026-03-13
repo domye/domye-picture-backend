@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
-import com.domye.picture.service.mapper.VoteOptionsMapper;
-import com.domye.picture.service.api.vote.VoteOptionService;
 import com.domye.picture.model.dto.vote.VoteOptionAddRequest;
 import com.domye.picture.model.entity.vote.VoteOption;
+import com.domye.picture.service.api.vote.VoteOptionService;
+import com.domye.picture.service.mapper.VoteOptionsMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +47,6 @@ public class VoteOptionServiceImpl extends ServiceImpl<VoteOptionsMapper, VoteOp
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteOptions(Long activityId) {
-        boolean result = remove(new QueryWrapper<VoteOption>().eq("activityId", activityId));
-        return result;
+        return remove(new QueryWrapper<VoteOption>().eq("activityId", activityId));
     }
 }

@@ -47,30 +47,6 @@ public class FeedCacheService {
     private static final long USER_FOLLOWS_EXPIRE_TIME = 600L;
 
     /**
-     * 获取用户信息（带缓存）
-     *
-     * @param userId 用户ID
-     * @return 用户信息，不存在返回null
-     */
-    public UserVO getUserInfo(Long userId) {
-        if (userId == null) {
-            return null;
-        }
-
-        String cacheKey = CacheConstant.USER_INFO_CACHE_KEY + userId;
-
-        return cacheConsistencyHelper.getWithBreakdownProtection(
-                userInfoLocalCache,
-                cacheKey,
-                USER_INFO_EXPIRE_TIME,
-                () -> {
-                    User user = userService.getById(userId);
-                    return user != null ? userStructMapper.toUserVo(user) : null;
-                }
-        );
-    }
-
-    /**
      * 批量获取用户信息（带缓存）
      *
      * @param userIds 用户ID集合
@@ -179,29 +155,4 @@ public class FeedCacheService {
         );
     }
 
-    /**
-     * 使用户信息缓存失效
-     *
-     * @param userId 用户ID
-     */
-    public void invalidateUserInfo(Long userId) {
-        if (userId == null) {
-            return;
-        }
-        String cacheKey = CacheConstant.USER_INFO_CACHE_KEY + userId;
-        cacheConsistencyHelper.invalidateCache(userInfoLocalCache, cacheKey);
-    }
-
-    /**
-     * 使关注列表缓存失效
-     *
-     * @param userId 用户ID
-     */
-    public void invalidateUserFollows(Long userId) {
-        if (userId == null) {
-            return;
-        }
-        String cacheKey = CacheConstant.USER_FOLLOWS_CACHE_KEY + userId;
-        cacheConsistencyHelper.invalidateCache(userFollowsLocalCache, cacheKey);
-    }
 }

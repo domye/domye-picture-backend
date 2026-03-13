@@ -34,11 +34,6 @@ public class PictureHotScoreJob {
     private static final int COMMENT_WEIGHT = 5;
 
     /**
-     * 热度权重：点赞数权重
-     */
-    private static final int LIKE_WEIGHT = 3;
-
-    /**
      * 批量更新大小
      */
     private static final int BATCH_SIZE = 500;

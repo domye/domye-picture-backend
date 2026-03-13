@@ -1,6 +1,5 @@
 package com.domye.picture.model.enums;
 
-import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
 /**
@@ -22,20 +21,4 @@ public enum VoteActivitiesStatusEnum {
         this.value = value;
     }
 
-    /**
-     * 根据 value 获取枚举
-     * @param value 枚举值的 value
-     * @return 枚举值
-     */
-    public static VoteActivitiesStatusEnum getEnumByValue(Integer value) {
-        if (ObjUtil.isEmpty(value)) {
-            return null;
-        }
-        for (VoteActivitiesStatusEnum statusEnum : VoteActivitiesStatusEnum.values()) {
-            if (statusEnum.value.equals(value)) {
-                return statusEnum;
-            }
-        }
-        return null;
-    }
 }

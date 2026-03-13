@@ -72,7 +72,6 @@ public class RedisCache implements Cache {
      * 批量设置多个键值对
      * @param map 键值对映射
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void multiSet(Map map) {
         redisTemplate.opsForValue().multiSet(map);
@@ -169,7 +168,6 @@ public class RedisCache implements Cache {
      * @param key Hash的键
      * @param map 包含多个字段键值对的Map
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void putAllHash(Object key, Map map) {
         redisTemplate.opsForHash().putAll(key, map);

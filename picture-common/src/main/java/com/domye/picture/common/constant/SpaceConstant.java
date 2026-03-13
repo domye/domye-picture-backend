@@ -25,9 +25,5 @@ public interface SpaceConstant {
      * 锁等待时间 (秒)
      */
     long LOCK_WAIT_TIME = 10;
-    
-    /**
-     * 锁租约时间 (秒)
-     */
-    long LOCK_LEASE_TIME = 30;
+
 }

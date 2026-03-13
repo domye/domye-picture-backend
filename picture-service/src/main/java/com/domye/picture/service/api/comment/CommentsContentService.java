@@ -10,5 +10,4 @@ import com.domye.picture.model.entity.comment.CommentsContent;
 */
 public interface CommentsContentService extends IService<CommentsContent> {
 
-    void addCommentContent(Long commentId, String content);
 }

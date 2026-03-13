@@ -19,6 +19,7 @@ import com.domye.picture.service.api.feed.FeedService;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.cache.FeedCacheService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -284,7 +285,7 @@ public class FeedServiceImpl implements FeedService {
         // 分离公开图片和私有空间图片
         List<Picture> publicPictures = pictureList.stream()
                 .filter(p -> p.getSpaceId() == null)
-                .collect(Collectors.toList());
+                .toList();
 
         List<Picture> privatePictures = pictureList.stream()
                 .filter(p -> p.getSpaceId() != null)
@@ -307,7 +308,7 @@ public class FeedServiceImpl implements FeedService {
             // 过滤有权限的私有图片
             List<Picture> accessiblePrivatePictures = privatePictures.stream()
                     .filter(p -> userSpaceIds.contains(p.getSpaceId()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             result.addAll(accessiblePrivatePictures);
         }
@@ -349,6 +350,7 @@ public class FeedServiceImpl implements FeedService {
     /**
      * 游标信息
      */
+    @Getter
     private static class CursorInfo {
         private final Date editTime;
         private final Long id;
@@ -358,18 +360,12 @@ public class FeedServiceImpl implements FeedService {
             this.id = id;
         }
 
-        public Date getEditTime() {
-            return editTime;
-        }
-
-        public Long getId() {
-            return id;
-        }
     }
 
     /**
      * 推荐流游标信息
      */
+    @Getter
     private static class RecommendCursorInfo {
         private final Integer hotScore;
         private final Long id;
@@ -379,12 +375,5 @@ public class FeedServiceImpl implements FeedService {
             this.id = id;
         }
 
-        public Integer getHotScore() {
-            return hotScore;
-        }
-
-        public Long getId() {
-            return id;
-        }
     }
 }

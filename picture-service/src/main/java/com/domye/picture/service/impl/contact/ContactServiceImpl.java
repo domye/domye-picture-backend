@@ -1,7 +1,6 @@
 package com.domye.picture.service.impl.contact;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -13,8 +12,8 @@ import com.domye.picture.model.dto.contact.ContactQueryRequest;
 import com.domye.picture.model.entity.contact.Contact;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.ContactStatusEnum;
-import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.mapper.ContactStructMapper;
+import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.contact.ContactVO;
 import com.domye.picture.service.api.contact.ContactService;
 import com.domye.picture.service.api.user.UserService;
@@ -177,17 +176,6 @@ public class ContactServiceImpl extends ServiceImpl<ContactMapper, Contact>
             return this.removeBatchByIds(List.of(id, reverseContact.getId()));
         }
         return this.removeById(id);
-    }
-
-    @Override
-    public QueryWrapper<Contact> getQueryWrapper(ContactQueryRequest request) {
-        QueryWrapper<Contact> queryWrapper = new QueryWrapper<>();
-        if (request == null) {
-            return queryWrapper;
-        }
-        Integer status = request.getStatus();
-        queryWrapper.eq(ObjUtil.isNotEmpty(status), "status", status);
-        return queryWrapper;
     }
 
     /**

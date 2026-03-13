@@ -6,9 +6,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.space.SpaceAddRequest;
 import com.domye.picture.model.dto.space.SpaceQueryRequest;
 import com.domye.picture.model.entity.space.Space;
-import com.domye.picture.model.vo.space.SpaceVO;
 import com.domye.picture.model.entity.user.User;
-
+import com.domye.picture.model.vo.space.SpaceVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -17,11 +16,11 @@ import jakarta.servlet.http.HttpServletRequest;
  * @createDate 2025-09-09 19:12:43
  */
 public interface SpaceService extends IService<Space> {
-    public Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+    Long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
 
-    public void fillSpace(Space space);
+    void fillSpace(Space space);
 
-    public void validSpace(Space space, boolean add);
+    void validSpace(Space space, boolean add);
 
     void checkSpaceAuth(User loginUser, Space space);
 

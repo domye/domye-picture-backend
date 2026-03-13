@@ -48,10 +48,4 @@ public enum RankTimeEnum {
         return null;
     }
 
-    /**
-     * 判断是否为日榜
-     */
-    public static boolean isDay(int value) {
-        return RankTimeEnum.DAY.getValue() == value;
-    }
 }

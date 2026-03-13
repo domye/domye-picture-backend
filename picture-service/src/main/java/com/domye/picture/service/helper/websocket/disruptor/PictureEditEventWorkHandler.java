@@ -3,20 +3,19 @@ package com.domye.picture.service.helper.websocket.disruptor;
 import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.mapper.user.UserStructMapper;
+import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.helper.websocket.PictureEditHandler;
 import com.domye.picture.service.helper.websocket.model.PictureEditMessageTypeEnum;
 import com.domye.picture.service.helper.websocket.model.PictureEditRequestMessage;
 import com.domye.picture.service.helper.websocket.model.PictureEditResponseMessage;
-import com.domye.picture.service.api.user.UserService;
 import com.lmax.disruptor.WorkHandler;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-
-import jakarta.annotation.Resource;
 
 @Slf4j
 @Component
@@ -42,13 +41,13 @@ public class PictureEditEventWorkHandler implements WorkHandler<PictureEditEvent
         // 调用对应的消息处理方法
         switch (pictureEditMessageTypeEnum) {
             case ENTER_EDIT:
-                pictureEditHandler.handleEnterEditMessage(pictureEditRequestMessage, session, user, pictureId);
+                pictureEditHandler.handleEnterEditMessage(user, pictureId);
                 break;
             case EDIT_ACTION:
                 pictureEditHandler.handleEditActionMessage(pictureEditRequestMessage, session, user, pictureId);
                 break;
             case EXIT_EDIT:
-                pictureEditHandler.handleExitEditMessage(pictureEditRequestMessage, session, user, pictureId);
+                pictureEditHandler.handleExitEditMessage(user, pictureId);
                 break;
             default:
                 PictureEditResponseMessage pictureEditResponseMessage = new PictureEditResponseMessage();

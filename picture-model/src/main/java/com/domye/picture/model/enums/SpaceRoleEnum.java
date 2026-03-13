@@ -3,10 +3,6 @@ package com.domye.picture.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Getter
 public enum SpaceRoleEnum {
 
@@ -41,23 +37,4 @@ public enum SpaceRoleEnum {
         return null;
     }
 
-    /**
-     * 获取所有枚举的文本列表
-     * @return 文本列表
-     */
-    public static List<String> getAllTexts() {
-        return Arrays.stream(SpaceRoleEnum.values())
-                .map(SpaceRoleEnum::getText)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 获取所有枚举的值列表
-     * @return 值列表
-     */
-    public static List<String> getAllValues() {
-        return Arrays.stream(SpaceRoleEnum.values())
-                .map(SpaceRoleEnum::getValue)
-                .collect(Collectors.toList());
-    }
 }

@@ -39,11 +39,6 @@ public class RankCacheService {
     private final UserStructMapper userStructMapper;
 
     /**
-     * 排行榜缓存过期时间（秒）
-     */
-    private static final long RANK_CACHE_EXPIRE_TIME = 60L;
-
-    /**
      * 用户信息缓存过期时间（秒）
      */
     private static final long USER_INFO_EXPIRE_TIME = 1800L;
@@ -58,18 +53,12 @@ public class RankCacheService {
      */
     public String getRankKey(RankTimeEnum rankTimeEnum) {
         Date now = new Date();
-        switch (rankTimeEnum) {
-            case DAY:
-                return ACTIVITY_SCORE_KEY + "day:" + DateUtil.format(now, "yyyyMMdd");
-            case WEEK:
-                return ACTIVITY_SCORE_KEY + "week:" + DateUtil.format(now, "yyyyWW");
-            case MONTH:
-                return ACTIVITY_SCORE_KEY + "month:" + DateUtil.format(now, "yyyyMM");
-            case TOTAL:
-                return ACTIVITY_SCORE_KEY + "total";
-            default:
-                return ACTIVITY_SCORE_KEY + "day:" + DateUtil.format(now, "yyyyMMdd");
-        }
+        return switch (rankTimeEnum) {
+            case DAY -> ACTIVITY_SCORE_KEY + "day:" + DateUtil.format(now, "yyyyMMdd");
+            case WEEK -> ACTIVITY_SCORE_KEY + "week:" + DateUtil.format(now, "yyyyWW");
+            case MONTH -> ACTIVITY_SCORE_KEY + "month:" + DateUtil.format(now, "yyyyMM");
+            case TOTAL -> ACTIVITY_SCORE_KEY + "total";
+        };
     }
 
     /**
@@ -106,8 +95,8 @@ public class RankCacheService {
 
         // 2. 提取用户ID
         List<Long> userIds = userTuples.stream()
-                .map(tuple -> Long.valueOf((String) tuple.getValue()))
-                .collect(Collectors.toList());
+                .map(tuple -> Long.valueOf((String) Objects.requireNonNull(tuple.getValue())))
+                .toList();
 
         // 3. 批量获取用户信息（带缓存）
         Map<Long, UserVO> userMap = batchGetUserInfo(new HashSet<>(userIds));
@@ -183,7 +172,7 @@ public class RankCacheService {
         // 更新所有榜单
         for (RankTimeEnum rankTime : RankTimeEnum.values()) {
             String rankKey = getRankKey(rankTime);
-            Double newScore = redisCache.incrementScore(rankKey, String.valueOf(userId), score);
+            redisCache.incrementScore(rankKey, String.valueOf(userId), score);
 
             // 设置过期时间（仅对有时间限制的榜单）
             if (rankTime != RankTimeEnum.TOTAL) {
@@ -275,16 +264,4 @@ public class RankCacheService {
         return result;
     }
 
-    /**
-     * 使用户信息缓存失效
-     *
-     * @param userId 用户ID
-     */
-    public void invalidateUserInfo(Long userId) {
-        if (userId == null) {
-            return;
-        }
-        String cacheKey = CacheConstant.USER_INFO_CACHE_KEY + userId;
-        cacheConsistencyHelper.invalidateCache(userInfoLocalCache, cacheKey);
-    }
 }

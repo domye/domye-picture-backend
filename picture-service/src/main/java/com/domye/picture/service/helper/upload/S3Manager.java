@@ -8,10 +8,8 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
-import java.io.InputStream;
 
 @Slf4j
 @Component
@@ -25,33 +23,13 @@ public class S3Manager {
      *
      * @param key  对象键（文件在存储桶中的唯一标识）
      * @param file 要上传的本地文件对象
-     * @return PutObjectResponse 上传结果
      */
-    public PutObjectResponse putObject(String key, File file) {
+    public void putObject(String key, File file) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3ClientConfig.getBucket())
                 .key(normalizeKey(key))
                 .build();
-        return s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
-    }
-
-    /**
-     * 上传文件（通过输入流）
-     *
-     * @param key         对象键
-     * @param inputStream 输入流
-     * @param contentType 内容类型
-     * @param contentLength 内容长度
-     * @return PutObjectResponse 上传结果
-     */
-    public PutObjectResponse putObject(String key, InputStream inputStream, String contentType, long contentLength) {
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3ClientConfig.getBucket())
-                .key(normalizeKey(key))
-                .contentType(contentType)
-                .contentLength(contentLength)
-                .build();
-        return s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, contentLength));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
     }
 
     /**

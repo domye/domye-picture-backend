@@ -1,7 +1,4 @@
 package com.domye.picture.service.mapper;
-import org.apache.ibatis.annotations.Param;
-import java.util.List;
-import java.util.Date;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.domye.picture.model.entity.picture.Picture;
@@ -13,9 +10,6 @@ import com.domye.picture.model.entity.picture.Picture;
  * @Entity com.domye.picture.model.entity.picture.Picture
  */
 public interface PictureMapper extends BaseMapper<Picture> {
-
-    List<Picture> findAllByEditTimeAfter(@Param("minEditTime")Date minEditTime);
-
 
 }
 

@@ -20,18 +20,4 @@ public enum PictureEditMessageTypeEnum {
         this.value = value;
     }
 
-    /**
-     * 根据 value 获取枚举
-     */
-    public static PictureEditMessageTypeEnum getEnumByValue(String value) {
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        for (PictureEditMessageTypeEnum typeEnum : PictureEditMessageTypeEnum.values()) {
-            if (typeEnum.value.equals(value)) {
-                return typeEnum;
-            }
-        }
-        return null;
-    }
 }

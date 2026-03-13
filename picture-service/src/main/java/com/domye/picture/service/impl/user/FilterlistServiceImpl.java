@@ -49,7 +49,7 @@ public class FilterlistServiceImpl implements FilterlistService {
 
         List<User> userList = null;
         if (users != null) {
-            userList = users.stream().map(user -> userService.getById(Long.valueOf((String) user))).collect(Collectors.toList());
+            userList = users.stream().map(user -> userService.getById(Long.valueOf((String) user))).toList();
         }
         if (userList != null) {
             return userList.stream().map(userStructMapper::toUserVo).collect(Collectors.toList());

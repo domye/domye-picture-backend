@@ -443,8 +443,6 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments>
         for (Comments reply : replies) {
             User replyUser = dataMaps.getUserMap().get(reply.getUserid());
 
-            User parentUser = dataMaps.getUserMap().get(reply.getParentid());
-
             CommentsContent replyContent = dataMaps.getContentMap().get(reply.getCommentid());
 
             List<CommentMentionVO> mentionedUsers = dataMaps.getMentionsMap().getOrDefault(

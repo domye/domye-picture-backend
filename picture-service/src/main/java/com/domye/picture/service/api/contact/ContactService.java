@@ -1,6 +1,5 @@
 package com.domye.picture.service.api.contact;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.contact.ContactAddRequest;
@@ -59,12 +58,7 @@ public interface ContactService extends IService<Contact> {
      */
     boolean removeContact(Long id, Long userId);
 
-    /**
-     * 获取查询条件
-     * @param request 查询请求
-     * @return QueryWrapper查询条件
-     */
-    QueryWrapper<Contact> getQueryWrapper(ContactQueryRequest request);
+
 
     /**
      * 获取好友列表（用于@选择器）

@@ -30,42 +30,4 @@ public class ColorSimilarUtils {
         return 1 - distance / Math.sqrt(3 * Math.pow(255, 2));
     }
 
-    //拓展短格式十六进制颜色代码
-    public static String expandShortHex(String shortHex) {
-        if (shortHex == null || shortHex.length() < 2) {
-            throw new IllegalArgumentException("Invalid hex color format: " + shortHex);
-        }
-
-        // 检查格式是否为 0xABC 或 #ABC
-        boolean is0xFormat = shortHex.startsWith("0x") || shortHex.startsWith("0X");
-
-        String prefix = is0xFormat ? shortHex.substring(0, 2) : "#";
-        String hexDigits = shortHex.substring(is0xFormat ? 2 : 1);
-
-
-        // 如果是 3 位短格式，扩展为 6 位
-        if (hexDigits.length() == 3) {
-            StringBuilder fullHex = new StringBuilder(prefix);
-            for (char c : hexDigits.toCharArray()) {
-                fullHex.append(c).append(c);
-            }
-            return fullHex.toString();
-        }
-
-        return shortHex;
-
-    }
-
-    /**
-     * 根据十六进制颜色代码计算相似度
-     * @param hexColor1 第一个颜色的十六进制代码（如 0xFF0000）
-     * @param hexColor2 第二个颜色的十六进制代码（如 0xFE0101）
-     * @return 相似度（0到1之间，1为完全相同）
-     */
-    public static double calculateSimilarity(String hexColor1, String hexColor2) {
-        Color color1 = Color.decode(expandShortHex(hexColor1));
-        Color color2 = Color.decode(expandShortHex(hexColor2));
-        return calculateSimilarity(color1, color2);
-    }
-
 }

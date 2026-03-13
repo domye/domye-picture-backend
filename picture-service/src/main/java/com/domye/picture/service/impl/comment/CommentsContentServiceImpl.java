@@ -15,13 +15,6 @@ import org.springframework.stereotype.Service;
 public class CommentsContentServiceImpl extends ServiceImpl<CommentsContentMapper, CommentsContent>
     implements CommentsContentService{
 
-    @Override
-    public void addCommentContent(Long commentId, String content) {
-        CommentsContent commentsContent = new CommentsContent();
-        commentsContent.setCommentId(commentId);
-        commentsContent.setCommentText(content);
-        save(commentsContent);
-    }
 }
 
 
