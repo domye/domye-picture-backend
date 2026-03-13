@@ -48,6 +48,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Domye
@@ -224,11 +226,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                         .update();
             }
             Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
-            Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
         }
 
-        // 3. 更新用户活跃积分（事务外执行，避免阻塞）
-        // 注意：此操作在事务外执行，即使失败也不影响图片上传
+        // 3. 清除分页缓存（事务内，确保数据一致性）
+        clearPictureListCache();
+
+        // 4. 更新用户活跃积分（事务内执行）
         addUserActivityScore(loginUser, pictureId);
     }
 
@@ -451,11 +454,54 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             Throw.throwIf(!update, ErrorCode.OPERATION_ERROR, "额度更新失败");
         }
 
-        // 3. 清理文件（事务外执行，异步操作不影响主事务）
+        // 3. 清除分页缓存（事务内）
+        clearPictureListCache();
+
+        // 4. 清理文件（事务外执行，异步操作不影响主事务）
         // 注意：文件删除在事务外执行，即使失败也不影响数据库一致性
         clearPictureFile(oldPicture);
     }
 
+
+    /**
+     * 清除图片列表分页缓存
+     * 在图片数据变更（上传、编辑、删除）时调用，确保缓存一致性
+     * 使用事务同步机制，在事务提交后执行缓存清除，避免读写竞争
+     */
+    private void clearPictureListCache() {
+        // 如果当前有事务，在事务提交后执行缓存清除
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    doClearCache();
+                }
+            });
+        } else {
+            // 没有事务，直接清除
+            doClearCache();
+        }
+    }
+
+    /**
+     * 实际执行缓存清除操作
+     */
+    private void doClearCache() {
+        try {
+            // 清除 Redis 缓存（模糊删除）
+            String cacheKeyPrefix = "DomyePicture:listPictureVOByPage:";
+            List<String> keys = redisCache.keys(cacheKeyPrefix + "*");
+            if (keys != null && !keys.isEmpty()) {
+                redisCache.multiDel(keys);
+                log.debug("清除 Redis 缓存键数量: {}", keys.size());
+            }
+            // 清除本地 Caffeine 缓存
+            pictureListLocalCache.invalidateAll();
+            log.debug("图片列表缓存已清除");
+        } catch (Exception e) {
+            log.error("清除图片列表缓存失败", e);
+        }
+    }
 
     /**
      * 编辑图片信息
@@ -475,6 +521,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         fillReviewParams(picture, loginUser);
         boolean result = updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 清除分页缓存
+        clearPictureListCache();
     }
 
     /**
@@ -498,6 +546,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 操作数据库
         boolean result = updateById(picture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 清除分页缓存
+        clearPictureListCache();
     }
 
 
