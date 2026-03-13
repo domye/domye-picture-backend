@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.domye.picture.common.constant.CacheConstant;
 import com.domye.picture.common.constant.PictureConstant;
 import com.domye.picture.common.exception.ErrorCode;
 import com.domye.picture.common.exception.Throw;
@@ -491,7 +492,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private void doClearCache() {
         try {
             // 清除 Redis 缓存（模糊删除）
-            String cacheKeyPrefix = "DomyePicture:listPictureVOByPage:";
+            String cacheKeyPrefix = CacheConstant.PICTURE_LIST_CACHE_KEY;
             List<String> keys = redisCache.keys(cacheKeyPrefix + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisCache.multiDel(keys);
@@ -606,7 +607,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
-        String cacheKey = "DomyePicture:listPictureVOByPage:" + hashKey;
+        String cacheKey = CacheConstant.PICTURE_LIST_CACHE_KEY + hashKey;
 
         String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
         if (cachedValue != null) {

@@ -1,6 +1,8 @@
 package com.domye.picture.common.helper.impl;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.domye.picture.common.constant.CacheConstant;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
@@ -91,12 +93,89 @@ public class CacheConsistencyHelper {
     }
 
     /**
-     * 获取缓存（带防击穿逻辑，使用默认过期时间）
+     * 获取缓存（带防击穿逻辑），使用默认过期时间
      */
     public <T> T getWithBreakdownProtection(Cache<String, String> localCache,
                                             String key,
                                             Supplier<T> loader) {
         return getWithBreakdownProtection(localCache, key, CacheConstant.DEFAULT_EXPIRE_TIME, loader);
+    }
+
+    /**
+     * 获取缓存（带防击穿逻辑，支持 JSON 反序列化）
+     * 使用分布式锁 + 双重检查机制防止缓存击穿
+     *
+     * @param localCache    本地缓存
+     * @param key           缓存键
+     * @param expireTime    Redis 缓存过期时间（秒）
+     * @param typeReference 返回值类型引用（用于 JSON 反序列化，支持泛型）
+     * @param loader        数据加载器（当缓存不存在时从数据库加载）
+     * @param <T>           返回值类型
+     * @return 缓存值或从数据库加载的值
+     */
+    public <T> T getWithBreakdownProtection(Cache<String, String> localCache,
+                                            String key,
+                                            Long expireTime,
+                                            TypeReference<T> typeReference,
+                                            Supplier<T> loader) {
+        // 1. 先查本地缓存
+        String localValue = localCache.getIfPresent(key);
+        if (localValue != null) {
+            if (NULL_MARKER.equals(localValue)) {
+                return null;
+            }
+            return parseValue(localValue, typeReference);
+        }
+
+        // 2. 查 Redis 缓存
+        String redisValue = (String) redisCache.get(key);
+        if (redisValue != null) {
+            if (NULL_MARKER.equals(redisValue)) {
+                localCache.put(key, NULL_MARKER);
+                return null;
+            }
+            localCache.put(key, redisValue);
+            return parseValue(redisValue, typeReference);
+        }
+
+        // 3. 使用分布式锁防止击穿（双重检查）
+        String lockKey = CacheConstant.LOCK_PREFIX + key;
+        return lockService.executeWithLock(lockKey, CacheConstant.DEFAULT_LOCK_WAIT_TIME, TimeUnit.SECONDS, () -> {
+            // 双重检查：获取锁后再次检查缓存
+            String doubleCheckValue = (String) redisCache.get(key);
+            if (doubleCheckValue != null) {
+                if (NULL_MARKER.equals(doubleCheckValue)) {
+                    localCache.put(key, NULL_MARKER);
+                    return null;
+                }
+                localCache.put(key, doubleCheckValue);
+                return parseValue(doubleCheckValue, typeReference);
+            }
+
+            // 4. 从数据库加载数据
+            T data = loader.get();
+            String cacheValue = serializeValue(data);
+
+            // 5. 写入缓存（随机过期时间防止雪崩）
+            long actualExpireTime = expireTime + RandomUtil.randomLong(0, CacheConstant.RANDOM_EXPIRE_RANGE);
+            redisCache.put(key, cacheValue, actualExpireTime);
+
+            // 6. 写入本地缓存
+            localCache.put(key, cacheValue);
+
+            log.debug("Cache loaded for key: {}, expireTime: {}s", key, actualExpireTime);
+            return data;
+        });
+    }
+
+    /**
+     * 获取缓存（带防击穿逻辑，使用默认过期时间，支持 JSON 反序列化）
+     */
+    public <T> T getWithBreakdownProtection(Cache<String, String> localCache,
+                                            String key,
+                                            TypeReference<T> typeReference,
+                                            Supplier<T> loader) {
+        return getWithBreakdownProtection(localCache, key, CacheConstant.DEFAULT_EXPIRE_TIME, typeReference, loader);
     }
 
     /**
@@ -274,25 +353,41 @@ public class CacheConsistencyHelper {
     }
 
     /**
-     * 序列化缓存值（简单实现，实际项目中可使用 JSON 序列化）
+     * 序列化缓存值（使用 JSON 序列化）
      */
     private <T> String serializeValue(T value) {
         if (value == null) {
             return NULL_MARKER;
         }
-        // 使用 toString 作为简单序列化，实际项目应使用 JSON
-        return value.toString();
+        return JSONUtil.toJsonStr(value);
     }
 
     /**
-     * 解析缓存值（简单实现）
+     * 解析缓存值（简单实现，返回原始字符串）
+     * 适用于简单类型或调用方自行处理反序列化的场景
      */
     @SuppressWarnings("unchecked")
     private <T> T parseValue(String value) {
         if (value == null || NULL_MARKER.equals(value)) {
             return null;
         }
-        // 这里返回原始字符串，实际使用时需要配合具体的类型转换
+        // 返回原始字符串，调用方需要自行处理类型转换
         return (T) value;
+    }
+
+    /**
+     * 解析缓存值（使用 JSON 反序列化）
+     *
+     * @param value        缓存值
+     * @param typeReference 目标类型引用
+     * @param <T>          返回类型
+     * @return 反序列化后的对象
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T parseValue(String value, TypeReference<T> typeReference) {
+        if (value == null || NULL_MARKER.equals(value)) {
+            return null;
+        }
+        return JSONUtil.toBean(value, typeReference, false);
     }
 }
