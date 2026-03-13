@@ -2,11 +2,13 @@ package com.domye.picture.model.dto.space.analyze;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
 public class SpaceRankAnalyzeRequest implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
      * 排名前 N 的空间

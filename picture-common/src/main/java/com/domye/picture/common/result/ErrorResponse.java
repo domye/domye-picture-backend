@@ -1,9 +1,9 @@
 package com.domye.picture.common.result;
 
 import com.domye.picture.common.exception.ErrorCode;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -12,10 +12,10 @@ import java.time.Instant;
  * 扩展 BaseResponse，增加时间戳、请求路径和错误类型信息
  * 用于异常情况下的标准化响应
  */
-@Data
 @EqualsAndHashCode(callSuper = true)
 public class ErrorResponse<T> extends BaseResponse<T> implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

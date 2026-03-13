@@ -3,12 +3,14 @@ package com.domye.picture.model.vo.space;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
 public class SpaceUserVO implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
      * id

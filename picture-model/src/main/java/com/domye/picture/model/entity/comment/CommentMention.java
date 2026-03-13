@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -39,5 +40,6 @@ public class CommentMention implements Serializable {
      */
     private Date createdTime;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }

@@ -3,12 +3,14 @@ package com.domye.picture.model.vo.contact;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
 public class ContactVO implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     
     /**

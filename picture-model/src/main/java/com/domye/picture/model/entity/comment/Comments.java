@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -39,6 +40,7 @@ public class Comments implements Serializable {
 
     private Date updatedtime;
 
+    @Serial
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 

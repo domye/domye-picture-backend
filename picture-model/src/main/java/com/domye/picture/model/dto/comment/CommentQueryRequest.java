@@ -2,7 +2,9 @@ package com.domye.picture.model.dto.comment;
 
 import com.domye.picture.common.result.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class CommentQueryRequest extends PageRequest {
     private Long pictureId;           // 图片ID（必填）

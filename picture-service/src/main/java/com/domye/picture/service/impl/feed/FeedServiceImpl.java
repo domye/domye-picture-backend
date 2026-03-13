@@ -19,7 +19,6 @@ import com.domye.picture.service.api.feed.FeedService;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceUserService;
 import com.domye.picture.service.cache.FeedCacheService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -129,12 +128,12 @@ public class FeedServiceImpl implements FeedService {
                 .isNull("spaceId"); // 只推荐公开图片
 
         // 应用热度游标条件
-        if (cursorInfo != null && cursorInfo.getHotScore() != null && cursorInfo.getId() != null) {
+        if (cursorInfo != null && cursorInfo.hotScore() != null && cursorInfo.id() != null) {
             queryWrapper.and(qw -> qw
-                    .lt("hotScore", cursorInfo.getHotScore())
+                    .lt("hotScore", cursorInfo.hotScore())
                     .or()
-                    .eq("hotScore", cursorInfo.getHotScore())
-                    .lt("id", cursorInfo.getId())
+                    .eq("hotScore", cursorInfo.hotScore())
+                    .lt("id", cursorInfo.id())
             );
         }
 
@@ -167,12 +166,12 @@ public class FeedServiceImpl implements FeedService {
      * 应用游标条件
      */
     private void applyCursorCondition(QueryWrapper<Picture> queryWrapper, CursorInfo cursorInfo) {
-        if (cursorInfo != null && cursorInfo.getEditTime() != null && cursorInfo.getId() != null) {
+        if (cursorInfo != null && cursorInfo.editTime() != null && cursorInfo.id() != null) {
             queryWrapper.and(qw -> qw
-                    .lt("editTime", cursorInfo.getEditTime())
+                    .lt("editTime", cursorInfo.editTime())
                     .or()
-                    .eq("editTime", cursorInfo.getEditTime())
-                    .lt("id", cursorInfo.getId())
+                    .eq("editTime", cursorInfo.editTime())
+                    .lt("id", cursorInfo.id())
             );
         }
     }
@@ -348,32 +347,16 @@ public class FeedServiceImpl implements FeedService {
     }
 
     /**
-     * 游标信息
-     */
-    @Getter
-    private static class CursorInfo {
-        private final Date editTime;
-        private final Long id;
-
-        public CursorInfo(Date editTime, Long id) {
-            this.editTime = editTime;
-            this.id = id;
-        }
+         * 游标信息
+         */
+        private record CursorInfo(Date editTime, Long id) {
 
     }
 
     /**
-     * 推荐流游标信息
-     */
-    @Getter
-    private static class RecommendCursorInfo {
-        private final Integer hotScore;
-        private final Long id;
-
-        public RecommendCursorInfo(Integer hotScore, Long id) {
-            this.hotScore = hotScore;
-            this.id = id;
-        }
+         * 推荐流游标信息
+         */
+        private record RecommendCursorInfo(Integer hotScore, Long id) {
 
     }
 }

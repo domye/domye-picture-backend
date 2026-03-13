@@ -2,11 +2,13 @@ package com.domye.picture.auth.model;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
 public class SpaceUserPermission implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
      * 权限键

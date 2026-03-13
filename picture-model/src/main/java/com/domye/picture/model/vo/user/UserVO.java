@@ -2,12 +2,14 @@ package com.domye.picture.model.vo.user;
 
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
 public class UserVO implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
      * id

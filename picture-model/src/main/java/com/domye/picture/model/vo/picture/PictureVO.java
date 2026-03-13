@@ -3,6 +3,7 @@ package com.domye.picture.model.vo.picture;
 import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.List;
 @Data
 public class PictureVO implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
      * id
