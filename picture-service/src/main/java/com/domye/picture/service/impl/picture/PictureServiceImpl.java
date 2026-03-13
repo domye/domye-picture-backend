@@ -389,6 +389,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         updatePicture.setReviewStatus(reviewStatus);
         boolean result = updateById(updatePicture);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 清除分页缓存
+        clearPictureListCache();
     }
 
     /**
