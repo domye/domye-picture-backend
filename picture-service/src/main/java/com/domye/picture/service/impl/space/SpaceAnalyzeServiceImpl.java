@@ -86,14 +86,14 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
             List<Object> pictureObjList = pictureMapper.selectObjs(queryWrapper);
             Long usedSize = pictureObjList.stream().mapToLong(obj -> (Long) obj).sum();
             Long usedCount = (long) pictureObjList.size();
-            SpaceUsageAnalyzeResponse spaceUsageAnalyzeResponse = new SpaceUsageAnalyzeResponse();
-            spaceUsageAnalyzeResponse.setUsedCount(usedCount);
-            spaceUsageAnalyzeResponse.setUsedSize(usedSize);
-            spaceUsageAnalyzeResponse.setMaxSize(null);
-            spaceUsageAnalyzeResponse.setSizeUsageRatio(null);
-            spaceUsageAnalyzeResponse.setMaxCount(null);
-            spaceUsageAnalyzeResponse.setCountUsageRatio(null);
-            return spaceUsageAnalyzeResponse;
+            return SpaceUsageAnalyzeResponse.builder()
+                    .usedCount(usedCount)
+                    .usedSize(usedSize)
+                    .maxSize(null)
+                    .sizeUsageRatio(null)
+                    .maxCount(null)
+                    .countUsageRatio(null)
+                    .build();
         } else {
             Long spaceId = spaceUsageAnalyzeRequest.getSpaceId();
             Throw.throwIf(spaceId == null || spaceId <= 0, ErrorCode.PARAMS_ERROR);
@@ -103,18 +103,18 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
             // 权限校验：仅空间所有者或管理员可访问
             spaceService.checkSpaceAuth(user, space);
 
-            // 构造返回结果
-            SpaceUsageAnalyzeResponse response = new SpaceUsageAnalyzeResponse();
-            response.setUsedSize(space.getTotalSize());
-            response.setMaxSize(space.getMaxSize());
-            // 后端直接算好百分比，这样前端可以直接展示
-            double sizeUsageRatio = NumberUtil.round(space.getTotalSize() * 100.0 / space.getMaxSize(), 2).doubleValue();
-            response.setSizeUsageRatio(sizeUsageRatio);
-            response.setUsedCount(space.getTotalCount());
-            response.setMaxCount(space.getMaxCount());
             double countUsageRatio = NumberUtil.round(space.getTotalCount() * 100.0 / space.getMaxCount(), 2).doubleValue();
-            response.setCountUsageRatio(countUsageRatio);
-            return response;
+            double sizeUsageRatio = NumberUtil.round(space.getTotalSize() * 100.0 / space.getMaxSize(), 2).doubleValue();
+
+            // 构造返回结果
+            return SpaceUsageAnalyzeResponse.builder()
+                    .usedSize(space.getTotalSize())
+                    .maxSize(space.getMaxSize())
+                    .sizeUsageRatio(sizeUsageRatio)
+                    .usedCount(space.getTotalCount())
+                    .maxCount(space.getMaxCount())
+                    .countUsageRatio(countUsageRatio)
+                    .build();
         }
     }
 
@@ -232,16 +232,16 @@ public class SpaceAnalyzeServiceImpl extends ServiceImpl<SpaceMapper, Space>
     public List<Space> getSpaceRankAnalyze(SpaceRankAnalyzeRequest spaceRankAnalyzeRequest, User loginUser) {
         Throw.throwIf(spaceRankAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
 
-// 仅管理员可查看空间排行
+        // 仅管理员可查看空间排行
         Throw.throwIf(!userService.isAdmin(loginUser), ErrorCode.NO_AUTH_ERROR, "无权查看空间排行");
 
-// 构造查询条件
+        // 构造查询条件
         QueryWrapper<Space> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "spaceName", "userId", "totalSize")
                 .orderByDesc("totalSize")
                 .last("LIMIT " + spaceRankAnalyzeRequest.getTopN()); // 取前 N 名
 
-// 查询结果
+        // 查询结果
         return spaceService.list(queryWrapper);
     }
 }
