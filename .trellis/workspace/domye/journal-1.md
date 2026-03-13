@@ -208,3 +208,35 @@ GET /rank/myRank (需登录)
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: 重构SpaceUserController业务逻辑下沉
+
+**Date**: 2026-03-13
+**Task**: 重构SpaceUserController业务逻辑下沉
+
+### Summary
+
+将SpaceUserController中的业务逻辑迁移到Service层，Controller从194行减少到110行
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c929064` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-03-13
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~210 | Active |
+| `journal-1.md` | ~242 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits |
 |---|------|-------|---------|
+| 6 | 2026-03-13 | 重构SpaceUserController业务逻辑下沉 | `c929064` |
 | 5 | 2026-03-13 | 缓存优化：序列化统一、Key前缀规范、配置外部化 | `456294e` |
 | 4 | 2026-03-13 | 修复图片缓存未更新问题 | `092d8d6` |
 | 3 | 2026-03-13 | 用S3兼容存储替代腾讯云COS | `e2bd131` |
