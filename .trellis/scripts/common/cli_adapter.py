@@ -175,7 +175,7 @@ class CLIAdapter:
         """Get relative path to a trellis command file.
 
         Args:
-            name: Command name without extension (e.g., 'finish-work', 'check-backend')
+            name: Command name without extension (e.g., 'finish-work', 'check')
 
         Returns:
             Relative path string for use in JSONL entries
@@ -492,6 +492,29 @@ def get_cli_adapter(platform: str = "claude") -> CLIAdapter:
     return CLIAdapter(platform=platform)  # type: ignore
 
 
+_ALL_PLATFORM_CONFIG_DIRS = (
+    ".claude",
+    ".cursor",
+    ".iflow",
+    ".opencode",
+    ".agents",
+    ".kilocode",
+    ".kiro",
+    ".gemini",
+    ".agent",
+)
+"""All platform config directory names (used by detect_platform exclusion checks)."""
+
+
+def _has_other_platform_dir(project_root: Path, exclude: set[str]) -> bool:
+    """Check if any platform config dir exists besides those in *exclude*."""
+    return any(
+        (project_root / d).is_dir()
+        for d in _ALL_PLATFORM_CONFIG_DIRS
+        if d not in exclude
+    )
+
+
 def detect_platform(project_root: Path) -> Platform:
     """Auto-detect platform based on existing config directories.
 
@@ -533,12 +556,10 @@ def detect_platform(project_root: Path) -> Platform:
         return env_platform  # type: ignore
 
     # Check for .opencode directory (OpenCode-specific)
-    # Note: .claude might exist in both platforms during migration
     if (project_root / ".opencode").is_dir():
         return "opencode"
 
     # Check for .iflow directory (iFlow-specific)
-    # Note: .claude might exist in both platforms during migration
     if (project_root / ".iflow").is_dir():
         return "iflow"
 
@@ -552,20 +573,9 @@ def detect_platform(project_root: Path) -> Platform:
         return "gemini"
 
     # Check for Codex skills directory only when no other platform config exists
-    other_platform_dirs_codex = (
-        ".claude",
-        ".cursor",
-        ".iflow",
-        ".opencode",
-        ".kilocode",
-        ".kiro",
-        ".gemini",
-        ".agent",
-    )
-    has_other_platform_config = any(
-        (project_root / directory).is_dir() for directory in other_platform_dirs_codex
-    )
-    if (project_root / ".agents" / "skills").is_dir() and not has_other_platform_config:
+    if (project_root / ".agents" / "skills").is_dir() and not _has_other_platform_dir(
+        project_root, {".agents"}
+    ):
         return "codex"
 
     # Check for .kilocode directory (Kilo-specific)
@@ -573,39 +583,17 @@ def detect_platform(project_root: Path) -> Platform:
         return "kilo"
 
     # Check for Kiro skills directory only when no other platform config exists
-    other_platform_dirs_kiro = (
-        ".claude",
-        ".cursor",
-        ".iflow",
-        ".opencode",
-        ".agents",
-        ".kilocode",
-        ".gemini",
-        ".agent",
-    )
-    has_other_platform_config = any(
-        (project_root / directory).is_dir() for directory in other_platform_dirs_kiro
-    )
-    if (project_root / ".kiro" / "skills").is_dir() and not has_other_platform_config:
+    if (project_root / ".kiro" / "skills").is_dir() and not _has_other_platform_dir(
+        project_root, {".kiro"}
+    ):
         return "kiro"
 
     # Check for Antigravity workflow directory only when no other platform config exists
-    other_platform_dirs_antigravity = (
-        ".claude",
-        ".cursor",
-        ".iflow",
-        ".opencode",
-        ".agents",
-        ".kilocode",
-        ".kiro",
-    )
-    has_other_platform_config = any(
-        (project_root / directory).is_dir()
-        for directory in other_platform_dirs_antigravity
-    )
     if (
         project_root / ".agent" / "workflows"
-    ).is_dir() and not has_other_platform_config:
+    ).is_dir() and not _has_other_platform_dir(
+        project_root, {".agent", ".gemini"}
+    ):
         return "antigravity"
 
     # Check for .qoder directory (Qoder-specific)

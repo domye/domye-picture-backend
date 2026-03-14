@@ -334,6 +334,52 @@ def generate_task_date_prefix() -> str:
 
 
 # =============================================================================
+# Monorepo / Package Paths
+# =============================================================================
+
+
+def get_spec_dir(package: str | None = None, repo_root: Path | None = None) -> Path:
+    """Get the spec directory path.
+
+    Single-repo: .trellis/spec
+    Monorepo with package: .trellis/spec/<package>
+
+    Uses lazy import to avoid circular dependency with config.py.
+    """
+    if repo_root is None:
+        repo_root = get_repo_root()
+
+    from .config import get_spec_base
+
+    base = get_spec_base(package, repo_root)
+    return repo_root / DIR_WORKFLOW / base
+
+
+def get_package_path(package: str, repo_root: Path | None = None) -> Path | None:
+    """Get a package's source directory absolute path from config.
+
+    Returns:
+        Absolute path to the package directory, or None if not found.
+    """
+    if repo_root is None:
+        repo_root = get_repo_root()
+
+    from .config import get_packages
+
+    packages = get_packages(repo_root)
+    if not packages or package not in packages:
+        return None
+
+    info = packages[package]
+    if isinstance(info, dict):
+        rel_path = info.get("path", package)
+    else:
+        rel_path = str(info)
+
+    return repo_root / rel_path
+
+
+# =============================================================================
 # Main Entry (for testing)
 # =============================================================================
 

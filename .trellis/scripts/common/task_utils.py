@@ -3,9 +3,11 @@
 Task utility functions.
 
 Provides:
-    is_safe_task_path  - Validate task path is safe to operate on
-    find_task_by_name  - Find task directory by name
-    archive_task_dir   - Archive task to monthly directory
+    is_safe_task_path   - Validate task path is safe to operate on
+    find_task_by_name   - Find task directory by name
+    resolve_task_dir    - Resolve task directory from name, relative, or absolute path
+    archive_task_dir    - Archive task to monthly directory
+    run_task_hooks      - Run lifecycle hooks for task events
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from .paths import get_repo_root
+from .paths import get_repo_root, get_tasks_dir
 
 
 # =============================================================================
@@ -164,12 +166,100 @@ def archive_task_complete(
 
 
 # =============================================================================
+# Task Directory Resolution
+# =============================================================================
+
+def resolve_task_dir(target_dir: str, repo_root: Path) -> Path:
+    """Resolve task directory to absolute path.
+
+    Supports:
+    - Absolute path: /path/to/task
+    - Relative path: .trellis/tasks/01-31-my-task
+    - Task name: my-task (uses find_task_by_name for lookup)
+
+    Args:
+        target_dir: Task directory specification.
+        repo_root: Repository root path.
+
+    Returns:
+        Resolved absolute path.
+    """
+    if not target_dir:
+        return Path()
+
+    # Absolute path
+    if target_dir.startswith("/"):
+        return Path(target_dir)
+
+    # Relative path (contains path separator or starts with .trellis)
+    if "/" in target_dir or target_dir.startswith(".trellis"):
+        return repo_root / target_dir
+
+    # Task name - try to find in tasks directory
+    tasks_dir = get_tasks_dir(repo_root)
+    found = find_task_by_name(target_dir, tasks_dir)
+    if found:
+        return found
+
+    # Fallback to treating as relative path
+    return repo_root / target_dir
+
+
+# =============================================================================
+# Lifecycle Hooks
+# =============================================================================
+
+def run_task_hooks(event: str, task_json_path: Path, repo_root: Path) -> None:
+    """Run lifecycle hooks for a task event.
+
+    Args:
+        event: Event name (e.g. "after_create").
+        task_json_path: Absolute path to the task's task.json.
+        repo_root: Repository root for cwd and config lookup.
+    """
+    import os
+    import subprocess
+
+    from .config import get_hooks
+    from .log import Colors, colored
+
+    commands = get_hooks(event, repo_root)
+    if not commands:
+        return
+
+    env = {**os.environ, "TASK_JSON_PATH": str(task_json_path)}
+
+    for cmd in commands:
+        try:
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                cwd=repo_root,
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            if result.returncode != 0:
+                print(
+                    colored(f"[WARN] Hook failed ({event}): {cmd}", Colors.YELLOW),
+                    file=sys.stderr,
+                )
+                if result.stderr.strip():
+                    print(f"  {result.stderr.strip()}", file=sys.stderr)
+        except Exception as e:
+            print(
+                colored(f"[WARN] Hook error ({event}): {cmd} — {e}", Colors.YELLOW),
+                file=sys.stderr,
+            )
+
+
+# =============================================================================
 # Main Entry (for testing)
 # =============================================================================
 
 if __name__ == "__main__":
-    from .paths import get_tasks_dir
-
     repo = get_repo_root()
     tasks = get_tasks_dir(repo)
 
