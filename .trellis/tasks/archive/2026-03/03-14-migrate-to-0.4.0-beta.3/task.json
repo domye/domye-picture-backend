@@ -22,9 +22,16 @@
   "meta": {
     "migration_results": {
       "version": "0.4.0-beta.3",
-      "commands_merged": ["before-dev", "check"],
+      "commands_merged": [
+        "before-dev",
+        "check"
+      ],
       "old_commands_removed": true,
-      "scripts_verified": ["get_context.py", "task.py", "get_developer.py"]
+      "scripts_verified": [
+        "get_context.py",
+        "task.py",
+        "get_developer.py"
+      ]
     }
   }
 }
