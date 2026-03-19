@@ -87,6 +87,21 @@ ai:
   max-tokens: 2000
   # 请求超时时间（秒，可选）
   timeout: 60
+  # Embedding 配置
+  embedding:
+    # Embedding 模型名称
+    model-name: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
+    # 向量维度
+    dimension: 1536
+
+# PostgreSQL 向量存储配置 (用于 RAG)
+postgres:
+  vector:
+    url: ${PG_VECTOR_URL:jdbc:postgresql://localhost:5432/domye_picture_vector}
+    username: ${PG_VECTOR_USERNAME:postgres}
+    password: ${PG_VECTOR_PASSWORD:}
+    # 表名前缀
+    table-prefix: picture
 
 # RocketMQ配置
 rocketmq:

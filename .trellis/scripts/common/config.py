@@ -21,6 +21,15 @@ DEFAULT_MAX_JOURNAL_LINES = 2000
 CONFIG_FILE = "config.yaml"
 
 
+def _is_true_config_value(value: object) -> bool:
+    """Return True when a config value represents an enabled flag."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return False
+
+
 def _get_config_path(repo_root: Path | None = None) -> Path:
     """Get path to config.yaml."""
     root = repo_root or get_repo_root()
@@ -127,6 +136,37 @@ def get_submodule_packages(repo_root: Path | None = None) -> dict[str, str]:
         name: cfg.get("path", name)
         for name, cfg in packages.items()
         if cfg.get("type") == "submodule"
+    }
+
+
+def get_git_packages(repo_root: Path | None = None) -> dict[str, str]:
+    """Get packages that have their own independent git repository.
+
+    These are sub-directories with their own .git (not submodules),
+    marked with ``git: true`` in config.yaml.
+
+    Returns:
+        Dict mapping package name to its path for git-repo packages.
+        Empty dict if none configured.
+
+    Example config::
+
+        packages:
+          backend:
+            path: iqs
+            git: true
+
+    Example return::
+
+        {"backend": "iqs"}
+    """
+    packages = get_packages(repo_root)
+    if packages is None:
+        return {}
+    return {
+        name: cfg.get("path", name)
+        for name, cfg in packages.items()
+        if _is_true_config_value(cfg.get("git"))
     }
 
 

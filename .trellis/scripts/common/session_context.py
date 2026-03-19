@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .config import get_git_packages
 from .git import run_git
 from .packages_context import get_packages_section
 from .tasks import iter_active_tasks, load_task, get_all_statuses, children_progress
@@ -32,6 +33,79 @@ from .paths import (
     get_repo_root,
     get_tasks_dir,
 )
+
+
+# =============================================================================
+# Helpers
+# =============================================================================
+
+def _collect_package_git_info(repo_root: Path) -> list[dict]:
+    """Collect git status and recent commits for packages with independent git repos.
+
+    Only packages marked with ``git: true`` in config.yaml are included.
+
+    Returns:
+        List of dicts with keys: name, path, branch, isClean,
+        uncommittedChanges, recentCommits.
+        Empty list if no git-repo packages are configured.
+    """
+    git_pkgs = get_git_packages(repo_root)
+    if not git_pkgs:
+        return []
+
+    result = []
+    for pkg_name, pkg_path in git_pkgs.items():
+        pkg_dir = repo_root / pkg_path
+        if not (pkg_dir / ".git").exists():
+            continue
+
+        _, branch_out, _ = run_git(["branch", "--show-current"], cwd=pkg_dir)
+        branch = branch_out.strip() or "unknown"
+
+        _, status_out, _ = run_git(["status", "--porcelain"], cwd=pkg_dir)
+        changes = len([l for l in status_out.splitlines() if l.strip()])
+
+        _, log_out, _ = run_git(["log", "--oneline", "-5"], cwd=pkg_dir)
+        commits = []
+        for line in log_out.splitlines():
+            if line.strip():
+                parts = line.split(" ", 1)
+                if len(parts) >= 2:
+                    commits.append({"hash": parts[0], "message": parts[1]})
+                elif len(parts) == 1:
+                    commits.append({"hash": parts[0], "message": ""})
+
+        result.append({
+            "name": pkg_name,
+            "path": pkg_path,
+            "branch": branch,
+            "isClean": changes == 0,
+            "uncommittedChanges": changes,
+            "recentCommits": commits,
+        })
+
+    return result
+
+
+def _append_package_git_context(lines: list[str], package_git_info: list[dict]) -> None:
+    """Append Git status and recent commits for package repositories."""
+    for pkg in package_git_info:
+        lines.append(f"## GIT STATUS ({pkg['name']}: {pkg['path']})")
+        lines.append(f"Branch: {pkg['branch']}")
+        if pkg["isClean"]:
+            lines.append("Working directory: Clean")
+        else:
+            lines.append(
+                f"Working directory: {pkg['uncommittedChanges']} uncommitted change(s)"
+            )
+        lines.append("")
+        lines.append(f"## RECENT COMMITS ({pkg['name']}: {pkg['path']})")
+        if pkg["recentCommits"]:
+            for commit in pkg["recentCommits"]:
+                lines.append(f"{commit['hash']} {commit['message']}")
+        else:
+            lines.append("(no commits)")
+        lines.append("")
 
 
 # =============================================================================
@@ -93,7 +167,10 @@ def get_context_json(repo_root: Path | None = None) -> dict:
         for t in iter_active_tasks(tasks_dir)
     ]
 
-    return {
+    # Package git repos (independent sub-repositories)
+    pkg_git_info = _collect_package_git_info(repo_root)
+
+    result = {
         "developer": developer or "",
         "git": {
             "branch": branch,
@@ -111,6 +188,11 @@ def get_context_json(repo_root: Path | None = None) -> dict:
             "nearLimit": journal_lines > 1800,
         },
     }
+
+    if pkg_git_info:
+        result["packageGit"] = pkg_git_info
+
+    return result
 
 
 def output_json(repo_root: Path | None = None) -> None:
@@ -188,6 +270,9 @@ def get_context_text(repo_root: Path | None = None) -> str:
     else:
         lines.append("(no commits)")
     lines.append("")
+
+    # Package git repos — independent sub-repositories
+    _append_package_git_context(lines, _collect_package_git_info(repo_root))
 
     # Current task
     lines.append("## CURRENT TASK")
@@ -352,7 +437,10 @@ def get_context_record_json(repo_root: Path | None = None) -> dict:
                 "status": ct.status,
             }
 
-    return {
+    # Package git repos
+    pkg_git_info = _collect_package_git_info(repo_root)
+
+    result = {
         "developer": developer or "",
         "git": {
             "branch": branch,
@@ -363,6 +451,11 @@ def get_context_record_json(repo_root: Path | None = None) -> dict:
         "myTasks": my_tasks,
         "currentTask": current_task_info,
     }
+
+    if pkg_git_info:
+        result["packageGit"] = pkg_git_info
+
+    return result
 
 
 def get_context_text_record(repo_root: Path | None = None) -> str:
@@ -438,6 +531,9 @@ def get_context_text_record(repo_root: Path | None = None) -> str:
     else:
         lines.append("(no commits)")
     lines.append("")
+
+    # Package git repos — independent sub-repositories
+    _append_package_git_context(lines, _collect_package_git_info(repo_root))
 
     # CURRENT TASK
     lines.append("## CURRENT TASK")

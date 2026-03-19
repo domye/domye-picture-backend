@@ -157,6 +157,20 @@
                 <version>${langchain4j.version}</version>
             </dependency>
 
+            <!-- LangChain4j PgVector 向量存储 -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-pgvector</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+            <!-- PostgreSQL 驱动 -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.4</version>
+            </dependency>
+
             <!-- ==================== 其他依赖 ==================== -->
             <!-- JetBrains 注解 -->
             <dependency>

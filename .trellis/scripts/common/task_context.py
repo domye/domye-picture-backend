@@ -194,8 +194,34 @@ def cmd_init_context(args: argparse.Namespace) -> int:
     print()
     print(colored("✓ All context files created", Colors.GREEN))
     print()
+
+    # Show what was auto-injected
+    all_injected = [e["file"] for e in implement_entries]
+    print(colored("Auto-injected (defaults only):", Colors.YELLOW))
+    for f in all_injected:
+        print(f"  - {f}")
+    print()
+
+    # Scan spec directory for available spec files the AI should consider
+    spec_base = repo_root / DIR_WORKFLOW / DIR_SPEC
+    if package:
+        spec_base = spec_base / package
+    available_specs: list[str] = []
+    if spec_base.is_dir():
+        for md_file in sorted(spec_base.rglob("*.md")):
+            rel = str(md_file.relative_to(repo_root))
+            if rel not in all_injected:
+                available_specs.append(rel)
+
+    if available_specs:
+        print(colored("Available spec files (not yet injected):", Colors.BLUE))
+        for spec in available_specs:
+            print(f"  - {spec}")
+        print()
+
     print(colored("Next steps:", Colors.BLUE))
-    print("  1. Add task-specific specs: python3 task.py add-context <dir> <jsonl> <path>")
+    print("  1. Review the spec files above and add relevant ones for your task:")
+    print(f"     python3 task.py add-context <dir> implement <spec-path> \"<reason>\"")
     print("  2. Set as current: python3 task.py start <dir>")
 
     return 0

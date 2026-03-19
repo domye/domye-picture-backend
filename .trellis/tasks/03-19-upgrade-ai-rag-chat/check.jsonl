@@ -1,0 +1,5 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "代码质量规范 - 检查代码质量"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "错误处理规范 - 检查错误处理"}
+{"file": ".trellis/tasks/03-19-upgrade-ai-rag-chat/prd.md", "reason": "PRD文档 - 验证实现符合需求"}

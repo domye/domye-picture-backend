@@ -25,6 +25,7 @@ import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.vo.user.UserVO;
+import com.domye.picture.service.api.ai.PictureEmbeddingService;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.rank.RankService;
 import com.domye.picture.service.api.space.SpaceService;
@@ -72,6 +73,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     final Cache<String, String> pictureListLocalCache;
     final PictureStructMapper pictureStructMapper;
     final UserStructMapper userStructMapper;
+    final PictureEmbeddingService pictureEmbeddingService;
 
     /**
      * 上传图片
@@ -235,6 +237,47 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         // 4. 更新用户活跃积分（事务内执行）
         addUserActivityScore(loginUser, pictureId);
+
+        // 5. 建立向量索引（事务提交后异步执行）
+        indexPictureAfterCommit(picture, pictureId);
+    }
+
+    /**
+     * 事务提交后建立向量索引
+     *
+     * @param picture   图片实体
+     * @param pictureId 图片 ID（更新时使用）
+     */
+    private void indexPictureAfterCommit(Picture picture, Long pictureId) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        if (pictureId != null) {
+                            // 更新场景：更新向量索引
+                            pictureEmbeddingService.updatePictureIndex(picture);
+                        } else {
+                            // 新建场景：建立向量索引
+                            pictureEmbeddingService.indexPicture(picture);
+                        }
+                    } catch (Exception e) {
+                        log.error("建立图片向量索引失败: pictureId={}", picture.getId(), e);
+                    }
+                }
+            });
+        } else {
+            // 没有事务，直接执行
+            try {
+                if (pictureId != null) {
+                    pictureEmbeddingService.updatePictureIndex(picture);
+                } else {
+                    pictureEmbeddingService.indexPicture(picture);
+                }
+            } catch (Exception e) {
+                log.error("建立图片向量索引失败: pictureId={}", picture.getId(), e);
+            }
+        }
     }
 
     /**
@@ -467,6 +510,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 4. 清理文件（事务外执行，异步操作不影响主事务）
         // 注意：文件删除在事务外执行，即使失败也不影响数据库一致性
         clearPictureFile(oldPicture);
+
+        // 5. 删除向量索引（异步执行）
+        deletePictureIndexAsync(id);
+    }
+
+    /**
+     * 异步删除图片向量索引
+     *
+     * @param pictureId 图片 ID
+     */
+    private void deletePictureIndexAsync(Long pictureId) {
+        try {
+            pictureEmbeddingService.deletePictureIndex(pictureId);
+        } catch (Exception e) {
+            log.error("删除图片向量索引失败: pictureId={}", pictureId, e);
+        }
     }
 
 
@@ -530,6 +589,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
         // 清除分页缓存
         clearPictureListCache();
+        // 更新向量索引（事务提交后异步执行）
+        updatePictureIndexAfterCommit(picture);
     }
 
     /**
@@ -555,6 +616,34 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR);
         // 清除分页缓存
         clearPictureListCache();
+        // 更新向量索引（事务提交后异步执行）
+        updatePictureIndexAfterCommit(picture);
+    }
+
+    /**
+     * 事务提交后更新向量索引
+     *
+     * @param picture 图片实体
+     */
+    private void updatePictureIndexAfterCommit(Picture picture) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        pictureEmbeddingService.updatePictureIndex(picture);
+                    } catch (Exception e) {
+                        log.error("更新图片向量索引失败: pictureId={}", picture.getId(), e);
+                    }
+                }
+            });
+        } else {
+            try {
+                pictureEmbeddingService.updatePictureIndex(picture);
+            } catch (Exception e) {
+                log.error("更新图片向量索引失败: pictureId={}", picture.getId(), e);
+            }
+        }
     }
 
 
