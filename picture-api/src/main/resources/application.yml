@@ -7,29 +7,34 @@ server:
 # Spring框架配置
 spring:
   profiles:
-    active: local  # 激活生产环境配置
+    active: local
   # 应用配置
   application:
     name: domye-picture-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/domye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:}
-    password: ${DB_PASSWORD:}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/domye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
 
   # Servlet配置
   servlet:
     multipart:
       max-file-size: 10MB
+  # 禁用 FormContentFilter，避免与 multipart 请求冲突
+  mvc:
+    formcontent:
+      filter:
+        enabled: false
 
   # Redis配置
   data:
     redis:
       database: 0
-      host: 127.0.0.1
-      port: 63793
-      timeout: 5000
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+      timeout: 5000
       lettuce:
         pool:
           max-active: 10
@@ -41,7 +46,7 @@ spring:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: ""
   global-config:
     enable-sql-runner: true
     db-config:
@@ -49,34 +54,35 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# Knife4j配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.domye.picture.api.controller
+
 knife4j:
   enable: true
-  openapi:
-    title: Knife4j官方文档
-    version: v1.0
-    group:
-      test1:
-        group-name: default
-        api-rule: package
-        api-rule-resources:
-          - com.domye.picture.controller
+  setting:
+    language: zh_cn
 
-# S3兼容存储配置 (RustFS/MinIO等)
-#s3:
-#  client:
-#    endpoint: http://localhost:9000
-#    accessKey: your-access-key
-#    secretKey: your-secret-key
-#    region: us-east-1
-#    bucket: your-bucket-name
-#    host: http://localhost:9000/your-bucket-name
-#    pathStyleAccess: true
+# RocketMQ配置
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
+  producer:
+    group: comment-ai-producer-group
+
 
 # AI 配置 (LangChain4j)
 ai:
   # OpenAI API Key（必填，支持环境变量）
-  api-key: ${AI_API_KEY:your-api-key-here}
+  api-key: ${AI_API_KEY:}
   # API 基础 URL（可选，用于自定义 OpenAI 兼容接口，如国内代理或本地部署）
   base-url: ${AI_BASE_URL:https://api.openai.com/v1}
   # 模型名称（可选）
@@ -92,7 +98,7 @@ ai:
     # Embedding 模型名称
     model-name: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
     # 向量维度
-    dimension: 1536
+    dimension: 1024
 
 # PostgreSQL 向量存储配置 (用于 RAG)
 postgres:
@@ -103,8 +109,13 @@ postgres:
     # 表名前缀
     table-prefix: picture
 
-# RocketMQ配置
-rocketmq:
-  name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
-  producer:
-    group: comment-ai-producer-group
+# S3兼容存储配置 (RustFS/MinIO等)
+s3:
+  client:
+    endpoint: ${S3_ENDPOINT:http://localhost:9000}
+    accessKey: ${S3_ACCESS_KEY:}
+    secretKey: ${S3_SECRET_KEY:}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:your-bucket-name}
+    host: ${S3_HOST:http://localhost:9000/your-bucket-name}
+    pathStyleAccess: true
