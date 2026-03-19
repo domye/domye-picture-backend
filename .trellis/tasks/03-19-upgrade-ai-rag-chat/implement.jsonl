@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/backend/service-layer.md", "reason": "服务层开发规范 - RAG服务实现参考"}
-{"file": ".trellis/spec/backend/controller.md", "reason": "控制器开发规范 - SSE聊天API参考"}
-{"file": ".trellis/spec/backend/cache.md", "reason": "缓存使用规范 - Redis聊天历史管理参考"}
-{"file": ".trellis/spec/backend/database.md", "reason": "数据库操作规范 - PostgreSQL数据源配置参考"}
-{"file": ".trellis/tasks/03-19-upgrade-ai-rag-chat/prd.md", "reason": "任务PRD - 需求和实现计划"}
