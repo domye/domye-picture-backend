@@ -14,6 +14,7 @@ import com.domye.picture.model.dto.user.UserRegisterRequest;
 import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.mapper.user.UserStructMapper;
+import com.domye.picture.model.vo.user.UserProfileVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -163,4 +164,20 @@ public class UserController implements Serializable {
         Page<UserVO> userVOPage = userService.listUserVOByPage(userQueryRequest);
         return Result.success(userVOPage);
     }
+
+
+    /**
+     * 获取用户主页信息
+     *
+     * @param userAccount 用账号
+     * @return 用户主 页信息（包含基本信息、统计信息、排名信息）
+     */
+    @Operation(summary = "获取用户主页信息")
+    @GetMapping("/profile")
+    public BaseResponse<UserProfileVO> getUserProfile(@RequestParam String userAccount) {
+        Throw.throwIf(userAccount == null , ErrorCode.PARAMS_ERROR);
+        UserProfileVO userProfileVO = userService.getUserProfile(userAccount);
+        return Result.success(userProfileVO);
+    }
+
 }

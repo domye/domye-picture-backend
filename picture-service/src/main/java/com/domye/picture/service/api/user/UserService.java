@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.user.UserProfileVO;
 import com.domye.picture.model.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,5 +36,7 @@ public interface UserService extends IService<User> {
     boolean updateUser(UserUpdateRequest userUpdateRequest, HttpServletRequest request);
 
     Page<UserVO> listUserVOByPage(UserQueryRequest userQueryRequest);
+
+    UserProfileVO getUserProfile(String userAccount);
 }
 
