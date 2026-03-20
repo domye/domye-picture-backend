@@ -13,6 +13,7 @@ import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
 import com.domye.picture.model.mapper.user.UserStructMapper;
+import com.domye.picture.model.vo.user.UserProfileVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.mapper.UserMapper;
@@ -193,7 +194,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
     }
 
-    /**
+     /**
      * 校验用户账号和密码参数
      *
      * @param userAccount 用户账号
@@ -262,6 +263,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .collect(Collectors.toList());
         userVOPage.setRecords(userVOList);
         return userVOPage;
+    }
+
+    @Override
+    public UserProfileVO getUserProfile(String userAccount) {
+
+        // 1. 获取用户基本信息
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        User user = baseMapper.selectOne(queryWrapper);
+        Throw.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+
+        return userStructMapper.toUserProfileVO(user);
     }
 }
 

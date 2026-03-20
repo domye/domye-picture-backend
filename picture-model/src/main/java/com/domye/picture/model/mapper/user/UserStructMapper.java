@@ -2,6 +2,7 @@ package com.domye.picture.model.mapper.user;
 
 import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.user.UserProfileVO;
 import com.domye.picture.model.vo.user.UserVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -12,4 +13,5 @@ public interface UserStructMapper {
 
     User toUser(UserUpdateRequest userUpdateRequest);
 
+    UserProfileVO toUserProfileVO(User user);
 }
