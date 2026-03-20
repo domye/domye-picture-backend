@@ -2,6 +2,7 @@ package com.domye.picture.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
@@ -16,10 +17,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         scanBasePackages = "com.domye.picture",
         // 排除自动配置，使用自定义的多数据源配置
         // MySQL 是主数据源，PostgreSQL 仅用于 PgVector
+        // Flyway 使用显式配置，绑定到自定义数据源
         exclude = {
                 DataSourceAutoConfiguration.class,
                 DataSourceTransactionManagerAutoConfiguration.class,
-                HibernateJpaAutoConfiguration.class
+                HibernateJpaAutoConfiguration.class,
+                FlywayAutoConfiguration.class
         }
 )
 public class DomyePictureBackendApplication {

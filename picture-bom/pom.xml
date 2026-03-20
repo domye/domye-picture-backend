@@ -32,6 +32,7 @@
         <lombok.version>1.18.36</lombok.version>
         <langchain4j.version>0.36.2</langchain4j.version>
         <mapstruct.version>1.6.3</mapstruct.version>
+        <flyway.version>10.10.0</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -46,6 +47,23 @@
             </dependency>
 
             <!-- ==================== 数据库相关依赖 ==================== -->
+            <!-- Flyway 数据库迁移 -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-mysql</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+
             <!-- MyBatis Plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>

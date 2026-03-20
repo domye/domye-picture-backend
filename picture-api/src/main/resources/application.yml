@@ -11,6 +11,22 @@ spring:
   # 应用配置
   application:
     name: domye-picture-backend
+
+  # Flyway 数据库迁移配置
+  flyway:
+    enabled: true
+    # 基线迁移（用于已有数据库）
+    baseline-on-migrate: true
+    baseline-version: 1.0.0
+    # 迁移脚本位置
+    locations: classpath:db/migration
+    # 历史记录表名
+    table: flyway_schema_history
+    # 校验迁移脚本的校验和
+    validate-on-migrate: true
+    # 清理数据库（生产环境必须为 false）
+    clean-disabled: true
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/domye_picture?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
@@ -99,6 +115,18 @@ ai:
     model-name: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
     # 向量维度
     dimension: 1024
+  # 查询重写配置
+  query-rewrite:
+    # 是否启用查询重写
+    enabled: ${AI_QUERY_REWRITE_ENABLED:true}
+  # 混合检索配置
+  hybrid-search:
+    # 是否启用混合检索
+    enabled: ${AI_HYBRID_SEARCH_ENABLED:false}
+    # 向量检索权重（0-1，剩余权重给全文检索）
+    vector-weight: 0.7
+    # RRF 常量参数
+    rrf-k: 60
 
 # PostgreSQL 向量存储配置 (用于 RAG)
 postgres:
