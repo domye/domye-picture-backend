@@ -66,7 +66,7 @@ public class MySQLFlywayConfig {
                 // 禁用校验（开发阶段脚本可能被修改）
                 .validateOnMigrate(false)
                 // 允许乱序执行（开发阶段方便）
-                .outOfOrder(true)
+                .outOfOrder(false)
                 // 禁用清理（安全考虑）
                 .cleanDisabled(true)
                 .load();

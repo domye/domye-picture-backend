@@ -94,6 +94,12 @@ rocketmq:
   producer:
     group: comment-ai-producer-group
 
+# 日志配置
+logging:
+  level:
+    org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR
+    org.flywaydb.core.internal.database.base.Database: ERROR
+
 
 # AI 配置 (LangChain4j)
 ai:
