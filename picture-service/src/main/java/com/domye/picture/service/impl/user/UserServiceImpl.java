@@ -14,6 +14,7 @@ import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.enums.UserRoleEnum;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.user.UserProfileVO;
+import com.domye.picture.model.vo.user.UserSearchVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import com.domye.picture.service.mapper.UserMapper;
@@ -22,7 +23,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -268,13 +271,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public UserProfileVO getUserProfile(String userAccount) {
 
-        // 1. 获取用户基本信息
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
         User user = baseMapper.selectOne(queryWrapper);
         Throw.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
 
         return userStructMapper.toUserProfileVO(user);
+    }
+
+    @Override
+    public List<UserSearchVO> searchUsers(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return new ArrayList<>();
+        }
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        if (keyword.matches("\\d+") && keyword.length() > 6) {
+            // 账户精确匹配 + 用户名模糊匹配
+            queryWrapper.and(wrapper -> wrapper
+                    .eq("userAccount", keyword)
+                    .or()
+                    .like("userName", keyword)
+            );
+        } else {
+            // 用户名和账户都模糊匹配
+            queryWrapper.like("userName", keyword);
+        }
+        queryWrapper.eq("isDelete", 0).last("LIMIT 20");
+
+
+        return  this.list(queryWrapper).stream()
+                .map(userStructMapper::toUserSearchVo)
+                .collect(Collectors.toList());
     }
 }
 

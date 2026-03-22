@@ -15,6 +15,7 @@ import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.user.UserProfileVO;
+import com.domye.picture.model.vo.user.UserSearchVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -169,8 +171,8 @@ public class UserController implements Serializable {
     /**
      * 获取用户主页信息
      *
-     * @param userAccount 用账号
-     * @return 用户主 页信息（包含基本信息、统计信息、排名信息）
+     * @param userAccount 用户账号
+     * @return 用户主页信息
      */
     @Operation(summary = "获取用户主页信息")
     @GetMapping("/profile")
@@ -178,6 +180,21 @@ public class UserController implements Serializable {
         Throw.throwIf(userAccount == null , ErrorCode.PARAMS_ERROR);
         UserProfileVO userProfileVO = userService.getUserProfile(userAccount);
         return Result.success(userProfileVO);
+    }
+
+    /**
+     * 搜索用户
+     *
+     * @param keyword 关键词
+     * @return 匹配的用户列表
+     */
+    @Operation(summary = "搜索用户")
+    @AuthCheck()
+    @GetMapping("/search")
+    public BaseResponse<List<UserSearchVO>> searchUsers(@RequestParam String keyword) {
+        Throw.throwIf(keyword == null || keyword.trim().isEmpty(), ErrorCode.PARAMS_ERROR, "搜索关键词不能为空");
+        List<UserSearchVO> userVOList = userService.searchUsers(keyword.trim());
+        return Result.success(userVOList);
     }
 
 }
