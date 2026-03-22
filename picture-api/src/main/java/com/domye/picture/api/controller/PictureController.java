@@ -20,6 +20,7 @@ import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
 import com.domye.picture.model.vo.picture.PictureVO;
+import com.domye.picture.model.vo.picture.PictureGalleryVO;
 import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.space.SpaceService;
 import com.domye.picture.service.api.user.UserService;
@@ -268,5 +269,14 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         List<PictureVO> result = pictureService.searchPictureByColor(spaceId, picColor, loginUser);
         return Result.success(result);
+    }
+
+    @Operation(summary = "获取个人作品列表")
+    @AuthCheck()
+    @PostMapping("/gallery")
+    public BaseResponse<Page<PictureGalleryVO>> getUserGallery(@RequestBody PictureGalleryQueryRequest pictureGalleryQueryRequest) {
+        Throw.throwIf(pictureGalleryQueryRequest == null , ErrorCode.PARAMS_ERROR);
+        Page<PictureGalleryVO> galleryVOPage = pictureService.getPictureGallery(pictureGalleryQueryRequest);
+        return Result.success(galleryVOPage);
     }
 }
