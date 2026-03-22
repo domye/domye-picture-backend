@@ -7,8 +7,11 @@ import com.domye.picture.model.dto.user.UserQueryRequest;
 import com.domye.picture.model.dto.user.UserUpdateRequest;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.user.UserProfileVO;
+import com.domye.picture.model.vo.user.UserSearchVO;
 import com.domye.picture.model.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 /**
  * @author Domye
@@ -38,5 +41,7 @@ public interface UserService extends IService<User> {
     Page<UserVO> listUserVOByPage(UserQueryRequest userQueryRequest);
 
     UserProfileVO getUserProfile(String userAccount);
+
+    List<UserSearchVO> searchUsers(String keyword);
 }
 
