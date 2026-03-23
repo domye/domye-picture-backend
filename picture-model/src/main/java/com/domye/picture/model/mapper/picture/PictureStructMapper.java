@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureUpdateRequest;
 import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.vo.picture.PictureWorkVO;
 import com.domye.picture.model.vo.picture.PictureVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,6 +23,11 @@ public interface PictureStructMapper {
     PictureVO toVo(Picture picture);
 
     List<PictureVO> toVoList(List<Picture> pictures);
+
+    @Mapping(target = "tags", expression = "java(mapJsonToTags(picture.getTags()))")
+    PictureWorkVO toWorkVo(Picture picture);
+
+    List<PictureWorkVO> toWorkVoList(List<Picture> pictures);
 
     default List<String> mapJsonToTags(String tagsJson) {
         if (tagsJson == null) {
