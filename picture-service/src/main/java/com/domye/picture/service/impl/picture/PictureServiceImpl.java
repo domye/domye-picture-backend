@@ -24,6 +24,7 @@ import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
 import com.domye.picture.model.vo.picture.PictureVO;
+import com.domye.picture.model.vo.picture.PictureGalleryVO;
 import com.domye.picture.model.vo.user.UserVO;
 import com.domye.picture.service.api.ai.PictureEmbeddingService;
 import com.domye.picture.service.api.picture.PictureService;
@@ -724,6 +725,103 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         pictureListLocalCache.put(cacheKey, cacheValue);
 
         return pictureVOPage;
+    }
+
+    @Override
+    public Page<PictureGalleryVO> getPictureGallery(PictureGalleryQueryRequest queryRequest) {
+        // 参数校验
+        Throw.throwIf(StrUtil.isBlank(queryRequest.getUserAccount()),
+                ErrorCode.PARAMS_ERROR, "用户账号不能为空");
+        log.info("userAccount: {}", queryRequest.getUserAccount());  // 添加日志
+
+        // 限制分页大小
+        long size = queryRequest.getSize();
+        if (size <= 0) {
+            size = 20L;
+        }
+        size = Math.min(size, 50L);
+
+        long current = queryRequest.getCurrent();
+        if (current <= 0) {
+            current = 1;
+        }
+
+        // 查询用户
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("userAccount", queryRequest.getUserAccount());
+        User user = userService.getOne(userQueryWrapper);
+        Throw.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+
+        // 构建缓存key
+        String queryCondition = user.getId() + "_" + current + "_" + size;
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cacheKey = CacheConstant.PICTURE_LIST_CACHE_KEY + "user:gallery:" + hashKey;
+
+        // 先查本地缓存
+        String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
+        if (cachedValue != null) {
+            return JSONUtil.toBean(cachedValue, Page.class);
+        }
+
+        // 再查Redis缓存
+        cachedValue = (String) redisCache.get(cacheKey);
+        if (cachedValue != null) {
+            pictureListLocalCache.put(cacheKey, cachedValue);
+            return JSONUtil.toBean(cachedValue, Page.class);
+        }
+
+        // 查询数据库
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", user.getId())
+                .isNull("spaceId")  // 只查询公开图片
+                .eq("reviewStatus", PictureReviewStatusEnum.PASS.getValue()) // 只查询已通过审核的图片
+                .orderByDesc("createTime");
+
+        Page<Picture> picturePage = page(new Page<>(current, size), queryWrapper);
+        List<Picture> pictureList = picturePage.getRecords();
+
+        // 转换为VO
+        List<PictureVO> pictureVOList = pictureStructMapper.toVoList(pictureList);
+
+        // 填充用户信息
+        fillUserInfo(pictureVOList, pictureList);
+
+        // 构建UserGalleryVO
+        PictureGalleryVO galleryVO = new PictureGalleryVO();
+        galleryVO.setRecords(pictureVOList);
+
+        // 构建分页结果
+        Page<PictureGalleryVO> resultPage = new Page<>(current, size, picturePage.getTotal());
+        resultPage.setRecords(Collections.singletonList(galleryVO));
+
+        // 写入缓存
+        String cacheValue = JSONUtil.toJsonStr(resultPage);
+        Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300); // 5-10分钟随机过期
+        redisCache.put(cacheKey, cacheValue, cacheExpireTime);
+        pictureListLocalCache.put(cacheKey, cacheValue);
+
+        return resultPage;
+    }
+
+    private void fillUserInfo(List<PictureVO> pictureVOList, List<Picture> pictureList) {
+        if (CollUtil.isEmpty(pictureList)) {
+            return;
+        }
+        Set<Long> userIds = pictureList.stream()
+                .map(Picture::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        List<User> userList = userService.listByIds(userIds);
+        Map<Long, UserVO> userMap = userList.stream()
+                .collect(Collectors.toMap(User::getId, userStructMapper::toUserVo, (a, b) -> a));
+
+        pictureVOList.forEach(pictureVO -> {
+            if (pictureVO.getUserId() != null) {
+                UserVO userVO = userMap.get(pictureVO.getUserId());
+                pictureVO.setUser(userVO);
+            }
+        });
     }
 
 }

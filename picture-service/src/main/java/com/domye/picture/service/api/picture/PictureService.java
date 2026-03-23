@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.vo.picture.PictureGalleryVO;
 import com.domye.picture.model.vo.picture.PictureVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,4 +47,6 @@ public interface PictureService extends IService<Picture> {
     List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
 
     Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request);
+
+    Page<PictureGalleryVO> getPictureGallery(PictureGalleryQueryRequest pictureGalleryQueryRequest);
 }
