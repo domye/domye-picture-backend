@@ -53,7 +53,7 @@
 | 本地缓存 | Caffeine | 3.2.2 |
 | 认证授权 | Sa-Token | 1.39.0 |
 | 对象存储 | 腾讯云 COS | 5.6.227 |
-| 消息队列 | RocketMQ | 2.3.1 |
+| 消息队列 | RabbitMQ | 3.12+ |
 | AI 框架 | LangChain4j | 0.36.2 |
 | 对象映射 | MapStruct | 1.6.3 |
 | 高性能队列 | Disruptor | 3.4.2 |

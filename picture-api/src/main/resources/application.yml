@@ -88,11 +88,26 @@ knife4j:
   setting:
     language: zh_cn
 
-# RocketMQ配置
-rocketmq:
-  name-server: ${ROCKETMQ_NAME_SERVER:localhost:9876}
-  producer:
-    group: comment-ai-producer-group
+  # RabbitMQ配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    connection-timeout: 5000
+    requested-heartbeat: 30
+    listener:
+      simple:
+        acknowledge-mode: auto
+        concurrency: 1
+        max-concurrency: 5
+        retry:
+          enabled: true
+          initial-interval: 1000
+          multiplier: 2
+          max-attempts: 3
+          max-interval: 10000
 
 # 日志配置
 logging:

@@ -19,7 +19,6 @@
         <!-- 第三方依赖版本号 -->
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
 
-        <rocketmq.version>2.3.1</rocketmq.version>
         <sa-token.version>1.39.0</sa-token.version>
         <redisson.version>3.51.0</redisson.version>
         <caffeine.version>3.2.2</caffeine.version>
@@ -86,11 +85,11 @@
             </dependency>
 
             <!-- ==================== 消息队列相关依赖 ==================== -->
-            <!-- RocketMQ -->
+            <!-- Spring AMQP (RabbitMQ) -->
             <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-spring-boot-starter</artifactId>
-                <version>${rocketmq.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-amqp</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
 
             <!-- ==================== 认证授权相关依赖 ==================== -->
@@ -227,11 +226,18 @@
                 <version>31.1-jre</version>
             </dependency>
 
-            <!-- 统一 OkIO 版本（腾讯云 SDK 依赖冲突） -->
+            <!-- 统一 OkIO 版本（OkHttp 4.x 需要 3.x） -->
             <dependency>
                 <groupId>com.squareup.okio</groupId>
                 <artifactId>okio</artifactId>
-                <version>1.17.5</version>
+                <version>3.9.0</version>
+            </dependency>
+
+            <!-- 统一 OkHttp 版本 -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
             </dependency>
 
             <!-- 统一 Checker Qual 版本（Caffeine 和 RocketMQ 依赖冲突） -->

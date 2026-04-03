@@ -11,7 +11,7 @@ import java.util.Date;
 
 /**
  * AI评论回复消息
- * 用于RocketMQ传递AI回复请求
+ * 用于RabbitMQ传递AI回复请求
  */
 @Data
 @Builder
