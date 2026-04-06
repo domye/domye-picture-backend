@@ -28,6 +28,8 @@
         <result property="reviewTime" column="reviewTime"/>
         <result property="thumbnailUrl" column="thumbnailUrl"/>
         <result property="spaceId" column="spaceId"/>
+        <result property="albumId" column="albumId"/>
+        <result property="albumType" column="albumType"/>
     </resultMap>
 
     <sql id="Base_Column_List">
