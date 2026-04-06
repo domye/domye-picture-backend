@@ -20,6 +20,7 @@ import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.AlbumTypeEnum;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
@@ -341,7 +342,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         } else {
             queryWrapper.isNull(PictureConstant.FIELD_SPACE_ID);
         }
-        // 标签查询优化：将循环 JSON_CONTAINS 改为单次 JSON_OVERLAPS 查询
+
+        // 在标签查询之前，添加 albumTypes 过滤
+        List<Integer> albumTypes = pictureQueryRequest.getAlbumType();
+        if (CollUtil.isNotEmpty(albumTypes)) {
+            queryWrapper.in("albumType", albumTypes);
+        }
+        // 标签查询优化：将循环 JSON_CONTAINS 改为单次9 JSON_OVERLAPS 查询
         // 性能提升：减少 N 次函数调用为 1 次，利用 MySQL 8.0.17+ 的多值索引特性
         List<String> tags = pictureQueryRequest.getTags();
         if (CollUtil.isNotEmpty(tags)) {
@@ -698,7 +705,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long spaceId = pictureQueryRequest.getSpaceId();
         if (spaceId == null) {
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-        }
+        };
+
+        pictureQueryRequest.setAlbumType(Arrays.asList(AlbumTypeEnum.Not.getValue(), AlbumTypeEnum.Cover.getValue()));
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
         String cacheKey = CacheConstant.PICTURE_LIST_CACHE_KEY + hashKey;

@@ -167,7 +167,7 @@ public class PictureController {
             space = spaceService.getById(spaceId);
             Throw.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         }
-        // 获取权限列表
+        // 获取权限列表a
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         PictureVO pictureVO = pictureService.getPictureVO(picture, request);
         if (userObj != null) {
