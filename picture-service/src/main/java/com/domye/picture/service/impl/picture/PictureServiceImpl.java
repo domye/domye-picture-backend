@@ -20,6 +20,7 @@ import com.domye.picture.model.dto.rank.UserActivityScoreAddRequest;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.AlbumTypeEnum;
 import com.domye.picture.model.enums.PictureReviewStatusEnum;
 import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.mapper.user.UserStructMapper;
@@ -341,7 +342,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         } else {
             queryWrapper.isNull(PictureConstant.FIELD_SPACE_ID);
         }
-        // 标签查询优化：将循环 JSON_CONTAINS 改为单次 JSON_OVERLAPS 查询
+
+        // 在标签查询之前，添加 albumTypes 过滤
+        List<Integer> albumTypes = pictureQueryRequest.getAlbumType();
+        if (CollUtil.isNotEmpty(albumTypes)) {
+            queryWrapper.in("albumType", albumTypes);
+        }
+
+        // 标签查询优化：将循环 JSON_CONTAINS 改为单次9 JSON_OVERLAPS 查询
         // 性能提升：减少 N 次函数调用为 1 次，利用 MySQL 8.0.17+ 的多值索引特性
         List<String> tags = pictureQueryRequest.getTags();
         if (CollUtil.isNotEmpty(tags)) {
@@ -535,7 +543,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * 在图片数据变更（上传、编辑、删除）时调用，确保缓存一致性
      * 使用事务同步机制，在事务提交后执行缓存清除，避免读写竞争
      */
-    private void clearPictureListCache() {
+    public void clearPictureListCache() {
         // 如果当前有事务，在事务提交后执行缓存清除
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -549,6 +557,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             doClearCache();
         }
     }
+
 
     /**
      * 实际执行缓存清除操作
@@ -698,7 +707,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long spaceId = pictureQueryRequest.getSpaceId();
         if (spaceId == null) {
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
-        }
+        };
+
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
         String cacheKey = CacheConstant.PICTURE_LIST_CACHE_KEY + hashKey;
@@ -726,6 +736,49 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         return pictureVOPage;
     }
+
+    @Override
+    public List<Picture> listPictureVOWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+
+
+        long size = pictureQueryRequest.getPageSize();
+        Throw.throwIf(size > PictureConstant.MAX_PAGE_SIZE, ErrorCode.PARAMS_ERROR);
+
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if (spaceId == null) {
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        };
+
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cacheKey = CacheConstant.PICTURE_LIST_CACHE_KEY + hashKey;
+
+        String cachedValue = pictureListLocalCache.getIfPresent(cacheKey);
+        if (cachedValue != null) {
+            return JSONUtil.toList(cachedValue, Picture.class);
+        }
+
+        cachedValue = (String) redisCache.get(cacheKey);
+        if (cachedValue != null) {
+            pictureListLocalCache.put(cacheKey, cachedValue);
+            return JSONUtil.toList(cachedValue, Picture.class);
+        }
+
+
+        // 查询数据库
+        QueryWrapper<Picture> queryWrapper = getQueryWrapper(pictureQueryRequest);
+        List<Picture> pictureList = list(queryWrapper);
+
+
+        String cacheValue = JSONUtil.toJsonStr(pictureList);
+        Long cacheExpireTime = 300L + RandomUtil.randomLong(0, 300);
+        redisCache.put(cacheKey, cacheValue, cacheExpireTime);
+        pictureListLocalCache.put(cacheKey, cacheValue);
+
+
+        return pictureList;
+    }
+
 
     @Override
     public Page<PictureWorkVO> getUserWorks(String userAccount, long current, long size) {
@@ -791,5 +844,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
         return resultPage;
     }
+
 
 }

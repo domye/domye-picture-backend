@@ -49,4 +49,8 @@ public interface PictureService extends IService<Picture> {
     Page<PictureVO> listPictureVOByPageWithCache(PictureQueryRequest pictureQueryRequest, HttpServletRequest request);
 
     Page<PictureWorkVO> getUserWorks(String userAccount, long current, long size);
+
+    void clearPictureListCache();
+
+    List<Picture> listPictureVOWithCache(PictureQueryRequest queryRequest, HttpServletRequest request);
 }

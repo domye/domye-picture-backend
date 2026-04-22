@@ -140,4 +140,15 @@ public class Picture implements Serializable {
      * 计算公式：评论数 * 5 + 点赞数 * 3
      */
     private Integer hotScore;
+
+    /**
+     * 相册类型：0-不属于相册；1-属于相册的从图；2-属于相册的主图
+     */
+    private Integer albumType;
+
+    /**
+     * 所属相册 id（为空表示不属于相册）
+     */
+    private Long albumId;
+
 }

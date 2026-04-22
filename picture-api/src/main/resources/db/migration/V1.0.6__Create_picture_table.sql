@@ -1,5 +1,6 @@
+
 -- 图片表
-CREATE TABLE IF NOT EXISTS picture
+CREATE TABLE picture
 (
     id            bigint auto_increment comment 'id'
         primary key,
@@ -24,7 +25,9 @@ CREATE TABLE IF NOT EXISTS picture
     reviewTime    datetime                           null comment '审核时间',
     thumbnailUrl  varchar(512)                       null comment '缩略图 url',
     spaceId       bigint                             null comment '空间 id（为空表示公共空间）',
-    picColor      varchar(16)                        null comment '图片主色调'
+    picColor      varchar(16)                        null comment '图片主色调',
+    albumId       bigint                             null comment '所属相册 id',
+    albumType     int      default 0                 not null comment '相册类型：0-不属于相册; 1-属于相册;2-相册主图'
 )
     comment '图片' collate = utf8mb4_unicode_ci;
 

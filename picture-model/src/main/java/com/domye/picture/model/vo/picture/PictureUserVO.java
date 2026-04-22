@@ -1,7 +1,5 @@
 package com.domye.picture.model.vo.picture;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.domye.picture.model.vo.user.UserVO;
 import lombok.Data;
 
 import java.io.Serial;
@@ -11,7 +9,8 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PictureVO implements Serializable {
+
+public class PictureUserVO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -67,10 +66,7 @@ public class PictureVO implements Serializable {
      * 图片主色调
      */
     private String picColor;
-    /**
-     * 用户 id
-     */
-    private Long userId;
+
     /**
      * 空间 id
      */
@@ -87,15 +83,10 @@ public class PictureVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-    /**
-     * 创建用户信息
-     */
-    private UserVO user;
+
     /**
      * 权限列表
      */
     private List<String> permissionList = new ArrayList<>();
-
-    private List<PictureUserVO> AlbumPictures;
 
 }
