@@ -22,11 +22,13 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Album {
+
     /**
-     * id
+     * id（封面图片 id）
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.INPUT)
     private Long id;
+
 
     /**
      * 相册名称
@@ -79,10 +81,6 @@ public class Album {
     @TableLogic
     private Integer isDelete;
 
-    /**
-     * 封面图 url
-     */
-    private String coverUrl;
 
     /**
      * 空间 id（为空表示公共空间）

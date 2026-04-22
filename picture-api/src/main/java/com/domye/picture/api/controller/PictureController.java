@@ -18,7 +18,10 @@ import com.domye.picture.model.dto.picture.*;
 import com.domye.picture.model.entity.picture.Picture;
 import com.domye.picture.model.entity.space.Space;
 import com.domye.picture.model.entity.user.User;
+import com.domye.picture.model.enums.AlbumTypeEnum;
+import com.domye.picture.model.mapper.picture.PictureStructMapper;
 import com.domye.picture.model.vo.picture.PictureTagCategory;
+import com.domye.picture.model.vo.picture.PictureUserVO;
 import com.domye.picture.model.vo.picture.PictureVO;
 import com.domye.picture.model.vo.picture.PictureWorkVO;
 import com.domye.picture.service.api.picture.PictureService;
@@ -30,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.domye.picture.common.constant.UserConstant.USER_LOGIN_STATE;
@@ -44,6 +48,7 @@ public class PictureController {
     final UserService userService;
     final SpaceService spaceService;
     final SpaceUserAuthManager spaceUserAuthManager;
+    private final PictureStructMapper pictureStructMapper;
 
 
     /**
@@ -175,6 +180,20 @@ public class PictureController {
             List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
             pictureVO.setPermissionList(permissionList);
         }
+
+        // 如果是相册主图（albumType == 2），获取同相册图片
+        if (picture.getAlbumType() != null && picture.getAlbumType() == 2) {
+            PictureQueryRequest queryRequest = new PictureQueryRequest();
+            // 可以设置 albumType 过滤从图
+            queryRequest.setAlbumType(Arrays.asList(AlbumTypeEnum.Own.getValue()));
+
+            List<Picture> albumPicture = pictureService.listPictureVOWithCache(queryRequest, request);
+
+            List<PictureUserVO> pictures= pictureStructMapper.toUserVo(albumPicture);;
+
+            pictureVO.setAlbumPictures(pictures);
+        }
+
         return Result.success(pictureVO);
     }
 
@@ -214,6 +233,9 @@ public class PictureController {
             boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
             Throw.throwIf(!hasPermission, ErrorCode.NO_AUTH_ERROR);
         }
+
+        pictureQueryRequest.setAlbumType(Arrays.asList(AlbumTypeEnum.Not.getValue(), AlbumTypeEnum.Cover.getValue()));
+
         // 调用 Service 层缓存方法
         Page<PictureVO> pictureVOPage = pictureService.listPictureVOByPageWithCache(pictureQueryRequest, request);
         return Result.success(pictureVOPage);

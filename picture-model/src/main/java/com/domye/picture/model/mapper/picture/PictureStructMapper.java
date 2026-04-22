@@ -1,9 +1,11 @@
 package com.domye.picture.model.mapper.picture;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.domye.picture.model.dto.picture.PictureEditRequest;
 import com.domye.picture.model.dto.picture.PictureUpdateRequest;
 import com.domye.picture.model.entity.picture.Picture;
+import com.domye.picture.model.vo.picture.PictureUserVO;
 import com.domye.picture.model.vo.picture.PictureWorkVO;
 import com.domye.picture.model.vo.picture.PictureVO;
 import org.mapstruct.Mapper;
@@ -58,4 +60,7 @@ public interface PictureStructMapper {
     }
 
     void copyPicture(@MappingTarget Picture target, Picture source);
+
+    List<PictureUserVO> toUserVo(List<Picture> albumPicture);
+
 }

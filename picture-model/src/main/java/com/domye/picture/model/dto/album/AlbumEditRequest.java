@@ -36,8 +36,6 @@ public class AlbumEditRequest implements Serializable {
      */
     private String tags;
 
-    /**
-     * 封面图 url
-     */
-    private String coverUrl;
+
+
 }

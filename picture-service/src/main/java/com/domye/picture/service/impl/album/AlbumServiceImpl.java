@@ -37,16 +37,46 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album>
 
     @Override
     public Long addAlbum(AlbumAddRequest albumAddRequest, User loginUser) {
+        Long coverId = albumAddRequest.getCoverId();
+
+        // 验证封面图片是否存在
+        Throw.throwIf(coverId == null, ErrorCode.PARAMS_ERROR, "封面图不能为空");
+
+        Picture coverPicture = pictureMapper.selectById(coverId);
+        Throw.throwIf(coverPicture == null, ErrorCode.NOT_FOUND_ERROR, "封面图片不存在");
+
+        // 验证图片权限
+        Throw.throwIf(!coverPicture.getUserId().equals(loginUser.getId()) &&
+                        !userService.isAdmin(loginUser),
+                ErrorCode.NO_AUTH_ERROR, "无权限使用该图片作为封面");
+
+        // 检查该图片是否已经作为其他相册的主图
+        Album existingAlbum = getById(coverId);
+        Throw.throwIf(existingAlbum != null, ErrorCode.PARAMS_ERROR, "该图片已作为其他相册的封面");
+
+        // 检查该图片是否已经属于其他相册
+        Throw.throwIf(coverPicture.getAlbumId() != null,
+                ErrorCode.PARAMS_ERROR, "该图片已属于其他相册");
+
         // 转换实体
         Album album = albumStructMapper.toAdd(albumAddRequest);
+        // 设置相册 id 为封面图 id
+        album.setId(coverId);
         // 填充默认值
-        if (album.getPicCount() == null) {
-            album.setPicCount(0);
-        }
+        album.setPicCount(1); // 初始图片数量为 1（封面图）
         album.setUserId(loginUser.getId());
+
         // 写入数据库
         boolean result = save(album);
         Throw.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建相册失败");
+
+        // 更新封面图片的 albumType 为 2（主图），并关联相册
+        Picture updatePicture = new Picture();
+        updatePicture.setId(coverId);
+        updatePicture.setAlbumType(2); // 设置为主图
+        updatePicture.setAlbumId(coverId); // 相册 id 就是图片 id
+        pictureMapper.updateById(updatePicture);
+
         return album.getId();
     }
 

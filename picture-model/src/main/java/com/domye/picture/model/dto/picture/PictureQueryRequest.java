@@ -93,7 +93,6 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      */
     private Long spaceId;
 
-
     /**
      * 相册类型过滤：true-只查询不属于相册 (0) 或相册主图 (2) 的图片；false-不过滤
      */

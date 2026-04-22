@@ -13,6 +13,7 @@ import com.domye.picture.model.entity.album.Album;
 import com.domye.picture.model.entity.user.User;
 import com.domye.picture.model.vo.album.AlbumVO;
 import com.domye.picture.service.api.album.AlbumService;
+import com.domye.picture.service.api.picture.PictureService;
 import com.domye.picture.service.api.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class AlbumController {
 
     final AlbumService albumService;
     final UserService userService;
-
+    final PictureService pictureService;
 
 
     /**
@@ -43,6 +44,8 @@ public class AlbumController {
         Throw.throwIf(albumAddRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         Long albumId = albumService.addAlbum(albumAddRequest, loginUser);
+
+        pictureService.clearPictureListCache();
         return Result.success(albumId);
     }
 
@@ -60,6 +63,8 @@ public class AlbumController {
         Throw.throwIf(albumEditRequest == null || albumEditRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         albumService.editAlbum(albumEditRequest, loginUser);
+
+        pictureService.clearPictureListCache();
         return Result.success(true);
     }
 
@@ -77,6 +82,8 @@ public class AlbumController {
         Throw.throwIf(deleteRequest == null || deleteRequest.getId() <= 0, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         albumService.deleteAlbum(deleteRequest.getId(), loginUser);
+
+        pictureService.clearPictureListCache();
         return Result.success(true);
     }
 
@@ -112,6 +119,8 @@ public class AlbumController {
                                                     HttpServletRequest httpRequest) {
         User loginUser = userService.getLoginUser(httpRequest);
         albumService.addPicturesToAlbum(request, loginUser);
+
+        pictureService.clearPictureListCache();
         return Result.success(true);
     }
 }

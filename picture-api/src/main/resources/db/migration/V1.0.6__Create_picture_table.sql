@@ -1,6 +1,6 @@
 
 -- 图片表
-CREATE TABLE IF NOT EXISTS picture
+CREATE TABLE picture
 (
     id            bigint auto_increment comment 'id'
         primary key,

@@ -67,9 +67,10 @@ public class AlbumVO implements Serializable {
 
 
     /**
-     * 封面图 url
+     * 封面图 id（选择一张图片作为封面）
      */
-    private String coverUrl;
+    private Long coverId;
+
 
     /**
      * 空间 id（为空表示公共空间）

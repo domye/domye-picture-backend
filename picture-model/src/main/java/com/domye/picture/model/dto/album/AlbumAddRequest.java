@@ -1,5 +1,6 @@
 package com.domye.picture.model.dto.album;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serial;
@@ -32,9 +33,10 @@ public class AlbumAddRequest implements Serializable {
     private String tags;
 
     /**
-     * 封面图 url
+     * 封面图 id（将作为相册 id）
      */
-    private String coverUrl;
+    @NotNull(message = "封面图不能为空")
+    private Long coverId;
 
     /**
      * 空间 id（为空表示公共空间）
